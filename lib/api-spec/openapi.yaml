@@ -3,20 +3,29 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Prompt Marketplace API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: categories
+    description: Category operations
+  - name: prompts
+    description: Prompt operations
+  - name: users
+    description: User profile operations
+  - name: libraries
+    description: Prompt library operations
+  - name: stats
+    description: Marketplace stats
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +33,444 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  /prompts:
+    get:
+      operationId: listPrompts
+      tags: [prompts]
+      summary: List prompts with optional filters
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: search
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: sort
+          in: query
+          schema:
+            type: ["string", "null"]
+            enum: [trending, newest, most_saved, null]
+        - name: username
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: limit
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: offset
+          in: query
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: List of prompts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromptListResponse"
+    post:
+      operationId: createPrompt
+      tags: [prompts]
+      summary: Create a new prompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromptInput"
+      responses:
+        "201":
+          description: Created prompt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prompt"
+
+  /prompts/trending:
+    get:
+      operationId: getTrendingPrompts
+      tags: [prompts]
+      summary: Get trending prompts
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: Trending prompts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Prompt"
+
+  /prompts/{id}:
+    get:
+      operationId: getPrompt
+      tags: [prompts]
+      summary: Get a prompt by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Prompt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prompt"
+        "404":
+          description: Not found
+    patch:
+      operationId: updatePrompt
+      tags: [prompts]
+      summary: Update a prompt
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromptUpdate"
+      responses:
+        "200":
+          description: Updated prompt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prompt"
+    delete:
+      operationId: deletePrompt
+      tags: [prompts]
+      summary: Delete a prompt
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /prompts/{id}/save:
+    post:
+      operationId: toggleSavePrompt
+      tags: [prompts]
+      summary: Toggle save/unsave a prompt
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveToggleInput"
+      responses:
+        "200":
+          description: Save status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SaveToggleResponse"
+
+  /users:
+    post:
+      operationId: createUser
+      tags: [users]
+      summary: Create a new user profile (onboarding)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "201":
+          description: Created user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/featured:
+    get:
+      operationId: getFeaturedCreators
+      tags: [users]
+      summary: Get featured creators
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: Featured creators
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /users/{username}:
+    get:
+      operationId: getUserProfile
+      tags: [users]
+      summary: Get user profile by username
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateUserProfile
+      tags: [users]
+      summary: Update a user profile
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{username}/libraries:
+    get:
+      operationId: getUserLibraries
+      tags: [users]
+      summary: Get libraries for a user
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User libraries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Library"
+
+  /libraries:
+    get:
+      operationId: listLibraries
+      tags: [libraries]
+      summary: List public libraries
+      parameters:
+        - name: username
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: limit
+          in: query
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: List of libraries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Library"
+    post:
+      operationId: createLibrary
+      tags: [libraries]
+      summary: Create a new library
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LibraryInput"
+      responses:
+        "201":
+          description: Created library
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Library"
+
+  /libraries/{id}:
+    get:
+      operationId: getLibrary
+      tags: [libraries]
+      summary: Get a library by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Library with prompts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LibraryDetail"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateLibrary
+      tags: [libraries]
+      summary: Update a library
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LibraryUpdate"
+      responses:
+        "200":
+          description: Updated library
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Library"
+    delete:
+      operationId: deleteLibrary
+      tags: [libraries]
+      summary: Delete a library
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /libraries/{id}/prompts:
+    post:
+      operationId: addPromptToLibrary
+      tags: [libraries]
+      summary: Add a prompt to a library
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LibraryPromptInput"
+      responses:
+        "200":
+          description: Updated library
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Library"
+
+  /libraries/{id}/prompts/{promptId}:
+    delete:
+      operationId: removePromptFromLibrary
+      tags: [libraries]
+      summary: Remove a prompt from a library
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: promptId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated library
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Library"
+
+  /stats:
+    get:
+      operationId: getMarketplaceStats
+      tags: [stats]
+      summary: Get marketplace statistics
+      responses:
+        "200":
+          description: Marketplace stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketplaceStats"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +481,346 @@ components:
       required:
         - status
 
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        icon:
+          type: string
+        description:
+          type: string
+        promptCount:
+          type: integer
+      required:
+        - id
+        - name
+        - slug
+        - icon
+        - description
+        - promptCount
+
+    Prompt:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        description:
+          type: ["string", "null"]
+        categoryId:
+          type: integer
+        categoryName:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        authorUsername:
+          type: string
+        authorDisplayName:
+          type: string
+        authorAvatarUrl:
+          type: ["string", "null"]
+        saveCount:
+          type: integer
+        viewCount:
+          type: integer
+        isPublic:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - title
+        - content
+        - categoryId
+        - categoryName
+        - tags
+        - authorUsername
+        - authorDisplayName
+        - saveCount
+        - viewCount
+        - isPublic
+        - createdAt
+        - updatedAt
+
+    PromptListResponse:
+      type: object
+      properties:
+        prompts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Prompt"
+        total:
+          type: integer
+      required:
+        - prompts
+        - total
+
+    PromptInput:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        content:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        categoryId:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        authorUsername:
+          type: string
+        isPublic:
+          type: boolean
+      required:
+        - title
+        - content
+        - categoryId
+        - authorUsername
+
+    PromptUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        content:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        categoryId:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        isPublic:
+          type: boolean
+
+    SaveToggleInput:
+      type: object
+      properties:
+        username:
+          type: string
+      required:
+        - username
+
+    SaveToggleResponse:
+      type: object
+      properties:
+        saved:
+          type: boolean
+        saveCount:
+          type: integer
+      required:
+        - saved
+        - saveCount
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        displayName:
+          type: string
+        bio:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        categories:
+          type: array
+          items:
+            type: string
+        promptCount:
+          type: integer
+        libraryCount:
+          type: integer
+        totalSaves:
+          type: integer
+        createdAt:
+          type: string
+      required:
+        - id
+        - username
+        - displayName
+        - categories
+        - promptCount
+        - libraryCount
+        - totalSaves
+        - createdAt
+
+    UserInput:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 2
+        displayName:
+          type: string
+          minLength: 1
+        bio:
+          type: string
+        avatarUrl:
+          type: string
+        categories:
+          type: array
+          items:
+            type: string
+      required:
+        - username
+        - displayName
+
+    UserUpdate:
+      type: object
+      properties:
+        displayName:
+          type: string
+          minLength: 1
+        bio:
+          type: string
+        avatarUrl:
+          type: string
+        categories:
+          type: array
+          items:
+            type: string
+
+    Library:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        authorUsername:
+          type: string
+        authorDisplayName:
+          type: string
+        promptCount:
+          type: integer
+        isPublic:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - name
+        - authorUsername
+        - authorDisplayName
+        - promptCount
+        - isPublic
+        - createdAt
+        - updatedAt
+
+    LibraryDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        authorUsername:
+          type: string
+        authorDisplayName:
+          type: string
+        isPublic:
+          type: boolean
+        prompts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Prompt"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - name
+        - authorUsername
+        - authorDisplayName
+        - isPublic
+        - prompts
+        - createdAt
+        - updatedAt
+
+    LibraryInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        authorUsername:
+          type: string
+        isPublic:
+          type: boolean
+      required:
+        - name
+        - authorUsername
+
+    LibraryUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        isPublic:
+          type: boolean
+
+    LibraryPromptInput:
+      type: object
+      properties:
+        promptId:
+          type: integer
+      required:
+        - promptId
+
+    MarketplaceStats:
+      type: object
+      properties:
+        totalPrompts:
+          type: integer
+        totalCreators:
+          type: integer
+        totalSaves:
+          type: integer
+        totalLibraries:
+          type: integer
+        topCategories:
+          type: array
+          items:
+            $ref: "#/components/schemas/Category"
+      required:
+        - totalPrompts
+        - totalCreators
+        - totalSaves
+        - totalLibraries
+        - topCategories

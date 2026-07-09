@@ -1,0 +1,318 @@
+import { Router, type IRouter } from "express";
+import { db, librariesTable, libraryPromptsTable, promptsTable, categoriesTable, usersTable } from "@workspace/db";
+import { eq, sql, desc, and } from "drizzle-orm";
+import {
+  CreateLibraryBody,
+  CreateLibraryResponse,
+  GetLibraryParams,
+  GetLibraryResponse,
+  UpdateLibraryBody,
+  UpdateLibraryParams,
+  UpdateLibraryResponse,
+  DeleteLibraryParams,
+  ListLibrariesQueryParams,
+  ListLibrariesResponse,
+  AddPromptToLibraryBody,
+  AddPromptToLibraryParams,
+  AddPromptToLibraryResponse,
+  RemovePromptFromLibraryParams,
+  RemovePromptFromLibraryResponse,
+  GetUserLibrariesParams,
+  GetUserLibrariesResponse,
+} from "@workspace/api-zod";
+
+const router: IRouter = Router();
+
+async function buildLibraryResponse(library: typeof librariesTable.$inferSelect) {
+  const [countResult] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(libraryPromptsTable)
+    .where(eq(libraryPromptsTable.libraryId, library.id));
+
+  const [author] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.username, library.authorUsername));
+
+  return {
+    id: library.id,
+    name: library.name,
+    description: library.description ?? null,
+    authorUsername: library.authorUsername,
+    authorDisplayName: author?.displayName ?? library.authorUsername,
+    promptCount: countResult?.count ?? 0,
+    isPublic: library.isPublic,
+    createdAt: library.createdAt.toISOString(),
+    updatedAt: library.updatedAt.toISOString(),
+  };
+}
+
+async function buildPromptItem(prompt: typeof promptsTable.$inferSelect) {
+  const [category] = await db.select().from(categoriesTable).where(eq(categoriesTable.id, prompt.categoryId));
+  const [author] = await db.select().from(usersTable).where(eq(usersTable.username, prompt.authorUsername));
+  return {
+    id: prompt.id,
+    title: prompt.title,
+    content: prompt.content,
+    description: prompt.description ?? null,
+    categoryId: prompt.categoryId,
+    categoryName: category?.name ?? "Uncategorized",
+    tags: prompt.tags ?? [],
+    authorUsername: prompt.authorUsername,
+    authorDisplayName: author?.displayName ?? prompt.authorUsername,
+    authorAvatarUrl: author?.avatarUrl ?? null,
+    saveCount: prompt.saveCount,
+    viewCount: prompt.viewCount,
+    isPublic: prompt.isPublic,
+    createdAt: prompt.createdAt.toISOString(),
+    updatedAt: prompt.updatedAt.toISOString(),
+  };
+}
+
+router.get("/users/:username/libraries", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.username) ? req.params.username[0] : req.params.username;
+  const params = GetUserLibrariesParams.safeParse({ username: raw });
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid username" });
+    return;
+  }
+
+  const libraries = await db
+    .select()
+    .from(librariesTable)
+    .where(eq(librariesTable.authorUsername, params.data.username))
+    .orderBy(desc(librariesTable.createdAt));
+
+  const results = await Promise.all(libraries.map(buildLibraryResponse));
+  res.json(GetUserLibrariesResponse.parse(results));
+});
+
+router.get("/libraries", async (req, res): Promise<void> => {
+  const qp = ListLibrariesQueryParams.safeParse(req.query);
+  const params = qp.success ? qp.data : {};
+  const limit = params.limit ?? 20;
+
+  const conditions = [eq(librariesTable.isPublic, true)];
+  if (params.username) {
+    conditions.push(eq(librariesTable.authorUsername, params.username));
+  }
+
+  const libraries = await db
+    .select()
+    .from(librariesTable)
+    .where(and(...conditions))
+    .orderBy(desc(librariesTable.createdAt))
+    .limit(limit);
+
+  const results = await Promise.all(libraries.map(buildLibraryResponse));
+  res.json(ListLibrariesResponse.parse(results));
+});
+
+router.post("/libraries", async (req, res): Promise<void> => {
+  const parsed = CreateLibraryBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const [library] = await db
+    .insert(librariesTable)
+    .values({
+      name: parsed.data.name,
+      description: parsed.data.description ?? null,
+      authorUsername: parsed.data.authorUsername,
+      isPublic: parsed.data.isPublic ?? true,
+    })
+    .returning();
+
+  const result = await buildLibraryResponse(library);
+  res.status(201).json(CreateLibraryResponse.parse(result));
+});
+
+router.get("/libraries/:id", async (req, res): Promise<void> => {
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const params = GetLibraryParams.safeParse({ id: parseInt(rawId, 10) });
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+
+  const [library] = await db
+    .select()
+    .from(librariesTable)
+    .where(and(eq(librariesTable.id, params.data.id), eq(librariesTable.isPublic, true)));
+  if (!library) {
+    res.status(404).json({ error: "Library not found" });
+    return;
+  }
+
+  const [author] = await db.select().from(usersTable).where(eq(usersTable.username, library.authorUsername));
+
+  const libraryPrompts = await db
+    .select()
+    .from(libraryPromptsTable)
+    .where(eq(libraryPromptsTable.libraryId, library.id))
+    .orderBy(desc(libraryPromptsTable.addedAt));
+
+  const prompts: typeof promptsTable.$inferSelect[] = [];
+  for (const lp of libraryPrompts) {
+    const [p] = await db.select().from(promptsTable).where(eq(promptsTable.id, lp.promptId));
+    if (p) prompts.push(p);
+  }
+
+  const promptItems = await Promise.all(prompts.map(buildPromptItem));
+
+  const result = {
+    id: library.id,
+    name: library.name,
+    description: library.description ?? null,
+    authorUsername: library.authorUsername,
+    authorDisplayName: author?.displayName ?? library.authorUsername,
+    isPublic: library.isPublic,
+    prompts: promptItems,
+    createdAt: library.createdAt.toISOString(),
+    updatedAt: library.updatedAt.toISOString(),
+  };
+
+  res.json(GetLibraryResponse.parse(result));
+});
+
+router.patch("/libraries/:id", async (req, res): Promise<void> => {
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const params = UpdateLibraryParams.safeParse({ id: parseInt(rawId, 10) });
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+
+  const parsed = UpdateLibraryBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const updates: Partial<typeof librariesTable.$inferInsert> = { updatedAt: new Date() };
+  if (parsed.data.name !== undefined) updates.name = parsed.data.name;
+  if (parsed.data.description !== undefined) updates.description = parsed.data.description;
+  if (parsed.data.isPublic !== undefined) updates.isPublic = parsed.data.isPublic;
+
+  const [library] = await db
+    .update(librariesTable)
+    .set(updates)
+    .where(eq(librariesTable.id, params.data.id))
+    .returning();
+
+  if (!library) {
+    res.status(404).json({ error: "Library not found" });
+    return;
+  }
+
+  const result = await buildLibraryResponse(library);
+  res.json(UpdateLibraryResponse.parse(result));
+});
+
+router.delete("/libraries/:id", async (req, res): Promise<void> => {
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const params = DeleteLibraryParams.safeParse({ id: parseInt(rawId, 10) });
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+
+  await db.delete(libraryPromptsTable).where(eq(libraryPromptsTable.libraryId, params.data.id));
+  await db.delete(librariesTable).where(eq(librariesTable.id, params.data.id));
+  res.status(204).send();
+});
+
+router.post("/libraries/:id/prompts", async (req, res): Promise<void> => {
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const params = AddPromptToLibraryParams.safeParse({ id: parseInt(rawId, 10) });
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+
+  const parsed = AddPromptToLibraryBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  // Verify library and prompt exist before inserting
+  const [libraryExists] = await db.select({ id: librariesTable.id }).from(librariesTable).where(eq(librariesTable.id, params.data.id));
+  if (!libraryExists) {
+    res.status(404).json({ error: "Library not found" });
+    return;
+  }
+
+  const [promptExists] = await db.select({ id: promptsTable.id }).from(promptsTable).where(eq(promptsTable.id, parsed.data.promptId));
+  if (!promptExists) {
+    res.status(404).json({ error: "Prompt not found" });
+    return;
+  }
+
+  // Check if already in library
+  const [existing] = await db
+    .select()
+    .from(libraryPromptsTable)
+    .where(
+      and(
+        eq(libraryPromptsTable.libraryId, params.data.id),
+        eq(libraryPromptsTable.promptId, parsed.data.promptId),
+      ),
+    );
+
+  if (!existing) {
+    await db.insert(libraryPromptsTable).values({
+      libraryId: params.data.id,
+      promptId: parsed.data.promptId,
+    });
+
+    await db.update(librariesTable).set({ updatedAt: new Date() }).where(eq(librariesTable.id, params.data.id));
+  }
+
+  const [library] = await db.select().from(librariesTable).where(eq(librariesTable.id, params.data.id));
+  if (!library) {
+    res.status(404).json({ error: "Library not found" });
+    return;
+  }
+
+  const result = await buildLibraryResponse(library);
+  res.json(AddPromptToLibraryResponse.parse(result));
+});
+
+router.delete("/libraries/:id/prompts/:promptId", async (req, res): Promise<void> => {
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const rawPromptId = Array.isArray(req.params.promptId) ? req.params.promptId[0] : req.params.promptId;
+  const params = RemovePromptFromLibraryParams.safeParse({
+    id: parseInt(rawId, 10),
+    promptId: parseInt(rawPromptId, 10),
+  });
+
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid IDs" });
+    return;
+  }
+
+  await db
+    .delete(libraryPromptsTable)
+    .where(
+      and(
+        eq(libraryPromptsTable.libraryId, params.data.id),
+        eq(libraryPromptsTable.promptId, params.data.promptId),
+      ),
+    );
+
+  await db.update(librariesTable).set({ updatedAt: new Date() }).where(eq(librariesTable.id, params.data.id));
+
+  const [library] = await db.select().from(librariesTable).where(eq(librariesTable.id, params.data.id));
+  if (!library) {
+    res.status(404).json({ error: "Library not found" });
+    return;
+  }
+
+  const result = await buildLibraryResponse(library);
+  res.json(RemovePromptFromLibraryResponse.parse(result));
+});
+
+export default router;
