@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Search, UserCircle, Plus, Sparkles } from "lucide-react";
+import { Search, UserCircle, Plus } from "lucide-react";
 import { useTheme } from "./theme-provider";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -8,46 +8,63 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background text-foreground">
-      <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto max-w-6xl flex h-14 items-center px-4 md:px-6 gap-6">
-          <Link href="/" className="flex items-center gap-2 font-bold text-foreground hover:text-primary transition-colors shrink-0" data-testid="nav-logo">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <span className="tracking-tight">Promptly</span>
+      {/* Apple-style nav: frosted glass, centered logo, minimal links */}
+      <header className="sticky top-0 z-40 w-full border-b border-black/[0.06] bg-white/80 dark:bg-background/80 dark:border-white/[0.06] backdrop-blur-xl">
+        <div className="container mx-auto max-w-6xl flex h-12 items-center px-6 gap-8">
+          {/* Logo */}
+          <Link
+            href="/"
+            className="text-[15px] font-semibold tracking-tight text-foreground hover:opacity-70 transition-opacity shrink-0"
+            data-testid="nav-logo"
+          >
+            Promptly
           </Link>
 
-          <nav className="flex items-center gap-1 text-sm font-medium">
+          {/* Nav links */}
+          <nav className="flex items-center gap-1 text-sm">
             <Link
               href="/explore"
-              className={`px-3 py-1.5 rounded-lg transition-colors hover:bg-secondary ${location === "/explore" ? "text-foreground bg-secondary" : "text-muted-foreground"}`}
+              className={`px-3 py-1.5 rounded-lg transition-colors ${
+                location === "/explore"
+                  ? "text-foreground bg-black/[0.06] dark:bg-white/[0.08]"
+                  : "text-foreground/60 hover:text-foreground hover:bg-black/[0.04] dark:hover:bg-white/[0.05]"
+              }`}
               data-testid="nav-explore"
             >
-              <span className="flex items-center gap-1.5">
-                <Search className="h-4 w-4" /> Explore
-              </span>
+              Explore
             </Link>
           </nav>
 
-          <div className="ml-auto flex items-center gap-3">
+          {/* Right actions */}
+          <div className="ml-auto flex items-center gap-2">
+            <Link
+              href="/onboarding"
+              className="text-sm text-foreground/60 hover:text-foreground transition-colors px-3 py-1.5 hidden sm:block"
+              data-testid="nav-join"
+            >
+              Sign up
+            </Link>
             <Link
               href="/create"
-              className="hidden md:flex items-center gap-1.5 bg-primary text-primary-foreground px-4 py-1.5 rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+              className="flex items-center gap-1.5 bg-foreground text-background px-4 py-1.5 rounded-full text-sm font-medium hover:opacity-80 transition-opacity"
               data-testid="nav-create"
             >
-              <Plus className="h-4 w-4" /> New prompt
+              <Plus className="h-3.5 w-3.5" /> New
             </Link>
-            <Link href="/onboarding" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block" data-testid="nav-join">
-              Join
-            </Link>
-            <Link href="/profile/me" className="text-muted-foreground hover:text-primary transition-colors" data-testid="nav-profile">
+            <Link
+              href="/profile/me"
+              className="text-foreground/50 hover:text-foreground transition-colors p-1.5"
+              data-testid="nav-profile"
+            >
               <UserCircle className="h-5 w-5" />
             </Link>
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="text-muted-foreground hover:text-primary transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-secondary"
+              className="text-foreground/40 hover:text-foreground transition-colors p-1.5 rounded-lg hover:bg-black/[0.04] dark:hover:bg-white/[0.05]"
               data-testid="nav-theme-toggle"
               aria-label="Toggle theme"
             >
-              <div className="w-3.5 h-3.5 rounded-full border-2 border-current" />
+              <div className="w-3.5 h-3.5 rounded-full border-[1.5px] border-current" />
             </button>
           </div>
         </div>
@@ -57,16 +74,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      <footer className="border-t border-border/40 py-8 mt-auto">
-        <div className="container mx-auto max-w-6xl px-4 md:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <span className="font-medium text-foreground">Promptly</span>
-          </div>
+      <footer className="border-t border-black/[0.06] dark:border-white/[0.06] py-10 mt-auto">
+        <div className="container mx-auto max-w-6xl px-6 flex flex-col sm:flex-row items-center justify-between gap-6 text-[13px] text-foreground/40">
+          <span>Copyright &copy; 2025 Promptly. All rights reserved.</span>
           <div className="flex items-center gap-6">
-            <Link href="/explore" className="hover:text-foreground transition-colors">Explore</Link>
-            <Link href="/create" className="hover:text-foreground transition-colors">Create</Link>
-            <Link href="/onboarding" className="hover:text-foreground transition-colors">Join</Link>
+            <Link href="/explore" className="hover:text-foreground/70 transition-colors">Explore</Link>
+            <Link href="/create" className="hover:text-foreground/70 transition-colors">Create</Link>
+            <Link href="/onboarding" className="hover:text-foreground/70 transition-colors">Join</Link>
           </div>
         </div>
       </footer>
