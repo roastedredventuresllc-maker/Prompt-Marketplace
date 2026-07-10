@@ -5,6 +5,7 @@ import { Copy, Heart, Share2, AlertTriangle, Eye, Check, Building2, User } from 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { PaywallGate } from "@/components/paywall-gate";
 
 function categoryAccentColor(catName?: string): string | null {
   const n = catName?.toLowerCase();
@@ -133,23 +134,32 @@ export default function PromptDetail() {
                   <p className="text-[15px] text-foreground/60 leading-relaxed mb-6">{prompt.description}</p>
                 )}
 
-                {/* Prompt content box */}
-                <div className="bg-[#F5F5F7] rounded-xl p-6 font-mono text-[13px] leading-relaxed text-foreground/80 whitespace-pre-wrap border border-black/[0.04]">
-                  {prompt.content}
-                </div>
+                {/* Prompt content — gated behind paywall */}
+                <PaywallGate
+                  promptId={promptId}
+                  accentColor={accentColor}
+                  onAccessGranted={() => queryClient.invalidateQueries({ queryKey: getGetPromptQueryKey(promptId) })}
+                >
+                  <div className="bg-[#F5F5F7] rounded-xl p-6 font-mono text-[13px] leading-relaxed text-foreground/80 whitespace-pre-wrap border border-black/[0.04]">
+                    {prompt.content}
+                  </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-3 mt-6">
-                  <button
-                    onClick={handleCopy}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-[14px] text-white transition-opacity hover:opacity-80"
-                    style={{ background: accentColor ?? "#1d1d1f" }}
-                    data-testid="copy-btn"
-                  >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    {copied ? "Copied!" : "Copy prompt"}
-                  </button>
+                  {/* Copy action — only visible once access is granted */}
+                  <div className="flex items-center gap-3 mt-6">
+                    <button
+                      onClick={handleCopy}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-[14px] text-white transition-opacity hover:opacity-80"
+                      style={{ background: accentColor ?? "#1d1d1f" }}
+                      data-testid="copy-btn"
+                    >
+                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      {copied ? "Copied!" : "Copy prompt"}
+                    </button>
+                  </div>
+                </PaywallGate>
 
+                {/* Always-visible actions */}
+                <div className="flex items-center gap-3 mt-4">
                   <button
                     onClick={handleToggleSave}
                     className="flex items-center gap-2 px-4 py-2.5 rounded-full font-medium text-[14px] bg-white border border-black/[0.08] hover:border-black/20 transition-all"

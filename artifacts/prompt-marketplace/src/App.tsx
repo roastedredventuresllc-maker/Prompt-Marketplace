@@ -15,6 +15,8 @@ import Profile from "@/pages/profile";
 import LibraryDetail from "@/pages/library-detail";
 import Onboarding from "@/pages/onboarding";
 import CreatePrompt from "@/pages/create-prompt";
+import PaymentSuccess from "@/pages/payment-success";
+import Settings from "@/pages/settings";
 
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
@@ -124,6 +126,8 @@ function Router() {
       <Route path="/library/:id" component={LibraryDetail} />
       <Route path="/onboarding" component={Onboarding} />
       <Route path="/create" component={CreatePrompt} />
+      <Route path="/settings" component={Settings} />
+      <Route path="/payment-success" component={PaymentSuccess} />
       <Route path="/sign-in/*?" component={SignInPage} />
       <Route path="/sign-up/*?" component={SignUpPage} />
     </Switch>

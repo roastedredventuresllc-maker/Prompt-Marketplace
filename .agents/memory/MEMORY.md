@@ -1,3 +1,4 @@
 - [Clerk integration patterns](clerk-integration.md) — Show not SignedIn/SignedOut; derive clerkUserId from getAuth() only; proxy URL always unconditional.
+- [Whop paywall integration](whop-paywall-integration.md) — Whop IDs, purchases table, access check pattern, server-side content truncation, checkout+verify flow.
 - [Profile/library hooks queryKey](profile-hooks-querykey.md) — useListPrompts and useGetUserLibraries require explicit queryKey in query options when enabled is conditional.
 - [Users table columns](users-table-columns.md) — No prompt_count/total_saves columns; API computes these dynamically from prompts. LibraryDetail uses prompts array not promptCount.

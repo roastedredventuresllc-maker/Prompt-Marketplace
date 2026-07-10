@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
-import { db, promptsTable, categoriesTable, subcategoriesTable, usersTable, savesTable } from "@workspace/db";
-import { eq, sql, desc, ilike, and } from "drizzle-orm";
+import { getAuth } from "@clerk/express";
+import { db, promptsTable, categoriesTable, subcategoriesTable, usersTable, savesTable, purchasesTable, libraryPromptsTable } from "@workspace/db";
+import { eq, sql, desc, ilike, and, inArray } from "drizzle-orm";
 import {
   ListPromptsQueryParams,
   ListPromptsResponse,
@@ -20,6 +21,39 @@ import {
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
+
+/** Returns first ~120 chars as a teaser for gated content */
+function truncateContent(content: string): string {
+  const snippet = content.replace(/\s+/g, " ").trim().slice(0, 120);
+  return snippet.length < content.trim().length ? snippet + "…" : snippet;
+}
+
+/** Server-side access check: true only if user has a recorded purchase (paid or free) */
+async function checkPromptAccess(clerkUserId: string | null, promptId: number): Promise<boolean> {
+  if (!clerkUserId) return false;
+
+  // Direct purchase (paid or free)
+  const [direct] = await db
+    .select()
+    .from(purchasesTable)
+    .where(and(eq(purchasesTable.clerkUserId, clerkUserId), eq(purchasesTable.itemType, "prompt"), eq(purchasesTable.itemId, promptId)));
+  if (direct) return true;
+
+  // Library purchase covering this prompt
+  const libRows = await db
+    .select({ libraryId: libraryPromptsTable.libraryId })
+    .from(libraryPromptsTable)
+    .where(eq(libraryPromptsTable.promptId, promptId));
+  if (libRows.length > 0) {
+    const [libPurchase] = await db
+      .select()
+      .from(purchasesTable)
+      .where(and(eq(purchasesTable.clerkUserId, clerkUserId), eq(purchasesTable.itemType, "library"), inArray(purchasesTable.itemId, libRows.map((l) => l.libraryId))));
+    if (libPurchase) return true;
+  }
+
+  return false;
+}
 
 async function buildPromptResponse(prompt: typeof promptsTable.$inferSelect) {
   const [category] = await db
@@ -155,8 +189,15 @@ router.get("/prompts/:id", async (req, res): Promise<void> => {
   if (!prompt) { res.status(404).json({ error: "Prompt not found" }); return; }
 
   await db.update(promptsTable).set({ viewCount: prompt.viewCount + 1 }).where(eq(promptsTable.id, prompt.id));
-  const result = await buildPromptResponse({ ...prompt, viewCount: prompt.viewCount + 1 });
-  res.json(GetPromptResponse.parse(result));
+
+  // Server-side content gating: only serve full content to users with a recorded purchase
+  const { userId: clerkUserId } = getAuth(req);
+  const hasAccess = await checkPromptAccess(clerkUserId ?? null, prompt.id);
+  const displayPrompt = { ...prompt, viewCount: prompt.viewCount + 1 };
+  if (!hasAccess) displayPrompt.content = truncateContent(prompt.content);
+
+  const result = await buildPromptResponse(displayPrompt);
+  res.json({ ...GetPromptResponse.parse(result), isGated: !hasAccess });
 });
 
 router.patch("/prompts/:id", async (req, res): Promise<void> => {

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Search, Plus, LogIn, UserCircle, Building2, ChevronDown } from "lucide-react";
+import { Search, Plus, LogIn, UserCircle, Building2, ChevronDown, Settings } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { useUser, useClerk, Show } from "@clerk/react";
 import { useState, useRef, useEffect } from "react";
@@ -64,6 +64,14 @@ function UserMenu() {
             data-testid="menu-create"
           >
             New prompt
+          </Link>
+          <Link
+            href="/settings"
+            onClick={() => setOpen(false)}
+            className="block px-4 py-2 text-[13px] text-foreground/70 hover:bg-black/[0.04] hover:text-foreground transition-colors"
+            data-testid="menu-settings"
+          >
+            Pricing settings
           </Link>
           <div className="border-t border-black/[0.06] mt-1 pt-1">
             <button

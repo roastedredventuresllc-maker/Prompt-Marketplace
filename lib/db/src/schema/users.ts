@@ -12,6 +12,9 @@ export const usersTable = pgTable("users", {
   categories: text("categories").array().notNull().default([]),
   orgType: text("org_type").notNull().default("individual"), // "individual" | "firm"
   orgName: text("org_name"), // set when orgType = "firm"
+  freePromptsUsed: integer("free_prompts_used").notNull().default(0),
+  promptPriceCents: integer("prompt_price_cents").notNull().default(500),
+  collectionPriceCents: integer("collection_price_cents").notNull().default(10000),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

@@ -160,6 +160,9 @@ importers:
       '@replit/connectors-sdk':
         specifier: ^0.4.1
         version: 0.4.1
+      '@whop/sdk':
+        specifier: ^0.0.40
+        version: 0.0.40
     devDependencies:
       prettier:
         specifier: ^3.9.4
@@ -1751,6 +1754,9 @@ packages:
     peerDependencies:
       vite: ^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
 
+  '@whop/sdk@0.0.40':
+    resolution: {integrity: sha512-hTZHVEo7IN6O+bU06Bbde5eDh6EDIoJ22hs5VdDXHKf/tMOvA9IMlGQeWeyDhXXUg2fvUQ3LQ+7qxGxs7JXPOQ==}
+
   accepts@2.0.0:
     resolution: {integrity: sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng==}
     engines: {node: '>= 0.6'}
@@ -2394,6 +2400,9 @@ packages:
   jiti@2.7.0:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
+
+  jose@6.2.3:
+    resolution: {integrity: sha512-YYVDInQKFJfR/xa3ojUTl8c2KoTwiL1R5Wg9YCydwH0x0B9grbzlg5HC7mMjCtUJjbQ/YnGEZIhI5tCgfTb4Hw==}
 
   joycon@3.1.1:
     resolution: {integrity: sha512-34wB/Y7MW7bzjKRjUKTa46I2Z7eV62Rkhva+KkopW7Qvv/OSWBqvkSY7vusOPrNuZcUG3tApvdVgNB8POj3SPw==}
@@ -4468,6 +4477,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@whop/sdk@0.0.40':
+    dependencies:
+      jose: 6.2.3
+      standardwebhooks: 1.0.0
+
   accepts@2.0.0:
     dependencies:
       mime-types: 3.0.2
@@ -4992,6 +5006,8 @@ snapshots:
   isexe@2.0.0: {}
 
   jiti@2.7.0: {}
+
+  jose@6.2.3: {}
 
   joycon@3.1.1: {}
 
