@@ -4,7 +4,7 @@ import { useGetPrompt, useToggleSavePrompt, useGetTrendingPrompts, getGetPromptQ
 import { Copy, Heart, Share2, AlertTriangle, Eye, Check, Building2, User } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PaywallGate } from "@/components/paywall-gate";
 
 function categoryAccentColor(_catName?: string): string {
@@ -17,6 +17,8 @@ export default function PromptDetail() {
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
+
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" }); }, [promptId]);
 
   const { data: prompt, isLoading, isError } = useGetPrompt(promptId, {
     query: { enabled: !!promptId, queryKey: getGetPromptQueryKey(promptId) },
