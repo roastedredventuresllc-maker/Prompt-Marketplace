@@ -1,30 +1,47 @@
 import { useParams, Link } from "wouter";
 import { Layout } from "@/components/layout";
 import { useGetLibrary, getGetLibraryQueryKey } from "@workspace/api-client-react";
-import { Database, Heart, Terminal, AlertTriangle, ArrowLeft } from "lucide-react";
+import { Heart, AlertTriangle, ArrowLeft, BookOpen, Copy, Check } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
+
+function categoryAccentColor(catName?: string | null): string | null {
+  const n = catName?.toLowerCase();
+  if (n === "finance") return "var(--orange)";
+  if (n === "law")     return "var(--forest)";
+  return null;
+}
 
 export default function LibraryDetail() {
   const { id } = useParams();
   const libraryId = Number(id);
+  const [copiedId, setCopiedId] = useState<number | null>(null);
 
   const { data: library, isLoading, isError } = useGetLibrary(libraryId, {
-    query: {
-      enabled: !!libraryId,
-      queryKey: getGetLibraryQueryKey(libraryId)
-    }
+    query: { enabled: !!libraryId, queryKey: getGetLibraryQueryKey(libraryId) },
   });
+
+  function handleCopy(e: React.MouseEvent, content: string, promptId: number) {
+    e.preventDefault(); e.stopPropagation();
+    navigator.clipboard.writeText(content);
+    setCopiedId(promptId);
+    setTimeout(() => setCopiedId(null), 2000);
+  }
 
   if (isLoading) {
     return (
       <Layout>
-        <div className="container mx-auto max-w-5xl px-4 py-12">
-          <Skeleton className="h-8 w-24 mb-8" />
-          <Skeleton className="h-16 w-3/4 mb-4" />
-          <Skeleton className="h-6 w-1/2 mb-12" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Skeleton className="h-48 w-full rounded-lg" />
-            <Skeleton className="h-48 w-full rounded-lg" />
+        <div className="bg-[#F5F5F7] min-h-full">
+          <div className="bg-white border-b border-black/[0.05] px-6 py-12">
+            <div className="max-w-5xl mx-auto">
+              <Skeleton className="h-4 w-24 mb-6 rounded-lg" />
+              <Skeleton className="h-9 w-72 mb-3 rounded-xl" />
+              <Skeleton className="h-4 w-48 rounded-lg" />
+            </div>
+          </div>
+          <div className="max-w-5xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Skeleton className="h-48 w-full rounded-2xl" />
+            <Skeleton className="h-48 w-full rounded-2xl" />
           </div>
         </div>
       </Layout>
@@ -34,11 +51,11 @@ export default function LibraryDetail() {
   if (isError || !library) {
     return (
       <Layout>
-        <div className="container mx-auto max-w-5xl px-4 py-24 text-center">
-          <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Library Not Found</h1>
-          <p className="text-muted-foreground mb-6">This collection may have been removed or is private.</p>
-          <Link href="/explore" className="text-primary hover:underline">Explore Marketplace</Link>
+        <div className="flex flex-col items-center justify-center min-h-[50vh] px-6 text-center gap-4">
+          <AlertTriangle className="h-10 w-10 text-foreground/30" />
+          <h1 className="text-xl font-semibold">Collection not found</h1>
+          <p className="text-[14px] text-foreground/50">This collection may have been removed or made private.</p>
+          <Link href="/explore" className="text-[14px] text-foreground/50 hover:text-foreground">Back to explore</Link>
         </div>
       </Layout>
     );
@@ -46,70 +63,100 @@ export default function LibraryDetail() {
 
   return (
     <Layout>
-      <div className="bg-secondary/30 border-b border-border/50">
-        <div className="container mx-auto max-w-5xl px-4 md:px-8 py-12">
-          <Link href={`/profile/${library.authorUsername}`} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6 transition-colors font-medium">
-            <ArrowLeft className="h-4 w-4" /> Back to Creator
-          </Link>
-          
-          <div className="flex items-center gap-3 mb-4 text-primary">
-            <div className="bg-primary/10 p-2 rounded-md border border-primary/20">
-              <Database className="h-6 w-6" />
-            </div>
-            <span className="text-sm font-bold tracking-wider uppercase">Curated Collection</span>
-          </div>
-          
-          <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">{library.name}</h1>
-          
-          {library.description && (
-            <p className="text-lg text-muted-foreground max-w-3xl leading-relaxed mb-6">
-              {library.description}
-            </p>
-          )}
+      <div className="bg-[#F5F5F7] min-h-full">
 
-          <div className="flex items-center gap-6 text-sm text-muted-foreground font-mono">
-            <div className="flex items-center gap-2">
-              <span className="font-sans font-medium text-foreground">Curator:</span>
-              <Link href={`/profile/${library.authorUsername}`} className="hover:text-primary transition-colors">
-                @{library.authorUsername}
-              </Link>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Terminal className="h-4 w-4" /> {library.prompts.length} Prompts
-            </div>
-            <div className="flex items-center gap-1.5">
-              Updated {new Date(library.updatedAt).toLocaleDateString()}
+        {/* Header */}
+        <div className="bg-white border-b border-black/[0.05] px-6 py-14">
+          <div className="max-w-5xl mx-auto">
+            <Link
+              href={`/profile/${library.authorUsername}`}
+              className="inline-flex items-center gap-1.5 text-[13px] text-foreground/40 hover:text-foreground transition-colors mb-7"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" /> Back to {library.authorUsername}
+            </Link>
+
+            <div className="flex items-start gap-5">
+              <div className="w-14 h-14 rounded-2xl bg-[#F5F5F7] flex items-center justify-center shrink-0">
+                <BookOpen className="h-6 w-6 text-foreground/40" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-foreground/35">
+                    Curated collection
+                  </span>
+                </div>
+                <h1 className="text-2xl font-bold tracking-tight mb-2">{library.name}</h1>
+                {library.description && (
+                  <p className="text-[15px] text-foreground/60 leading-relaxed max-w-2xl mb-4">{library.description}</p>
+                )}
+                <div className="flex items-center gap-4 text-[13px] text-foreground/40">
+                  <span>{library.prompts?.length ?? 0} prompts</span>
+                  <span>By <Link href={`/profile/${library.authorUsername}`} className="hover:text-foreground transition-colors">@{library.authorUsername}</Link></span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="container mx-auto max-w-5xl px-4 md:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {library.prompts.length ? (
-            library.prompts.map(prompt => (
-              <Link key={prompt.id} href={`/prompt/${prompt.id}`} className="group block h-full">
-                <div className="bg-card border border-border rounded-lg p-5 h-full flex flex-col hover:border-primary/50 transition-colors">
-                  <div className="flex justify-between items-start mb-3">
-                    <span className="text-xs text-muted-foreground font-mono uppercase bg-secondary px-2 py-0.5 rounded">{prompt.categoryName}</span>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground tabular-nums">
-                      <Heart className="h-3 w-3 text-primary" /> {prompt.saveCount}
+        {/* Prompts grid */}
+        <div className="max-w-5xl mx-auto px-6 py-8">
+          {library.prompts && library.prompts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {library.prompts.map((prompt: any) => {
+                const accent = categoryAccentColor(prompt.categoryName);
+                return (
+                  <Link
+                    key={prompt.id}
+                    href={`/prompt/${prompt.id}`}
+                    className="group block"
+                  >
+                    <div className="h-full bg-white rounded-2xl p-5 flex flex-col gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.05]">
+                      <div className="flex items-center justify-between gap-2">
+                        <span
+                          className="text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wide"
+                          style={accent
+                            ? { background: `${accent}12`, color: accent }
+                            : { background: "rgba(0,0,0,0.05)", color: "rgba(0,0,0,0.45)" }}
+                        >
+                          {prompt.subcategoryName ?? prompt.categoryName}
+                        </span>
+                        <span className="flex items-center gap-1 text-[11px] tabular-nums" style={{ color: "var(--orange)" }}>
+                          <Heart className="h-3 w-3" fill={prompt.saveCount > 0 ? "currentColor" : "none"} strokeWidth={prompt.saveCount > 0 ? 0 : 1.5} />
+                          {prompt.saveCount}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-[15px] leading-snug mb-1.5 group-hover:text-foreground/70 transition-colors line-clamp-2">
+                          {prompt.title}
+                        </h3>
+                        <p className="text-[13px] text-foreground/50 leading-relaxed line-clamp-2">
+                          {prompt.description ?? prompt.content?.slice(0, 80) + "…"}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between pt-3 border-t border-black/[0.04]">
+                        <span className="text-[12px] text-foreground/40 truncate">
+                          {prompt.authorDisplayName}
+                        </span>
+                        <button
+                          onClick={e => handleCopy(e, prompt.content, prompt.id)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-lg bg-black/[0.04] hover:bg-black/[0.08] text-foreground/50 font-medium"
+                        >
+                          {copiedId === prompt.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                          {copiedId === prompt.id ? "Copied" : "Copy"}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors line-clamp-1">{prompt.title}</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2 flex-1 mb-4">{prompt.description}</p>
-                  
-                  <div className="bg-secondary/50 p-3 rounded text-xs font-mono text-muted-foreground line-clamp-2 overflow-hidden border border-border">
-                    {prompt.content.substring(0, 100)}...
-                  </div>
-                </div>
-              </Link>
-            ))
+                  </Link>
+                );
+              })}
+            </div>
           ) : (
-            <div className="col-span-full py-16 text-center border border-dashed border-border rounded-lg">
-              <Database className="h-8 w-8 text-muted-foreground mx-auto mb-3 opacity-50" />
-              <h3 className="text-lg font-medium text-foreground mb-1">Empty Library</h3>
-              <p className="text-sm text-muted-foreground">The creator hasn't added any prompts to this collection yet.</p>
+            <div className="text-center py-20">
+              <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center mx-auto mb-4">
+                <BookOpen className="h-5 w-5 text-foreground/30" />
+              </div>
+              <h3 className="font-semibold mb-1">This collection is empty</h3>
+              <p className="text-[14px] text-foreground/50">No prompts have been added yet.</p>
             </div>
           )}
         </div>

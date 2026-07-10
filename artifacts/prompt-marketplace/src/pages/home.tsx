@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import {
-  Search, ArrowRight, Copy, Check, Heart, ChevronRight,
-  Building2, User, Flame,
+  Search, ArrowRight, Heart, ChevronRight,
+  Building2, User, Flame, Copy, Check,
 } from "lucide-react";
 import { Layout } from "@/components/layout";
 import {
@@ -15,12 +15,12 @@ import {
 } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-/* ─── Helpers ─────────────────────────────────────────────── */
+/* ─── Accent helpers ───────────────────────────────────────── */
 type Accent = { color: string; subtle: string; label: string };
 
 function categoryAccent(slug: string | null): Accent | null {
-  if (slug === "finance") return { color: "var(--orange)", subtle: "var(--orange-subtle)", label: "Finance" };
-  if (slug === "law") return { color: "var(--forest)", subtle: "var(--forest-subtle)", label: "Law" };
+  if (slug === "finance")    return { color: "var(--orange)", subtle: "var(--orange-subtle)", label: "Finance" };
+  if (slug === "law")        return { color: "var(--forest)", subtle: "var(--forest-subtle)", label: "Law" };
   return null;
 }
 
@@ -31,15 +31,15 @@ function useSubcategories(slug: string | null) {
     if (!slug) { setData(null); return; }
     let cancelled = false;
     fetch(`${base}/api/categories/${slug}/subcategories`)
-      .then((r) => r.json())
-      .then((d) => { if (!cancelled) setData(d); })
+      .then(r => r.json())
+      .then(d => { if (!cancelled) setData(d); })
       .catch(() => { if (!cancelled) setData(null); });
     return () => { cancelled = true; };
   }, [slug, base]);
   return data;
 }
 
-/* ─── Prompt card ─────────────────────────────────────────── */
+/* ─── Prompt card ──────────────────────────────────────────── */
 function PromptCard({ prompt }: { prompt: Prompt }) {
   const [copied, setCopied] = useState(false);
   const isFirm = prompt.authorOrgType === "firm";
@@ -59,8 +59,6 @@ function PromptCard({ prompt }: { prompt: Prompt }) {
   return (
     <Link href={`/prompt/${prompt.id}`} className="group block" data-testid={`prompt-card-${prompt.id}`}>
       <div className="h-full bg-white rounded-2xl p-5 flex flex-col gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.05]">
-
-        {/* Category tag + save count */}
         <div className="flex items-center justify-between gap-2">
           <span
             className="text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wide"
@@ -70,16 +68,12 @@ function PromptCard({ prompt }: { prompt: Prompt }) {
           >
             {prompt.subcategoryName ?? prompt.categoryName}
           </span>
-          <span
-            className="flex items-center gap-1 text-[11px] tabular-nums font-medium"
-            style={{ color: "var(--orange)" }}
-          >
+          <span className="flex items-center gap-1 text-[11px] tabular-nums font-medium" style={{ color: "var(--orange)" }}>
             <Heart className="h-3 w-3" fill={prompt.saveCount > 0 ? "currentColor" : "none"} strokeWidth={prompt.saveCount > 0 ? 0 : 1.5} />
             {prompt.saveCount}
           </span>
         </div>
 
-        {/* Title + description */}
         <div className="flex-1">
           <h3 className="font-semibold text-[15px] leading-snug mb-1.5 text-foreground group-hover:text-foreground/70 transition-colors line-clamp-2">
             {prompt.title}
@@ -89,16 +83,12 @@ function PromptCard({ prompt }: { prompt: Prompt }) {
           </p>
         </div>
 
-        {/* Author credibility */}
         <div className="flex items-center justify-between pt-3 border-t border-black/[0.04]">
           <div className="flex items-center gap-1.5 min-w-0">
             {isFirm ? (
               <>
                 <Building2 className="h-3 w-3 shrink-0" style={{ color: accent?.color ?? "var(--orange)" }} />
-                <span
-                  className="text-[12px] font-semibold truncate"
-                  style={{ color: accent?.color ?? "var(--orange)" }}
-                >
+                <span className="text-[12px] font-semibold truncate" style={{ color: accent?.color ?? "var(--orange)" }}>
                   {prompt.authorOrgName ?? prompt.authorDisplayName}
                 </span>
               </>
@@ -109,7 +99,6 @@ function PromptCard({ prompt }: { prompt: Prompt }) {
           <button
             onClick={handleCopy}
             className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-lg bg-black/[0.04] hover:bg-black/[0.08] text-foreground/50 font-medium"
-            data-testid={`copy-btn-${prompt.id}`}
           >
             {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
             {copied ? "Copied" : "Copy"}
@@ -120,58 +109,88 @@ function PromptCard({ prompt }: { prompt: Prompt }) {
   );
 }
 
-/* ─── Firm spotlight (inside category context) ────────────── */
-function FirmSpotlight({
-  firms,
+/* ─── Firm curator card (large) ────────────────────────────── */
+function FirmCard({
+  firm,
+  subcats,
   accent,
 }: {
-  firms: (ApiUser & { orgName?: string | null })[];
+  firm: ApiUser;
+  subcats: string[];
   accent: Accent;
 }) {
-  if (!firms.length) return null;
+  const orgName = (firm as any).orgName ?? firm.displayName;
   return (
-    <div
-      className="border-b px-6 py-3"
-      style={{ background: accent.subtle, borderColor: `${accent.color}18` }}
+    <Link
+      href={`/profile/${firm.username}`}
+      className="group block bg-white rounded-2xl p-6 shadow-[0_2px_16px_rgba(0,0,0,0.07)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.05]"
+      style={{ borderLeft: `4px solid ${accent.color}` }}
+      data-testid={`firm-card-${firm.username}`}
     >
-      <div className="container mx-auto max-w-6xl">
-        <div className="flex items-center gap-4 overflow-x-auto min-w-0">
-          <span
-            className="text-[11px] font-bold uppercase tracking-widest shrink-0"
-            style={{ color: accent.color }}
-          >
-            {accent.label} experts
-          </span>
-          <div className="flex items-center gap-3 overflow-x-auto">
-            {firms.map((f) => (
-              <Link
-                key={f.id}
-                href={`/profile/${f.username}`}
-                className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 shadow-[0_1px_6px_rgba(0,0,0,0.07)] hover:shadow-[0_3px_14px_rgba(0,0,0,0.10)] transition-shadow shrink-0 border border-black/[0.04]"
-                data-testid={`firm-spotlight-${f.username}`}
-              >
-                <div
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[12px] font-bold shrink-0"
-                  style={{ background: accent.color }}
-                >
-                  {((f as any).orgName ?? f.displayName)[0]}
-                </div>
-                <div>
-                  <p className="text-[12px] font-semibold leading-tight" style={{ color: accent.color }}>
-                    {(f as any).orgName ?? f.displayName}
-                  </p>
-                  <p className="text-[10px] text-foreground/40 leading-tight">{f.promptCount} prompts</p>
-                </div>
-              </Link>
-            ))}
-          </div>
+      {/* Header */}
+      <div className="flex items-start gap-4 mb-4">
+        <div
+          className="w-14 h-14 rounded-xl flex items-center justify-center text-white text-2xl font-bold shrink-0"
+          style={{ background: accent.color }}
+        >
+          {orgName[0]}
         </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <h3 className="font-bold text-[17px] text-foreground group-hover:text-foreground/70 transition-colors">
+              {orgName}
+            </h3>
+            <span
+              className="text-[9px] px-2 py-0.5 rounded font-bold text-white shrink-0"
+              style={{ background: accent.color }}
+            >
+              FIRM
+            </span>
+          </div>
+          <p className="text-[13px] text-foreground/40">@{firm.username}</p>
+        </div>
+        <span
+          className="shrink-0 text-[12px] font-medium px-3 py-1.5 rounded-full group-hover:opacity-80 transition-opacity text-white"
+          style={{ background: accent.color }}
+        >
+          Browse prompts →
+        </span>
       </div>
-    </div>
+
+      {/* Bio */}
+      {firm.bio && (
+        <p className="text-[14px] text-foreground/60 leading-relaxed mb-4">{firm.bio}</p>
+      )}
+
+      {/* Specialty subcategory chips */}
+      {subcats.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-5">
+          {subcats.map(s => (
+            <span
+              key={s}
+              className="text-[11px] px-2.5 py-1 rounded-full font-medium"
+              style={{ background: accent.subtle, color: accent.color }}
+            >
+              {s}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Stats */}
+      <div className="flex items-center gap-5 text-[13px]">
+        <span className="text-foreground/50">
+          <span className="font-semibold text-foreground">{firm.promptCount}</span> prompts
+        </span>
+        <span style={{ color: accent.color }}>
+          <span className="font-semibold">{firm.totalSaves}</span> saves
+        </span>
+      </div>
+    </Link>
   );
 }
 
-/* ─── Page ────────────────────────────────────────────────── */
+/* ─── Page ─────────────────────────────────────────────────── */
 export default function Home() {
   const [, setLocation] = useLocation();
   const [search, setSearch] = useState("");
@@ -182,24 +201,41 @@ export default function Home() {
   const { data: promptsData, isLoading: promptsLoading } = useListPrompts({
     ...(activeCategory ? { categoryId: activeCategory.id } : {}),
     ...(activeSubcategoryId != null ? { subcategoryId: activeSubcategoryId } : {}),
-    limit: 12,
+    limit: activeCategory ? 48 : 12,
   } as any);
   const { data: trending } = useGetTrendingPrompts({ limit: 4 });
   const { data: creators } = useGetFeaturedCreators({ limit: 16 });
 
   const subcategories = useSubcategories(activeCategory?.slug ?? null);
   const accent = categoryAccent(activeCategory?.slug ?? null);
+  const prompts = promptsData?.prompts ?? [];
 
-  // Filter firm curators for active category
-  const categoryFirms = (creators ?? []).filter(
-    (c) => (c as any).orgType === "firm" &&
-      (c.categories ?? []).some((cat) => activeCategory && cat === activeCategory.slug)
-  ) as (ApiUser & { orgName?: string | null })[];
+  // Firms relevant to the active category
+  const categoryFirms = useMemo(
+    () => (creators ?? []).filter(
+      c => (c as any).orgType === "firm" &&
+        activeCategory &&
+        (c.categories ?? []).includes(activeCategory.slug)
+    ) as ApiUser[],
+    [creators, activeCategory]
+  );
 
-  // Split all curators for bottom section
-  const financeFirms = (creators ?? []).filter((c) => (c as any).orgType === "firm" && (c.categories ?? []).includes("finance"));
-  const lawFirms = (creators ?? []).filter((c) => (c as any).orgType === "firm" && (c.categories ?? []).includes("law"));
-  const individuals = (creators ?? []).filter((c) => (c as any).orgType !== "firm").slice(0, 6);
+  // Build firm → subcategory name set from loaded prompts
+  const firmSubcatMap = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const p of prompts) {
+      if (p.authorOrgType === "firm" && p.subcategoryName) {
+        const arr = map.get(p.authorUsername) ?? [];
+        if (!arr.includes(p.subcategoryName)) map.set(p.authorUsername, [...arr, p.subcategoryName]);
+      }
+    }
+    return map;
+  }, [prompts]);
+
+  // All firms split by category for the curators section
+  const financeFirms = useMemo(() => (creators ?? []).filter(c => (c as any).orgType === "firm" && (c.categories ?? []).includes("finance")) as ApiUser[], [creators]);
+  const lawFirms    = useMemo(() => (creators ?? []).filter(c => (c as any).orgType === "firm" && (c.categories ?? []).includes("law")) as ApiUser[], [creators]);
+  const individuals = useMemo(() => (creators ?? []).filter(c => (c as any).orgType !== "firm").slice(0, 8) as ApiUser[], [creators]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -211,10 +247,9 @@ export default function Home() {
     setActiveSubcategoryId(null);
   }
 
-  const prompts = promptsData?.prompts ?? [];
-
   return (
     <Layout>
+
       {/* ── Hero ──────────────────────────────────────────── */}
       <section className="bg-white pt-24 pb-20 px-6 text-center">
         <div className="max-w-3xl mx-auto">
@@ -227,33 +262,30 @@ export default function Home() {
           <p className="text-xl md:text-2xl text-foreground/50 font-light leading-relaxed mb-10 max-w-xl mx-auto">
             Expert prompts for finance, law, writing, research, and everyday life.
           </p>
-          <form onSubmit={handleSearch} className="relative max-w-lg mx-auto" data-testid="hero-search-form">
+          <form onSubmit={handleSearch} className="relative max-w-lg mx-auto">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/30 pointer-events-none" />
             <input
               type="search"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={e => setSearch(e.target.value)}
               placeholder="Search for any prompt…"
               className="w-full bg-black/[0.04] rounded-2xl pl-11 pr-28 py-4 text-[15px] focus:outline-none focus:ring-2 transition-all placeholder:text-foreground/30 border-0"
               style={{ "--tw-ring-color": "var(--orange)" } as React.CSSProperties}
-              data-testid="hero-search-input"
             />
             <button
               type="submit"
               className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-xl text-sm font-medium text-white hover:opacity-80 transition-opacity"
               style={{ background: "var(--orange)" }}
-              data-testid="hero-search-btn"
             >
               Search
             </button>
           </form>
           <div className="flex items-center justify-center gap-2 mt-5 flex-wrap">
-            {["Portfolio analysis", "Contract review", "Explain like I'm 5", "Summarize article"].map((q) => (
+            {["Portfolio analysis", "Contract review", "Explain like I am 5", "Summarize article"].map(q => (
               <button
                 key={q}
                 onClick={() => setLocation(`/explore?search=${encodeURIComponent(q)}`)}
                 className="text-[13px] px-3.5 py-1.5 rounded-full bg-black/[0.04] text-foreground/50 hover:bg-black/[0.07] hover:text-foreground transition-colors"
-                data-testid={`quick-search-${q.replace(/\s+/g, "-").toLowerCase()}`}
               >
                 {q}
               </button>
@@ -267,16 +299,16 @@ export default function Home() {
         <div className="flex items-center gap-2 max-w-6xl mx-auto min-w-max">
           <button
             onClick={() => selectCategory(null)}
-            className="px-4 py-2 rounded-full text-[13px] font-medium transition-colors whitespace-nowrap bg-foreground text-background"
-            style={activeCategory === null ? {} : { background: "white", color: "rgba(0,0,0,0.5)", boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}
-            data-testid="category-all"
+            className="px-4 py-2 rounded-full text-[13px] font-medium transition-all whitespace-nowrap"
+            style={activeCategory === null
+              ? { background: "#1d1d1f", color: "#fff" }
+              : { background: "white", color: "rgba(0,0,0,0.5)", boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}
           >
             All prompts
           </button>
-
           {catsLoading
             ? Array(8).fill(0).map((_, i) => <Skeleton key={i} className="h-9 w-24 rounded-full" />)
-            : categories?.map((cat) => {
+            : categories?.map(cat => {
                 const a = categoryAccent(cat.slug);
                 const isActive = activeCategory?.id === cat.id;
                 return (
@@ -284,11 +316,9 @@ export default function Home() {
                     key={cat.id}
                     onClick={() => selectCategory(isActive ? null : { id: cat.id, slug: cat.slug })}
                     className="px-4 py-2 rounded-full text-[13px] font-medium transition-all whitespace-nowrap"
-                    style={
-                      isActive
-                        ? { background: a?.color ?? "#1d1d1f", color: "#fff" }
-                        : { background: "white", color: "rgba(0,0,0,0.55)", boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }
-                    }
+                    style={isActive
+                      ? { background: a?.color ?? "#1d1d1f", color: "#fff" }
+                      : { background: "white", color: "rgba(0,0,0,0.55)", boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}
                     data-testid={`category-${cat.slug}`}
                   >
                     {cat.name}
@@ -303,32 +333,26 @@ export default function Home() {
         <section className="bg-white border-b border-black/[0.04] py-3 px-6 overflow-x-auto">
           <div className="flex items-center gap-2 max-w-6xl mx-auto min-w-max">
             <span className="text-[10px] font-bold uppercase tracking-widest mr-1" style={{ color: accent?.color ?? "rgba(0,0,0,0.35)" }}>
-              {categories?.find((c) => c.id === activeCategory.id)?.name}
+              {categories?.find(c => c.id === activeCategory.id)?.name}
             </span>
             <ChevronRight className="h-3 w-3 text-foreground/20" />
             <button
               onClick={() => setActiveSubcategoryId(null)}
               className="px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-colors"
-              style={
-                activeSubcategoryId === null && accent
-                  ? { background: accent.subtle, color: accent.color, fontWeight: 600 }
-                  : { color: "rgba(0,0,0,0.45)" }
-              }
+              style={activeSubcategoryId === null && accent
+                ? { background: accent.subtle, color: accent.color, fontWeight: 600 }
+                : { color: "rgba(0,0,0,0.45)" }}
             >
               All
             </button>
-            {subcategories.map((sub) => (
+            {subcategories.map(sub => (
               <button
                 key={sub.id}
                 onClick={() => setActiveSubcategoryId(activeSubcategoryId === sub.id ? null : sub.id)}
                 className="px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all"
-                style={
-                  activeSubcategoryId === sub.id && accent
-                    ? { background: accent.color, color: "#fff" }
-                    : activeSubcategoryId === sub.id
-                    ? { background: "#1d1d1f", color: "#fff" }
-                    : { color: "rgba(0,0,0,0.45)" }
-                }
+                style={activeSubcategoryId === sub.id
+                  ? { background: accent?.color ?? "#1d1d1f", color: "#fff" }
+                  : { color: "rgba(0,0,0,0.45)" }}
                 data-testid={`subcategory-${sub.slug}`}
               >
                 {sub.name}
@@ -338,31 +362,22 @@ export default function Home() {
         </section>
       )}
 
-      {/* ── Firm spotlight (Finance / Law only) ────────────── */}
-      {accent && categoryFirms.length > 0 && (
-        <FirmSpotlight firms={categoryFirms} accent={accent} />
-      )}
-
       {/* ── Prompt grid ────────────────────────────────────── */}
-      <section className="bg-[#F5F5F7] px-6 pb-16 pt-10">
+      <section className="bg-[#F5F5F7] px-6 pb-10 pt-10">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-7">
             <h2 className="text-xl font-semibold tracking-tight">
               {activeCategory
-                ? categories?.find((c) => c.id === activeCategory.id)?.name
+                ? categories?.find(c => c.id === activeCategory.id)?.name
                 : "Popular prompts"}
               {activeSubcategoryId && subcategories && (
                 <span className="text-foreground/50 font-normal">
                   {" · "}
-                  {subcategories.find((s) => s.id === activeSubcategoryId)?.name}
+                  {subcategories.find(s => s.id === activeSubcategoryId)?.name}
                 </span>
               )}
             </h2>
-            <Link
-              href="/explore"
-              className="flex items-center gap-0.5 text-[13px] text-foreground/40 hover:text-foreground transition-colors"
-              data-testid="view-all-link"
-            >
+            <Link href="/explore" className="flex items-center gap-0.5 text-[13px] text-foreground/40 hover:text-foreground transition-colors">
               Browse all <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
@@ -370,7 +385,7 @@ export default function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {promptsLoading
               ? Array(12).fill(0).map((_, i) => <Skeleton key={i} className="h-52 w-full rounded-2xl" />)
-              : prompts.map((p) => <PromptCard key={p.id} prompt={p} />)}
+              : prompts.slice(0, 12).map(p => <PromptCard key={p.id} prompt={p} />)}
           </div>
 
           {!promptsLoading && !prompts.length && (
@@ -379,8 +394,37 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── Firm curators (within active category) ──────────── */}
+      {accent && categoryFirms.length > 0 && (
+        <section className="bg-[#F5F5F7] px-6 pb-16">
+          <div className="max-w-6xl mx-auto">
+            <div
+              className="rounded-2xl p-7 border"
+              style={{ background: accent.subtle, borderColor: `${accent.color}20` }}
+            >
+              <div className="flex items-center gap-2 mb-6">
+                <Building2 className="h-4 w-4" style={{ color: accent.color }} />
+                <h2 className="text-[14px] font-bold uppercase tracking-widest" style={{ color: accent.color }}>
+                  Professional organizations in {accent.label}
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {categoryFirms.map(firm => (
+                  <FirmCard
+                    key={firm.id}
+                    firm={firm}
+                    subcats={firmSubcatMap.get(firm.username) ?? []}
+                    accent={accent}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── Trending ───────────────────────────────────────── */}
-      {trending && trending.length > 0 && (
+      {!activeCategory && trending && trending.length > 0 && (
         <section className="bg-white px-6 py-20 border-t border-black/[0.05]">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-8">
@@ -388,40 +432,28 @@ export default function Home() {
                 <Flame className="h-5 w-5" style={{ color: "var(--orange)" }} />
                 <h2 className="text-2xl font-bold tracking-tight">Trending this week</h2>
               </div>
-              <Link
-                href="/explore?sort=trending"
-                className="flex items-center gap-0.5 text-[13px] text-foreground/40 hover:text-foreground transition-colors"
-              >
+              <Link href="/explore?sort=trending" className="flex items-center gap-0.5 text-[13px] text-foreground/40 hover:text-foreground transition-colors">
                 See all <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {trending.map((prompt) => {
+              {trending.map(prompt => {
                 const a = categoryAccent(
                   prompt.categoryName?.toLowerCase() === "finance" ? "finance"
                   : prompt.categoryName?.toLowerCase() === "law" ? "law"
                   : null
                 );
                 return (
-                  <Link
-                    key={prompt.id}
-                    href={`/prompt/${prompt.id}`}
+                  <Link key={prompt.id} href={`/prompt/${prompt.id}`}
                     className="group bg-white rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.10)] transition-shadow duration-300 border border-black/[0.05]"
-                    data-testid={`trending-card-${prompt.id}`}
                   >
-                    <div
-                      className="text-[10px] font-semibold uppercase tracking-wide mb-2"
-                      style={{ color: a?.color ?? "rgba(0,0,0,0.35)" }}
-                    >
+                    <div className="text-[10px] font-semibold uppercase tracking-wide mb-2" style={{ color: a?.color ?? "rgba(0,0,0,0.35)" }}>
                       {prompt.categoryName}
                     </div>
                     <h3 className="font-semibold text-[14px] leading-snug text-foreground group-hover:text-foreground/70 transition-colors line-clamp-3 mb-3">
                       {prompt.title}
                     </h3>
-                    <div
-                      className="flex items-center gap-1 text-[12px] tabular-nums font-medium"
-                      style={{ color: "var(--orange)" }}
-                    >
+                    <div className="flex items-center gap-1 text-[12px] tabular-nums font-medium" style={{ color: "var(--orange)" }}>
                       <Heart className="h-3 w-3" fill="currentColor" strokeWidth={0} />
                       {prompt.saveCount} saves
                     </div>
@@ -434,12 +466,12 @@ export default function Home() {
       )}
 
       {/* ── Top Curators ───────────────────────────────────── */}
-      {creators && creators.length > 0 && (
+      {!activeCategory && creators && creators.length > 0 && (
         <section className="bg-[#F5F5F7] px-6 py-20 border-t border-black/[0.05]">
           <div className="max-w-6xl mx-auto">
             <div className="mb-10">
               <h2 className="text-2xl font-bold tracking-tight mb-2">Top curators</h2>
-              <p className="text-[15px] text-foreground/50">Finance firms, legal practices, and expert creators.</p>
+              <p className="text-[15px] text-foreground/50">Finance firms, legal practices, and independent experts.</p>
             </div>
 
             {/* Finance firms */}
@@ -447,36 +479,21 @@ export default function Home() {
               <div className="mb-10">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-3 h-3 rounded-sm" style={{ background: "var(--orange)" }} />
-                  <h3 className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "var(--orange)" }}>
-                    Finance
-                  </h3>
+                  <h3 className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "var(--orange)" }}>Finance</h3>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {financeFirms.map((c) => (
-                    <Link
-                      key={c.id}
-                      href={`/profile/${c.username}`}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {financeFirms.map(c => (
+                    <Link key={c.id} href={`/profile/${c.username}`}
                       className="group bg-white rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.04] flex items-start gap-4"
-                      style={{ borderLeft: `3px solid var(--orange)` }}
-                      data-testid={`curator-fin-${c.username}`}
+                      style={{ borderLeft: "3px solid var(--orange)" }}
                     >
-                      <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-lg font-bold shrink-0"
-                        style={{ background: "var(--orange)" }}
-                      >
+                      <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-lg font-bold shrink-0" style={{ background: "var(--orange)" }}>
                         {((c as any).orgName ?? c.displayName)[0]}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <p className="font-semibold text-[14px] text-foreground truncate">
-                            {(c as any).orgName ?? c.displayName}
-                          </p>
-                          <span
-                            className="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 text-white"
-                            style={{ background: "var(--orange)" }}
-                          >
-                            FIRM
-                          </span>
+                          <p className="font-semibold text-[14px] truncate">{(c as any).orgName ?? c.displayName}</p>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 text-white" style={{ background: "var(--orange)" }}>FIRM</span>
                         </div>
                         <p className="text-[12px] text-foreground/35">@{c.username}</p>
                         <div className="flex items-center gap-3 mt-2 text-[12px] text-foreground/40">
@@ -495,36 +512,21 @@ export default function Home() {
               <div className="mb-10">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-3 h-3 rounded-sm" style={{ background: "var(--forest)" }} />
-                  <h3 className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "var(--forest)" }}>
-                    Law
-                  </h3>
+                  <h3 className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "var(--forest)" }}>Law</h3>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {lawFirms.map((c) => (
-                    <Link
-                      key={c.id}
-                      href={`/profile/${c.username}`}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {lawFirms.map(c => (
+                    <Link key={c.id} href={`/profile/${c.username}`}
                       className="group bg-white rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.04] flex items-start gap-4"
-                      style={{ borderLeft: `3px solid var(--forest)` }}
-                      data-testid={`curator-law-${c.username}`}
+                      style={{ borderLeft: "3px solid var(--forest)" }}
                     >
-                      <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-lg font-bold shrink-0"
-                        style={{ background: "var(--forest)" }}
-                      >
+                      <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-lg font-bold shrink-0" style={{ background: "var(--forest)" }}>
                         {((c as any).orgName ?? c.displayName)[0]}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <p className="font-semibold text-[14px] text-foreground truncate">
-                            {(c as any).orgName ?? c.displayName}
-                          </p>
-                          <span
-                            className="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 text-white"
-                            style={{ background: "var(--forest)" }}
-                          >
-                            FIRM
-                          </span>
+                          <p className="font-semibold text-[14px] truncate">{(c as any).orgName ?? c.displayName}</p>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 text-white" style={{ background: "var(--forest)" }}>FIRM</span>
                         </div>
                         <p className="text-[12px] text-foreground/35">@{c.username}</p>
                         <div className="flex items-center gap-3 mt-2 text-[12px] text-foreground/40">
@@ -543,26 +545,19 @@ export default function Home() {
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <User className="h-3.5 w-3.5 text-foreground/35" />
-                  <h3 className="text-[12px] font-bold uppercase tracking-widest text-foreground/35">
-                    Individual creators
-                  </h3>
+                  <h3 className="text-[12px] font-bold uppercase tracking-widest text-foreground/35">Individual creators</h3>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                  {individuals.map((c) => (
-                    <Link
-                      key={c.id}
-                      href={`/profile/${c.username}`}
-                      className="group bg-white rounded-2xl p-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.04] flex flex-col items-center text-center gap-2"
-                      data-testid={`creator-${c.username}`}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {individuals.map(c => (
+                    <Link key={c.id} href={`/profile/${c.username}`}
+                      className="group bg-white rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.04] flex items-center gap-3"
                     >
-                      <div className="w-11 h-11 rounded-full bg-black/[0.07] flex items-center justify-center text-lg font-semibold text-foreground/40">
+                      <div className="w-10 h-10 rounded-full bg-black/[0.07] flex items-center justify-center text-base font-semibold text-foreground/40 shrink-0">
                         {c.displayName.charAt(0)}
                       </div>
-                      <div>
-                        <p className="font-semibold text-[13px] text-foreground leading-tight group-hover:text-foreground/70 transition-colors">
-                          {c.displayName}
-                        </p>
-                        <p className="text-[11px] text-foreground/35 mt-0.5">{c.promptCount} prompts</p>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-[13px] truncate group-hover:text-foreground/70 transition-colors">{c.displayName}</p>
+                        <p className="text-[11px] text-foreground/35">{c.promptCount} prompts</p>
                       </div>
                     </Link>
                   ))}
@@ -584,13 +579,13 @@ export default function Home() {
             href="/sign-up"
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-medium text-[15px] text-white hover:opacity-80 transition-opacity"
             style={{ background: "var(--orange)" }}
-            data-testid="cta-join-btn"
           >
             Get started <ArrowRight className="h-4 w-4" />
           </Link>
           <p className="text-[13px] text-foreground/30 mt-4">Free. No credit card required.</p>
         </div>
       </section>
+
     </Layout>
   );
 }
