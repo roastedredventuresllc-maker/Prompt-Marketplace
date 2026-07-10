@@ -11,11 +11,12 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Heart, Calendar, User, BookOpen, Copy, Check, Pencil, Plus,
-  Users, X, UserPlus, Save, Building2,
+  Users, X, UserPlus, Save, Building2, Trash2,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@clerk/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { AddToLibraryMenu } from "@/components/add-to-library-menu";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -299,6 +300,10 @@ export default function Profile() {
   const [creatingCollection, setCreatingCollection] = useState(false);
   const [collectionSaving, setCollectionSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [confirmDeletePrompt, setConfirmDeletePrompt] = useState<number | null>(null);
+  const [confirmDeleteLibrary, setConfirmDeleteLibrary] = useState<number | null>(null);
+  const [deletingPrompt, setDeletingPrompt] = useState<number | null>(null);
+  const [deletingLibrary, setDeletingLibrary] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
   const { data: myInfo } = useMyInfo();
@@ -334,6 +339,34 @@ export default function Profile() {
     navigator.clipboard.writeText(content);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  }
+
+  async function handleDeletePrompt(e: React.MouseEvent, promptId: number) {
+    e.preventDefault(); e.stopPropagation();
+    if (confirmDeletePrompt !== promptId) {
+      setConfirmDeletePrompt(promptId);
+      setTimeout(() => setConfirmDeletePrompt(null), 4000);
+      return;
+    }
+    setDeletingPrompt(promptId);
+    await fetch(`${basePath}/api/prompts/${promptId}`, { method: "DELETE", credentials: "include" });
+    await queryClient.invalidateQueries({ queryKey: getListPromptsQueryKey(listPromptsParams) });
+    setDeletingPrompt(null);
+    setConfirmDeletePrompt(null);
+  }
+
+  async function handleDeleteLibrary(e: React.MouseEvent, libraryId: number) {
+    e.preventDefault(); e.stopPropagation();
+    if (confirmDeleteLibrary !== libraryId) {
+      setConfirmDeleteLibrary(libraryId);
+      setTimeout(() => setConfirmDeleteLibrary(null), 4000);
+      return;
+    }
+    setDeletingLibrary(libraryId);
+    await fetch(`${basePath}/api/libraries/${libraryId}`, { method: "DELETE", credentials: "include" });
+    await queryClient.invalidateQueries({ queryKey: getGetUserLibrariesQueryKey(safeUsername) });
+    setDeletingLibrary(null);
+    setConfirmDeleteLibrary(null);
   }
 
   async function handleCreateCollection(e: React.FormEvent) {
@@ -588,6 +621,8 @@ export default function Profile() {
                   ? displayedPrompts.map((prompt: any) => {
                       const accent = categoryAccentColor(prompt.categoryName);
                       const isPromptOwner = canEdit && (myInfo?.username === prompt.authorUsername || myInfo?.username === safeUsername);
+                      const isConfirmingDelete = confirmDeletePrompt === prompt.id;
+                      const isDeletingThis = deletingPrompt === prompt.id;
                       return (
                         <Link key={prompt.id} href={`/prompt/${prompt.id}`} className="group block" data-testid={`profile-prompt-${prompt.id}`}>
                           <div className="h-full bg-white rounded-2xl p-5 flex flex-col gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.05]">
@@ -595,12 +630,26 @@ export default function Profile() {
                               <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wide" style={{ background: `${accent}12`, color: accent }}>
                                 {prompt.subcategoryName ?? prompt.categoryName}
                               </span>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1.5">
                                 {isPromptOwner && (
                                   <Link href={`/prompt/${prompt.id}/edit`} onClick={e => e.stopPropagation()}
                                     className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg hover:bg-[#f5f5f7] text-foreground/40 hover:text-foreground" title="Edit">
                                     <Pencil className="h-3 w-3" />
                                   </Link>
+                                )}
+                                {isPromptOwner && (
+                                  <button
+                                    onClick={e => handleDeletePrompt(e, prompt.id)}
+                                    disabled={isDeletingThis}
+                                    title={isConfirmingDelete ? "Click again to confirm" : "Delete"}
+                                    className={`opacity-0 group-hover:opacity-100 transition-all p-1 rounded-lg text-[10px] font-medium ${
+                                      isConfirmingDelete
+                                        ? "!opacity-100 bg-red-500 text-white px-2"
+                                        : "hover:bg-red-50 text-foreground/40 hover:text-red-500"
+                                    }`}
+                                  >
+                                    {isDeletingThis ? "…" : isConfirmingDelete ? "Confirm?" : <Trash2 className="h-3 w-3" />}
+                                  </button>
                                 )}
                                 <span className="flex items-center gap-1 text-[11px] tabular-nums" style={{ color: "var(--orange)" }}>
                                   <Heart className="h-3 w-3" fill={prompt.saveCount > 0 ? "currentColor" : "none"} strokeWidth={prompt.saveCount > 0 ? 0 : 1.5} />
@@ -612,20 +661,30 @@ export default function Profile() {
                               <h3 className="font-semibold text-[15px] leading-snug mb-1.5 group-hover:text-foreground/70 transition-colors line-clamp-2">{prompt.title}</h3>
                               <p className="text-[13px] text-foreground/50 line-clamp-2 leading-relaxed">{prompt.description}</p>
                             </div>
-                            <div className="flex items-center justify-between pt-3 border-t border-black/[0.04]">
-                              <div className="flex items-center gap-2">
+                            <div className="pt-3 border-t border-black/[0.04]">
+                              {/* Author row */}
+                              <button
+                                onClick={e => { e.preventDefault(); e.stopPropagation(); setLocation(`/profile/${prompt.authorUsername}`); }}
+                                className="flex items-center gap-2 mb-2.5 hover:opacity-70 transition-opacity"
+                              >
                                 <div className="w-5 h-5 rounded-full bg-foreground/[0.07] flex items-center justify-center text-[9px] font-semibold shrink-0">
                                   {(prompt.authorDisplayName ?? "?")[0]}
                                 </div>
-                                <span className="text-[12px] text-foreground/40 truncate max-w-[100px]">{prompt.authorDisplayName}</span>
-                              </div>
-                              <button
-                                onClick={e => handleCopy(e, prompt.content, prompt.id)}
-                                className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg bg-black/[0.04] hover:bg-black/[0.08] text-foreground/40 hover:text-foreground/70 font-medium transition-all"
-                              >
-                                {copiedId === prompt.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                                {copiedId === prompt.id ? "Copied" : "Copy"}
+                                <span className="text-[12px] font-medium text-foreground/50 truncate">{prompt.authorDisplayName}</span>
                               </button>
+                              {/* Action row */}
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={e => handleCopy(e, prompt.content, prompt.id)}
+                                  className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg bg-black/[0.04] hover:bg-black/[0.08] text-foreground/40 hover:text-foreground/70 font-medium transition-all"
+                                >
+                                  {copiedId === prompt.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                                  {copiedId === prompt.id ? "Copied" : "Copy"}
+                                </button>
+                                <div onClick={e => e.stopPropagation()} style={{ zIndex: 20 }}>
+                                  <AddToLibraryMenu promptId={prompt.id} variant="icon" />
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </Link>
@@ -694,6 +753,8 @@ export default function Profile() {
                       const accent = { color: "var(--orange)", subtle: "var(--orange-subtle)" };
                       const previewTitles: string[] = lib.previewTitles ?? [];
                       const libPrice = lib.priceCents;
+                      const isConfirmingLibDelete = confirmDeleteLibrary === lib.id;
+                      const isDeletingLib = deletingLibrary === lib.id;
                       return (
                         <Link key={lib.id} href={`/library/${lib.id}`} className="group block" data-testid={`library-card-${lib.id}`}>
                           <div
@@ -717,6 +778,21 @@ export default function Profile() {
                                   )}
                                 </div>
                               </div>
+                              {/* Delete library button */}
+                              {canEdit && (
+                                <button
+                                  onClick={e => handleDeleteLibrary(e, lib.id)}
+                                  disabled={isDeletingLib}
+                                  className={`opacity-0 group-hover:opacity-100 shrink-0 transition-all rounded-lg text-[10px] font-medium ${
+                                    isConfirmingLibDelete
+                                      ? "!opacity-100 bg-red-500 text-white px-2 py-1"
+                                      : "p-1.5 hover:bg-red-50 text-foreground/30 hover:text-red-500"
+                                  }`}
+                                  title={isConfirmingLibDelete ? "Click again to confirm delete" : "Delete collection"}
+                                >
+                                  {isDeletingLib ? "…" : isConfirmingLibDelete ? "Confirm?" : <Trash2 className="h-3.5 w-3.5" />}
+                                </button>
+                              )}
                             </div>
                             {lib.description && (
                               <p className="text-[13px] text-foreground/60 leading-relaxed">{lib.description}</p>

@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { getAuth } from "@clerk/express";
 import { db, librariesTable, libraryPromptsTable, promptsTable, categoriesTable, subcategoriesTable, usersTable } from "@workspace/db";
 import { eq, sql, desc, and } from "drizzle-orm";
 import {
@@ -234,11 +235,23 @@ router.patch("/libraries/:id", async (req, res): Promise<void> => {
 });
 
 router.delete("/libraries/:id", async (req, res): Promise<void> => {
+  const { userId: clerkUserId } = getAuth(req);
+  if (!clerkUserId) { res.status(401).json({ error: "Unauthorized" }); return; }
+
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = DeleteLibraryParams.safeParse({ id: parseInt(rawId, 10) });
   if (!params.success) {
     res.status(400).json({ error: "Invalid ID" });
     return;
+  }
+
+  const [library] = await db.select().from(librariesTable).where(eq(librariesTable.id, params.data.id));
+  if (!library) { res.status(404).json({ error: "Library not found" }); return; }
+
+  const [author] = await db.select().from(usersTable).where(eq(usersTable.username, library.authorUsername));
+  const isFirmAdmin = author?.ownerClerkUserId && (author.adminClerkUserIds ?? []).includes(clerkUserId);
+  if (!author || (author.clerkUserId !== clerkUserId && author.ownerClerkUserId !== clerkUserId && !isFirmAdmin)) {
+    res.status(403).json({ error: "Forbidden" }); return;
   }
 
   await db.delete(libraryPromptsTable).where(eq(libraryPromptsTable.libraryId, params.data.id));

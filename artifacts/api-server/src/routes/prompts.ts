@@ -243,9 +243,23 @@ router.patch("/prompts/:id", async (req, res): Promise<void> => {
 });
 
 router.delete("/prompts/:id", async (req, res): Promise<void> => {
+  const { userId: clerkUserId } = getAuth(req);
+  if (!clerkUserId) { res.status(401).json({ error: "Unauthorized" }); return; }
+
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = DeletePromptParams.safeParse({ id: parseInt(rawId, 10) });
   if (!params.success) { res.status(400).json({ error: "Invalid ID" }); return; }
+
+  const [existingPrompt] = await db.select().from(promptsTable).where(eq(promptsTable.id, params.data.id));
+  if (!existingPrompt) { res.status(404).json({ error: "Prompt not found" }); return; }
+  const [author] = await db.select().from(usersTable).where(eq(usersTable.username, existingPrompt.authorUsername));
+  const isFirmAdmin = author?.ownerClerkUserId && (author.adminClerkUserIds ?? []).includes(clerkUserId);
+  if (!author || (author.clerkUserId !== clerkUserId && author.ownerClerkUserId !== clerkUserId && !isFirmAdmin)) {
+    res.status(403).json({ error: "Forbidden" }); return;
+  }
+
+  // Remove from libraries first
+  await db.delete(libraryPromptsTable).where(eq(libraryPromptsTable.promptId, params.data.id));
   await db.delete(promptsTable).where(eq(promptsTable.id, params.data.id));
   res.status(204).send();
 });
