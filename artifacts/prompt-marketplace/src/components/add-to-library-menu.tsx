@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-type LibraryOption = { id: number; name: string; promptCount: number };
+type LibraryOption = { id: number; name: string; promptCount: number; kind?: string };
 
 type AddToLibraryMenuProps = {
   promptId: number;
@@ -22,22 +22,33 @@ export function AddToLibraryMenu({ promptId, variant = "pill", onAdded }: AddToL
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [saving, setSaving] = useState(false);
+  const [createError, setCreateError] = useState("");
   const ref = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
-  // Fetch current user's libraries when open
+  // Fetch current user info + libraries when open
+  const { data: meData } = useQuery<{ username: string | null }>({
+    queryKey: ["users", "me", "username"],
+    queryFn: async () => {
+      const res = await fetch(`${basePath}/api/users/me`, { credentials: "include" });
+      if (!res.ok) return { username: null };
+      const d = await res.json();
+      return { username: d.username ?? null };
+    },
+    enabled: !!isSignedIn,
+    staleTime: 60_000,
+  });
+
   const { data: libraries, isLoading } = useQuery<LibraryOption[]>({
     queryKey: ["me-libraries"],
     queryFn: async () => {
-      const meRes = await fetch(`${basePath}/api/users/me`, { credentials: "include" });
-      if (!meRes.ok) return [];
-      const { username } = await meRes.json();
+      const username = meData?.username;
       if (!username) return [];
       const res = await fetch(`${basePath}/api/users/${username}/libraries`, { credentials: "include" });
       if (!res.ok) return [];
       return res.json();
     },
-    enabled: !!isSignedIn && open,
+    enabled: !!isSignedIn && open && !!meData?.username,
     staleTime: 30_000,
   });
 
@@ -49,6 +60,7 @@ export function AddToLibraryMenu({ promptId, variant = "pill", onAdded }: AddToL
         setOpen(false);
         setCreating(false);
         setNewName("");
+        setCreateError("");
       }
     }
     document.addEventListener("mousedown", handler);
@@ -75,30 +87,38 @@ export function AddToLibraryMenu({ promptId, variant = "pill", onAdded }: AddToL
 
   async function handleCreateAndAdd(e: React.FormEvent) {
     e.preventDefault();
+    e.stopPropagation();
     if (!newName.trim()) return;
+    const username = meData?.username;
+    if (!username) {
+      setCreateError("Set a username in your profile first.");
+      return;
+    }
     setSaving(true);
-    // Create the library
-    const meRes = await fetch(`${basePath}/api/users/me`, { credentials: "include" });
-    const { username } = await meRes.json();
+    setCreateError("");
     const createRes = await fetch(`${basePath}/api/libraries`, {
       method: "POST", credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newName.trim(), authorUsername: username, isPublic: true }),
+      body: JSON.stringify({ name: newName.trim(), authorUsername: username, isPublic: true, kind: "saved" }),
     });
-    if (createRes.ok) {
-      const lib = await createRes.json();
-      await fetch(`${basePath}/api/libraries/${lib.id}/prompts`, {
-        method: "POST", credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ promptId }),
-      });
-      queryClient.invalidateQueries({ queryKey: ["me-libraries"] });
-      onAdded?.();
-      setOpen(false);
+    if (!createRes.ok) {
+      setCreateError("Failed to create collection. Try again.");
+      setSaving(false);
+      return;
     }
+    const lib = await createRes.json();
+    await fetch(`${basePath}/api/libraries/${lib.id}/prompts`, {
+      method: "POST", credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ promptId }),
+    });
+    queryClient.invalidateQueries({ queryKey: ["me-libraries"] });
+    onAdded?.();
     setSaving(false);
     setCreating(false);
     setNewName("");
+    setCreateError("");
+    setOpen(false);
   }
 
   const triggerClass = variant === "icon"
@@ -118,11 +138,13 @@ export function AddToLibraryMenu({ promptId, variant = "pill", onAdded }: AddToL
       </button>
 
       {open && (
-        <div className="absolute bottom-full mb-2 right-0 w-60 bg-white rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.18)] border border-black/[0.06] overflow-hidden"
+        <div
+          className="absolute bottom-full mb-2 right-0 w-60 bg-white rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.18)] border border-black/[0.06] overflow-hidden"
+          style={{ zIndex: 9999 }}
           onClick={e => { e.preventDefault(); e.stopPropagation(); }}
         >
-          <div className="px-4 py-3 border-b border-black/[0.05] flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-foreground/35">Add to collection</p>
+          <div className="px-4 py-3 border-b border-black/[0.05]">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-foreground/35">Save to collection</p>
           </div>
 
           {isLoading ? (
@@ -158,26 +180,36 @@ export function AddToLibraryMenu({ promptId, variant = "pill", onAdded }: AddToL
             </div>
           ) : (
             <div className="px-4 py-4 text-center">
-              <p className="text-[13px] text-foreground/40 mb-2">No collections yet</p>
+              <p className="text-[13px] text-foreground/40">No collections yet</p>
             </div>
           )}
 
           {/* Create new */}
           <div className="border-t border-black/[0.05]">
             {creating ? (
-              <form onSubmit={handleCreateAndAdd} className="p-3 flex gap-2">
-                <input
-                  value={newName} onChange={e => setNewName(e.target.value)}
-                  placeholder="Collection name…" autoFocus
-                  className="flex-1 bg-[#f5f5f7] rounded-lg px-2.5 py-1.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-foreground/20"
-                />
-                <button type="submit" disabled={saving || !newName.trim()}
-                  className="px-2.5 py-1.5 bg-foreground text-background rounded-lg text-[11px] font-medium hover:opacity-80 disabled:opacity-40 shrink-0">
-                  {saving ? "…" : "Add"}
-                </button>
+              <form onSubmit={handleCreateAndAdd} className="p-3 flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <input
+                    value={newName} onChange={e => setNewName(e.target.value)}
+                    placeholder="Collection name…" autoFocus
+                    onClick={e => e.stopPropagation()}
+                    className="flex-1 bg-[#f5f5f7] rounded-lg px-2.5 py-1.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                  />
+                  <button
+                    type="submit"
+                    disabled={saving || !newName.trim()}
+                    onClick={e => e.stopPropagation()}
+                    className="px-2.5 py-1.5 bg-foreground text-background rounded-lg text-[11px] font-medium hover:opacity-80 disabled:opacity-40 shrink-0"
+                  >
+                    {saving ? "…" : "Add"}
+                  </button>
+                </div>
+                {createError && <p className="text-[11px] text-red-500">{createError}</p>}
               </form>
             ) : (
               <button
+                type="button"
+                onMouseDown={e => { e.preventDefault(); e.stopPropagation(); }}
                 onClick={e => { e.preventDefault(); e.stopPropagation(); setCreating(true); }}
                 className="w-full flex items-center gap-2 px-4 py-3 hover:bg-[#f5f5f7] transition-colors text-[13px] text-foreground/50 hover:text-foreground"
               >

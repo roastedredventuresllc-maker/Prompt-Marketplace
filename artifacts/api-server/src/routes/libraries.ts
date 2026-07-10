@@ -53,6 +53,7 @@ async function buildLibraryResponse(library: typeof librariesTable.$inferSelect)
     promptCount: countResult?.count ?? 0,
     previewTitles: previewRows.map(r => r.title),
     isPublic: library.isPublic,
+    kind: (library as any).kind ?? "collection",
     priceCents: library.priceCents ?? null,
     createdAt: library.createdAt.toISOString(),
     updatedAt: library.updatedAt.toISOString(),
@@ -141,7 +142,8 @@ router.post("/libraries", async (req, res): Promise<void> => {
       description: parsed.data.description ?? null,
       authorUsername: parsed.data.authorUsername,
       isPublic: parsed.data.isPublic ?? true,
-    })
+      ...(parsed.data.kind ? { kind: parsed.data.kind } : {}),
+    } as any)
     .returning();
 
   const result = await buildLibraryResponse(library);

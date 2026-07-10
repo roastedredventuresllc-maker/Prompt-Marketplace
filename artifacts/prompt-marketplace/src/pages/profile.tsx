@@ -11,7 +11,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Heart, Calendar, User, BookOpen, Copy, Check, Pencil, Plus,
-  Users, X, UserPlus, Save, Building2, Trash2,
+  Users, X, UserPlus, Save, Building2, Trash2, BookmarkPlus,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@clerk/react";
@@ -448,6 +448,80 @@ export default function Profile() {
     ...(isFirm && canEdit ? [{ key: "team" as const, label: "Team" }] : []),
   ];
 
+  const myCollections = (librariesData ?? []).filter((l: any) => (l.kind ?? "collection") === "collection");
+  const savedByMe = (librariesData ?? []).filter((l: any) => l.kind === "saved");
+
+  function renderLibraryCard(lib: any) {
+    const accent = { color: "var(--orange)", subtle: "var(--orange-subtle)" };
+    const previewTitles: string[] = lib.previewTitles ?? [];
+    const libPrice = lib.priceCents;
+    const isConfirmingLibDelete = confirmDeleteLibrary === lib.id;
+    const isDeletingLib = deletingLibrary === lib.id;
+    return (
+      <Link key={lib.id} href={`/library/${lib.id}`} className="group block" data-testid={`library-card-${lib.id}`}>
+        <div
+          className="h-full bg-white rounded-2xl p-6 flex flex-col gap-4 shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_36px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.05]"
+          style={{ borderTop: `3px solid ${accent.color}` }}
+        >
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: accent.subtle }}>
+              <BookOpen className="h-4 w-4" style={{ color: accent.color }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-[16px] leading-tight group-hover:opacity-70 transition-opacity mb-1">{lib.name}</h3>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: accent.subtle, color: accent.color }}>
+                  {lib.promptCount} {lib.promptCount === 1 ? "prompt" : "prompts"}
+                </span>
+                {libPrice && (
+                  <span className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#f5f5f7] text-foreground/50">
+                    ${(libPrice / 100).toFixed(libPrice % 100 === 0 ? 0 : 2)}
+                  </span>
+                )}
+              </div>
+            </div>
+            {canEdit && (
+              <button
+                onClick={e => handleDeleteLibrary(e, lib.id)}
+                disabled={isDeletingLib}
+                className={`opacity-0 group-hover:opacity-100 shrink-0 transition-all rounded-lg text-[10px] font-medium ${
+                  isConfirmingLibDelete
+                    ? "!opacity-100 bg-red-500 text-white px-2 py-1"
+                    : "p-1.5 hover:bg-red-50 text-foreground/30 hover:text-red-500"
+                }`}
+                title={isConfirmingLibDelete ? "Click again to confirm delete" : "Delete collection"}
+              >
+                {isDeletingLib ? "…" : isConfirmingLibDelete ? "Confirm?" : <Trash2 className="h-3.5 w-3.5" />}
+              </button>
+            )}
+          </div>
+          {lib.description && (
+            <p className="text-[13px] text-foreground/60 leading-relaxed">{lib.description}</p>
+          )}
+          {previewTitles.length > 0 && (
+            <ul className="space-y-1.5">
+              {previewTitles.map((t: string) => (
+                <li key={t} className="flex items-center gap-2 text-[13px] text-foreground/55">
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: accent.color }} />
+                  <span className="line-clamp-1">{t}</span>
+                </li>
+              ))}
+              {lib.promptCount > previewTitles.length && (
+                <li className="text-[12px] pl-3.5" style={{ color: accent.color }}>+{lib.promptCount - previewTitles.length} more</li>
+              )}
+            </ul>
+          )}
+          <div className="mt-auto pt-4 border-t border-black/[0.05] flex items-center justify-between">
+            <span className="text-[12px] text-foreground/35">
+              {new Date(lib.updatedAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+            </span>
+            <span className="text-[13px] font-medium group-hover:underline" style={{ color: accent.color }}>View →</span>
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
   return (
     <Layout>
       <div className="bg-[#F5F5F7] min-h-full">
@@ -694,126 +768,84 @@ export default function Profile() {
           {/* Libraries tab */}
           {activeTab === "libraries" && (
             <>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-[15px] font-semibold text-foreground/60">Collections</h2>
-                {canEdit && (
-                  <button
-                    onClick={() => setCreatingCollection(c => !c)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium bg-foreground text-background hover:opacity-80 transition-opacity"
-                  >
-                    <Plus className="h-3 w-3" /> New collection
-                  </button>
+              {/* ── My Collections ── */}
+              <div className="mb-10">
+                <div className="flex items-center justify-between mb-5">
+                  <div>
+                    <h2 className="text-[16px] font-bold">My Collections</h2>
+                    <p className="text-[12px] text-foreground/40 mt-0.5">Groups of prompts you've published</p>
+                  </div>
+                  {canEdit && (
+                    <button
+                      onClick={() => setCreatingCollection(c => !c)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium bg-foreground text-background hover:opacity-80 transition-opacity"
+                    >
+                      <Plus className="h-3 w-3" /> New collection
+                    </button>
+                  )}
+                </div>
+
+                {creatingCollection && (
+                  <form onSubmit={handleCreateCollection} className="mb-5 flex gap-3 items-center bg-white rounded-2xl px-5 py-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-black/[0.04]">
+                    <input
+                      value={newCollectionName} onChange={e => setNewCollectionName(e.target.value)}
+                      placeholder="Collection name…" autoFocus
+                      className="flex-1 bg-[#f5f5f7] rounded-xl px-4 py-2.5 text-[14px] focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                    />
+                    <button type="submit" disabled={collectionSaving || !newCollectionName.trim()}
+                      className="px-4 py-2.5 rounded-xl bg-foreground text-background text-[13px] font-medium hover:opacity-80 disabled:opacity-40 transition-opacity shrink-0">
+                      {collectionSaving ? "Creating…" : "Create"}
+                    </button>
+                    <button type="button" onClick={() => setCreatingCollection(false)}
+                      className="px-3 py-2.5 rounded-xl text-[13px] text-foreground/50 hover:bg-[#f5f5f7] transition-colors">
+                      Cancel
+                    </button>
+                  </form>
+                )}
+
+                {libLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {Array(2).fill(0).map((_, i) => <Skeleton key={i} className="h-56 w-full rounded-2xl" />)}
+                  </div>
+                ) : myCollections.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {myCollections.map(renderLibraryCard)}
+                  </div>
+                ) : (
+                  <div className="py-10 text-center bg-white rounded-2xl border border-black/[0.05]">
+                    <BookOpen className="h-5 w-5 text-foreground/25 mx-auto mb-2" />
+                    <p className="text-[13px] text-foreground/40">No collections yet.</p>
+                    {canEdit && (
+                      <button onClick={() => setCreatingCollection(true)}
+                        className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-full text-[12px] font-medium bg-foreground text-background hover:opacity-80 transition-opacity">
+                        <Plus className="h-3 w-3" /> Create first collection
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
 
-              {creatingCollection && (
-                <form onSubmit={handleCreateCollection} className="mb-6 flex gap-3 items-center bg-white rounded-2xl px-5 py-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-black/[0.04]">
-                  <input
-                    value={newCollectionName} onChange={e => setNewCollectionName(e.target.value)}
-                    placeholder="Collection name…" autoFocus
-                    className="flex-1 bg-[#f5f5f7] rounded-xl px-4 py-2.5 text-[14px] focus:outline-none focus:ring-2 focus:ring-foreground/20"
-                  />
-                  <button type="submit" disabled={collectionSaving || !newCollectionName.trim()}
-                    className="px-4 py-2.5 rounded-xl bg-foreground text-background text-[13px] font-medium hover:opacity-80 disabled:opacity-40 transition-opacity shrink-0">
-                    {collectionSaving ? "Creating…" : "Create"}
-                  </button>
-                  <button type="button" onClick={() => setCreatingCollection(false)}
-                    className="px-3 py-2.5 rounded-xl text-[13px] text-foreground/50 hover:bg-[#f5f5f7] transition-colors">
-                    Cancel
-                  </button>
-                </form>
-              )}
+              {/* ── Saved ── */}
+              <div>
+                <div className="mb-5">
+                  <h2 className="text-[16px] font-bold">Saved</h2>
+                  <p className="text-[12px] text-foreground/40 mt-0.5">Prompts bookmarked from other creators</p>
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {libLoading
-                  ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-56 w-full rounded-2xl" />)
-                  : librariesData?.length
-                  ? librariesData.map((lib: any) => {
-                      const accent = { color: "var(--orange)", subtle: "var(--orange-subtle)" };
-                      const previewTitles: string[] = lib.previewTitles ?? [];
-                      const libPrice = lib.priceCents;
-                      const isConfirmingLibDelete = confirmDeleteLibrary === lib.id;
-                      const isDeletingLib = deletingLibrary === lib.id;
-                      return (
-                        <Link key={lib.id} href={`/library/${lib.id}`} className="group block" data-testid={`library-card-${lib.id}`}>
-                          <div
-                            className="h-full bg-white rounded-2xl p-6 flex flex-col gap-4 shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_36px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.05]"
-                            style={{ borderTop: `3px solid ${accent.color}` }}
-                          >
-                            <div className="flex items-start gap-3">
-                              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: accent.subtle }}>
-                                <BookOpen className="h-4 w-4" style={{ color: accent.color }} />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-bold text-[16px] leading-tight group-hover:opacity-70 transition-opacity mb-1">{lib.name}</h3>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: accent.subtle, color: accent.color }}>
-                                    {lib.promptCount} {lib.promptCount === 1 ? "prompt" : "prompts"}
-                                  </span>
-                                  {libPrice && (
-                                    <span className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#f5f5f7] text-foreground/50">
-                                      ${(libPrice / 100).toFixed(libPrice % 100 === 0 ? 0 : 2)}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              {/* Delete library button */}
-                              {canEdit && (
-                                <button
-                                  onClick={e => handleDeleteLibrary(e, lib.id)}
-                                  disabled={isDeletingLib}
-                                  className={`opacity-0 group-hover:opacity-100 shrink-0 transition-all rounded-lg text-[10px] font-medium ${
-                                    isConfirmingLibDelete
-                                      ? "!opacity-100 bg-red-500 text-white px-2 py-1"
-                                      : "p-1.5 hover:bg-red-50 text-foreground/30 hover:text-red-500"
-                                  }`}
-                                  title={isConfirmingLibDelete ? "Click again to confirm delete" : "Delete collection"}
-                                >
-                                  {isDeletingLib ? "…" : isConfirmingLibDelete ? "Confirm?" : <Trash2 className="h-3.5 w-3.5" />}
-                                </button>
-                              )}
-                            </div>
-                            {lib.description && (
-                              <p className="text-[13px] text-foreground/60 leading-relaxed">{lib.description}</p>
-                            )}
-                            {previewTitles.length > 0 && (
-                              <ul className="space-y-1.5">
-                                {previewTitles.map((t: string) => (
-                                  <li key={t} className="flex items-center gap-2 text-[13px] text-foreground/55">
-                                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: accent.color }} />
-                                    <span className="line-clamp-1">{t}</span>
-                                  </li>
-                                ))}
-                                {lib.promptCount > previewTitles.length && (
-                                  <li className="text-[12px] pl-3.5" style={{ color: accent.color }}>+{lib.promptCount - previewTitles.length} more</li>
-                                )}
-                              </ul>
-                            )}
-                            <div className="mt-auto pt-4 border-t border-black/[0.05] flex items-center justify-between">
-                              <span className="text-[12px] text-foreground/35">
-                                {new Date(lib.updatedAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
-                              </span>
-                              <span className="text-[13px] font-medium group-hover:underline" style={{ color: accent.color }}>View →</span>
-                            </div>
-                          </div>
-                        </Link>
-                      );
-                    })
-                  : (
-                    <div className="col-span-full py-16 text-center">
-                      <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center mx-auto mb-4">
-                        <BookOpen className="h-5 w-5 text-foreground/30" />
-                      </div>
-                      <h3 className="font-semibold mb-1">No collections yet</h3>
-                      <p className="text-[14px] text-foreground/50">Group prompts into collections to share curated sets.</p>
-                      {canEdit && (
-                        <button onClick={() => setCreatingCollection(true)}
-                          className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full text-[13px] font-medium bg-foreground text-background hover:opacity-80 transition-opacity">
-                          <Plus className="h-3.5 w-3.5" /> Create first collection
-                        </button>
-                      )}
-                    </div>
-                  )}
+                {libLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {Array(2).fill(0).map((_, i) => <Skeleton key={i} className="h-56 w-full rounded-2xl" />)}
+                  </div>
+                ) : savedByMe.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {savedByMe.map(renderLibraryCard)}
+                  </div>
+                ) : (
+                  <div className="py-10 text-center bg-white rounded-2xl border border-black/[0.05]">
+                    <Heart className="h-5 w-5 text-foreground/25 mx-auto mb-2" />
+                    <p className="text-[13px] text-foreground/40 px-6">Nothing saved yet — use the <BookmarkPlus className="inline h-3.5 w-3.5 mx-0.5" /> icon on any prompt card to bookmark it here.</p>
+                  </div>
+                )}
               </div>
             </>
           )}

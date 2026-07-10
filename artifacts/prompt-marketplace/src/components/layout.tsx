@@ -6,15 +6,15 @@ import { useQuery } from "@tanstack/react-query";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-function useMyProfileUsername() {
+function useMyProfileInfo() {
   const { user } = useUser();
-  return useQuery<string | null>({
-    queryKey: ["users", "me", "username"],
+  return useQuery<{ username: string | null; avatarUrl: string | null }>({
+    queryKey: ["users", "me", "profileInfo"],
     queryFn: async () => {
       const res = await fetch(`${basePath}/api/users/me`, { credentials: "include" });
-      if (!res.ok) return null;
+      if (!res.ok) return { username: null, avatarUrl: null };
       const d = await res.json();
-      return d.username ?? null;
+      return { username: d.username ?? null, avatarUrl: d.avatarUrl ?? null };
     },
     enabled: !!user,
     retry: false,
@@ -26,7 +26,9 @@ function UserMenu() {
   const { signOut } = useClerk();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const { data: myUsername } = useMyProfileUsername();
+  const { data: myProfileInfo } = useMyProfileInfo();
+  const myUsername = myProfileInfo?.username ?? null;
+  const myAvatarUrl = myProfileInfo?.avatarUrl ?? user?.imageUrl ?? null;
   const [, setLocation] = useLocation();
 
   useEffect(() => {
@@ -51,8 +53,8 @@ function UserMenu() {
         className="flex items-center p-1 rounded-lg hover:bg-black/[0.04] transition-colors"
         data-testid="user-avatar-link"
       >
-        {user.imageUrl ? (
-          <img src={user.imageUrl} alt={user.fullName ?? ""} className="w-7 h-7 rounded-full object-cover" />
+        {myAvatarUrl ? (
+          <img src={myAvatarUrl} alt={user.fullName ?? ""} className="w-7 h-7 rounded-full object-cover" />
         ) : (
           <div className="w-7 h-7 rounded-full bg-foreground text-background flex items-center justify-center text-[11px] font-semibold">
             {initials}

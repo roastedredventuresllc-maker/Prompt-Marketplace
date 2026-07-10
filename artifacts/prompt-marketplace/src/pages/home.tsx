@@ -121,9 +121,7 @@ function PromptCard({ prompt }: { prompt: Prompt }) {
           {/* Action bar */}
           <div className="flex items-center justify-end gap-1.5" onClick={e => e.stopPropagation()}>
             {isSignedIn && (
-              <div className="relative" style={{ zIndex: 20 }}>
-                <AddToLibraryMenu promptId={prompt.id} variant="icon" />
-              </div>
+              <AddToLibraryMenu promptId={prompt.id} variant="icon" />
             )}
             <button
               onClick={handleBuy}

@@ -409,6 +409,8 @@ export const GetUserLibrariesResponseItem = zod.object({
   "promptCount": zod.number(),
   "previewTitles": zod.array(zod.string()),
   "isPublic": zod.boolean(),
+  "kind": zod.string().optional().default("collection"),
+  "priceCents": zod.number().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -448,7 +450,8 @@ export const CreateLibraryBody = zod.object({
   "name": zod.string().min(1),
   "description": zod.string().optional(),
   "authorUsername": zod.string(),
-  "isPublic": zod.boolean().optional()
+  "isPublic": zod.boolean().optional(),
+  "kind": zod.enum(["collection", "saved"]).optional()
 })
 
 export const CreateLibraryResponse = zod.object({
@@ -460,6 +463,8 @@ export const CreateLibraryResponse = zod.object({
   "promptCount": zod.number(),
   "previewTitles": zod.array(zod.string()),
   "isPublic": zod.boolean(),
+  "kind": zod.string().optional().default("collection"),
+  "priceCents": zod.number().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })

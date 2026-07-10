@@ -9,6 +9,7 @@ export const librariesTable = pgTable("libraries", {
   authorUsername: text("author_username").notNull(),
   isPublic: boolean("is_public").notNull().default(true),
   priceCents: integer("price_cents"), // null = use author default; set to override per-collection
+  kind: text("kind").notNull().default("collection"), // "collection" = user's own curated set; "saved" = bookmarks from others
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
