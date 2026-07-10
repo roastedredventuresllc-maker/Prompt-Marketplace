@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Plus, LogIn, ChevronDown } from "lucide-react";
+import { Plus, LogIn, ChevronDown, User } from "lucide-react";
 import { useUser, useClerk, Show } from "@clerk/react";
 import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -27,6 +27,7 @@ function UserMenu() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { data: myUsername } = useMyProfileUsername();
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -44,32 +45,20 @@ function UserMenu() {
 
   return (
     <div className="relative flex items-center gap-0.5" ref={ref}>
-      {/* Avatar → direct link to own profile */}
-      {myUsername ? (
-        <Link
-          href={`/profile/${myUsername}`}
-          className="flex items-center p-1 rounded-lg hover:bg-black/[0.04] transition-colors"
-          data-testid="user-avatar-link"
-        >
-          {user.imageUrl ? (
-            <img src={user.imageUrl} alt={user.fullName ?? ""} className="w-7 h-7 rounded-full object-cover" />
-          ) : (
-            <div className="w-7 h-7 rounded-full bg-foreground text-background flex items-center justify-center text-[11px] font-semibold">
-              {initials}
-            </div>
-          )}
-        </Link>
-      ) : (
-        <div className="flex items-center p-1">
-          {user.imageUrl ? (
-            <img src={user.imageUrl} alt={user.fullName ?? ""} className="w-7 h-7 rounded-full object-cover" />
-          ) : (
-            <div className="w-7 h-7 rounded-full bg-foreground text-background flex items-center justify-center text-[11px] font-semibold">
-              {initials}
-            </div>
-          )}
-        </div>
-      )}
+      {/* Avatar → always navigates to profile */}
+      <button
+        onClick={() => setLocation(myUsername ? `/profile/${myUsername}` : "/profile/me")}
+        className="flex items-center p-1 rounded-lg hover:bg-black/[0.04] transition-colors"
+        data-testid="user-avatar-link"
+      >
+        {user.imageUrl ? (
+          <img src={user.imageUrl} alt={user.fullName ?? ""} className="w-7 h-7 rounded-full object-cover" />
+        ) : (
+          <div className="w-7 h-7 rounded-full bg-foreground text-background flex items-center justify-center text-[11px] font-semibold">
+            {initials}
+          </div>
+        )}
+      </button>
       {/* Chevron → dropdown menu */}
       <button
         onClick={() => setOpen((o) => !o)}

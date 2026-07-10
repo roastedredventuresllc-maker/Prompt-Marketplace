@@ -311,32 +311,6 @@ export default function PromptDetail() {
                 </Link>
               </div>
 
-              {/* Stats + quick buy */}
-              <div className="bg-white rounded-2xl p-6 shadow-[0_2px_16px_rgba(0,0,0,0.07)] border border-black/[0.05]">
-                <p className="text-[11px] font-bold uppercase tracking-widest text-foreground/30 mb-4">Stats</p>
-                <div className="space-y-3 mb-5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-foreground/50 text-[14px]">
-                      <Heart className="h-4 w-4" style={{ color: "var(--orange)" }} /> Saves
-                    </div>
-                    <span className="font-semibold text-[14px]" style={{ color: "var(--orange)" }}>{prompt.saveCount}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-foreground/50 text-[14px]">
-                      <Eye className="h-4 w-4" /> Views
-                    </div>
-                    <span className="font-semibold text-[14px]">{prompt.viewCount}</span>
-                  </div>
-                </div>
-                {/* Buy CTA in sidebar */}
-                <button
-                  onClick={() => document.getElementById("paywall-trigger")?.click()}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-[13px] text-white hover:opacity-80 transition-opacity"
-                  style={{ background: "var(--orange)" }}
-                >
-                  <ShoppingCart className="h-4 w-4" /> Get full access
-                </button>
-              </div>
             </div>
           </div>
 

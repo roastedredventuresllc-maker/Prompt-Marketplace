@@ -119,23 +119,21 @@ function PromptCard({ prompt }: { prompt: Prompt }) {
           </div>
 
           {/* Action bar */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center justify-end gap-1.5" onClick={e => e.stopPropagation()}>
             {isSignedIn && (
-              <div className="relative" onClick={e => e.stopPropagation()} style={{ zIndex: 20 }}>
+              <div className="relative" style={{ zIndex: 20 }}>
                 <AddToLibraryMenu promptId={prompt.id} variant="icon" />
               </div>
             )}
-            <div className="ml-auto flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-              <button
-                onClick={handleBuy}
-                className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg font-semibold transition-all"
-                style={confirmBuy
-                  ? { background: "var(--orange)", color: "white", outline: "2px solid var(--orange)", outlineOffset: "2px" }
-                  : { background: "var(--orange)", color: "white" }}
-              >
-                {confirmBuy ? "Open →" : "Buy"}
-              </button>
-            </div>
+            <button
+              onClick={handleBuy}
+              className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg font-semibold transition-all"
+              style={confirmBuy
+                ? { background: "var(--orange)", color: "white", outline: "2px solid var(--orange)", outlineOffset: "2px" }
+                : { background: "var(--orange)", color: "white" }}
+            >
+              {confirmBuy ? "Open →" : "Buy"}
+            </button>
           </div>
         </div>
       </div>
