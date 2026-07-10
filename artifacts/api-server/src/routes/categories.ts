@@ -1,12 +1,12 @@
 import { Router, type IRouter } from "express";
 import { db, categoriesTable, promptsTable } from "@workspace/db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, asc } from "drizzle-orm";
 import { ListCategoriesResponse } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
 router.get("/categories", async (req, res): Promise<void> => {
-  const categories = await db.select().from(categoriesTable);
+  const categories = await db.select().from(categoriesTable).orderBy(asc(categoriesTable.sortOrder), asc(categoriesTable.id));
 
   const counts = await db
     .select({ categoryId: promptsTable.categoryId, count: sql<number>`count(*)::int` })

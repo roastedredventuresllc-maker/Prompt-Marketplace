@@ -5,6 +5,7 @@
  * Prompt Marketplace API
  * OpenAPI spec version: 0.1.0
  */
+import type { UserOrgType } from './userOrgType';
 
 export interface User {
   id: number;
@@ -15,6 +16,9 @@ export interface User {
   /** @nullable */
   avatarUrl?: string | null;
   categories: string[];
+  orgType: UserOrgType;
+  /** @nullable */
+  orgName?: string | null;
   promptCount: number;
   libraryCount: number;
   totalSaves: number;

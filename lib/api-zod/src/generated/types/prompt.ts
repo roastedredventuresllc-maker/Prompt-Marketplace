@@ -14,6 +14,10 @@ export interface Prompt {
   description?: string | null;
   categoryId: number;
   categoryName: string;
+  /** @nullable */
+  subcategoryId?: number | null;
+  /** @nullable */
+  subcategoryName?: string | null;
   tags: string[];
   authorUsername: string;
   authorDisplayName: string;

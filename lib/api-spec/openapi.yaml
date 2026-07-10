@@ -20,6 +20,8 @@ tags:
     description: Prompt library operations
   - name: stats
     description: Marketplace stats
+  - name: auth
+    description: Auth-aware user operations
 paths:
   /healthz:
     get:
@@ -49,6 +51,44 @@ paths:
                 items:
                   $ref: "#/components/schemas/Category"
 
+  /categories/{slug}/subcategories:
+    get:
+      operationId: listSubcategories
+      tags: [categories]
+      summary: List subcategories for a category
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of subcategories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Subcategory"
+        "404":
+          description: Category not found
+
+  /users/me:
+    get:
+      operationId: getMyProfile
+      tags: [auth]
+      summary: Get own profile (requires Clerk auth)
+      responses:
+        "200":
+          description: Own user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: Profile not yet created
+
   /prompts:
     get:
       operationId: listPrompts
@@ -56,6 +96,10 @@ paths:
       summary: List prompts with optional filters
       parameters:
         - name: categoryId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: subcategoryId
           in: query
           schema:
             type: ["integer", "null"]
@@ -481,6 +525,26 @@ components:
       required:
         - status
 
+    Subcategory:
+      type: object
+      properties:
+        id:
+          type: integer
+        categoryId:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+      required:
+        - id
+        - categoryId
+        - name
+        - slug
+        - description
+
     Category:
       type: object
       properties:
@@ -494,6 +558,8 @@ components:
           type: string
         description:
           type: string
+        sortOrder:
+          type: integer
         promptCount:
           type: integer
       required:
@@ -502,6 +568,7 @@ components:
         - slug
         - icon
         - description
+        - sortOrder
         - promptCount
 
     Prompt:
@@ -519,6 +586,10 @@ components:
           type: integer
         categoryName:
           type: string
+        subcategoryId:
+          type: ["integer", "null"]
+        subcategoryName:
+          type: ["string", "null"]
         tags:
           type: array
           items:
@@ -580,6 +651,8 @@ components:
           type: string
         categoryId:
           type: integer
+        subcategoryId:
+          type: ["integer", "null"]
         tags:
           type: array
           items:
@@ -650,6 +723,11 @@ components:
           type: array
           items:
             type: string
+        orgType:
+          type: string
+          enum: [individual, firm]
+        orgName:
+          type: ["string", "null"]
         promptCount:
           type: integer
         libraryCount:
@@ -663,6 +741,7 @@ components:
         - username
         - displayName
         - categories
+        - orgType
         - promptCount
         - libraryCount
         - totalSaves
@@ -671,6 +750,8 @@ components:
     UserInput:
       type: object
       properties:
+        clerkUserId:
+          type: string
         username:
           type: string
           minLength: 2
@@ -685,6 +766,11 @@ components:
           type: array
           items:
             type: string
+        orgType:
+          type: string
+          enum: [individual, firm]
+        orgName:
+          type: string
       required:
         - username
         - displayName

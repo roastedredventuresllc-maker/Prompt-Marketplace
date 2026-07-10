@@ -25,9 +25,46 @@ export const ListCategoriesResponseItem = zod.object({
   "slug": zod.string(),
   "icon": zod.string(),
   "description": zod.string(),
+  "sortOrder": zod.number(),
   "promptCount": zod.number()
 })
 export const ListCategoriesResponse = zod.array(ListCategoriesResponseItem)
+
+
+/**
+ * @summary List subcategories for a category
+ */
+export const ListSubcategoriesParams = zod.object({
+  "slug": zod.coerce.string()
+})
+
+export const ListSubcategoriesResponseItem = zod.object({
+  "id": zod.number(),
+  "categoryId": zod.number(),
+  "name": zod.string(),
+  "slug": zod.string(),
+  "description": zod.string()
+})
+export const ListSubcategoriesResponse = zod.array(ListSubcategoriesResponseItem)
+
+
+/**
+ * @summary Get own profile (requires Clerk auth)
+ */
+export const GetMyProfileResponse = zod.object({
+  "id": zod.number(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "categories": zod.array(zod.string()),
+  "orgType": zod.enum(['individual', 'firm']),
+  "orgName": zod.string().nullish(),
+  "promptCount": zod.number(),
+  "libraryCount": zod.number(),
+  "totalSaves": zod.number(),
+  "createdAt": zod.string()
+})
 
 
 /**
@@ -35,6 +72,7 @@ export const ListCategoriesResponse = zod.array(ListCategoriesResponseItem)
  */
 export const ListPromptsQueryParams = zod.object({
   "categoryId": zod.coerce.number().nullish(),
+  "subcategoryId": zod.coerce.number().nullish(),
   "search": zod.coerce.string().nullish(),
   "sort": zod.union([zod.literal('trending'),zod.literal('newest'),zod.literal('most_saved'),zod.literal(null)]).nullish(),
   "username": zod.coerce.string().nullish(),
@@ -50,6 +88,8 @@ export const ListPromptsResponse = zod.object({
   "description": zod.string().nullish(),
   "categoryId": zod.number(),
   "categoryName": zod.string(),
+  "subcategoryId": zod.number().nullish(),
+  "subcategoryName": zod.string().nullish(),
   "tags": zod.array(zod.string()),
   "authorUsername": zod.string(),
   "authorDisplayName": zod.string(),
@@ -76,6 +116,7 @@ export const CreatePromptBody = zod.object({
   "content": zod.string().min(1),
   "description": zod.string().optional(),
   "categoryId": zod.number(),
+  "subcategoryId": zod.number().nullish(),
   "tags": zod.array(zod.string()).optional(),
   "authorUsername": zod.string(),
   "isPublic": zod.boolean().optional()
@@ -88,6 +129,8 @@ export const CreatePromptResponse = zod.object({
   "description": zod.string().nullish(),
   "categoryId": zod.number(),
   "categoryName": zod.string(),
+  "subcategoryId": zod.number().nullish(),
+  "subcategoryName": zod.string().nullish(),
   "tags": zod.array(zod.string()),
   "authorUsername": zod.string(),
   "authorDisplayName": zod.string(),
@@ -114,6 +157,8 @@ export const GetTrendingPromptsResponseItem = zod.object({
   "description": zod.string().nullish(),
   "categoryId": zod.number(),
   "categoryName": zod.string(),
+  "subcategoryId": zod.number().nullish(),
+  "subcategoryName": zod.string().nullish(),
   "tags": zod.array(zod.string()),
   "authorUsername": zod.string(),
   "authorDisplayName": zod.string(),
@@ -141,6 +186,8 @@ export const GetPromptResponse = zod.object({
   "description": zod.string().nullish(),
   "categoryId": zod.number(),
   "categoryName": zod.string(),
+  "subcategoryId": zod.number().nullish(),
+  "subcategoryName": zod.string().nullish(),
   "tags": zod.array(zod.string()),
   "authorUsername": zod.string(),
   "authorDisplayName": zod.string(),
@@ -180,6 +227,8 @@ export const UpdatePromptResponse = zod.object({
   "description": zod.string().nullish(),
   "categoryId": zod.number(),
   "categoryName": zod.string(),
+  "subcategoryId": zod.number().nullish(),
+  "subcategoryName": zod.string().nullish(),
   "tags": zod.array(zod.string()),
   "authorUsername": zod.string(),
   "authorDisplayName": zod.string(),
@@ -228,11 +277,14 @@ export const createUserBodyUsernameMin = 2;
 
 
 export const CreateUserBody = zod.object({
+  "clerkUserId": zod.string().optional(),
   "username": zod.string().min(createUserBodyUsernameMin),
   "displayName": zod.string().min(1),
   "bio": zod.string().optional(),
   "avatarUrl": zod.string().optional(),
-  "categories": zod.array(zod.string()).optional()
+  "categories": zod.array(zod.string()).optional(),
+  "orgType": zod.enum(['individual', 'firm']).optional(),
+  "orgName": zod.string().optional()
 })
 
 export const CreateUserResponse = zod.object({
@@ -242,6 +294,8 @@ export const CreateUserResponse = zod.object({
   "bio": zod.string().nullish(),
   "avatarUrl": zod.string().nullish(),
   "categories": zod.array(zod.string()),
+  "orgType": zod.enum(['individual', 'firm']),
+  "orgName": zod.string().nullish(),
   "promptCount": zod.number(),
   "libraryCount": zod.number(),
   "totalSaves": zod.number(),
@@ -263,6 +317,8 @@ export const GetFeaturedCreatorsResponseItem = zod.object({
   "bio": zod.string().nullish(),
   "avatarUrl": zod.string().nullish(),
   "categories": zod.array(zod.string()),
+  "orgType": zod.enum(['individual', 'firm']),
+  "orgName": zod.string().nullish(),
   "promptCount": zod.number(),
   "libraryCount": zod.number(),
   "totalSaves": zod.number(),
@@ -285,6 +341,8 @@ export const GetUserProfileResponse = zod.object({
   "bio": zod.string().nullish(),
   "avatarUrl": zod.string().nullish(),
   "categories": zod.array(zod.string()),
+  "orgType": zod.enum(['individual', 'firm']),
+  "orgName": zod.string().nullish(),
   "promptCount": zod.number(),
   "libraryCount": zod.number(),
   "totalSaves": zod.number(),
@@ -316,6 +374,8 @@ export const UpdateUserProfileResponse = zod.object({
   "bio": zod.string().nullish(),
   "avatarUrl": zod.string().nullish(),
   "categories": zod.array(zod.string()),
+  "orgType": zod.enum(['individual', 'firm']),
+  "orgName": zod.string().nullish(),
   "promptCount": zod.number(),
   "libraryCount": zod.number(),
   "totalSaves": zod.number(),
@@ -413,6 +473,8 @@ export const GetLibraryResponse = zod.object({
   "description": zod.string().nullish(),
   "categoryId": zod.number(),
   "categoryName": zod.string(),
+  "subcategoryId": zod.number().nullish(),
+  "subcategoryName": zod.string().nullish(),
   "tags": zod.array(zod.string()),
   "authorUsername": zod.string(),
   "authorDisplayName": zod.string(),
@@ -526,6 +588,7 @@ export const GetMarketplaceStatsResponse = zod.object({
   "slug": zod.string(),
   "icon": zod.string(),
   "description": zod.string(),
+  "sortOrder": zod.number(),
   "promptCount": zod.number()
 }))
 })

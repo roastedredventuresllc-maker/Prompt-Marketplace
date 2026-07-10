@@ -8,6 +8,7 @@ export const promptsTable = pgTable("prompts", {
   content: text("content").notNull(),
   description: text("description"),
   categoryId: integer("category_id").notNull(),
+  subcategoryId: integer("subcategory_id"),
   tags: text("tags").array().notNull().default([]),
   authorUsername: text("author_username").notNull(),
   saveCount: integer("save_count").notNull().default(0),

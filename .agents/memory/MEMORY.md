@@ -1,0 +1,1 @@
+- [Clerk integration patterns](clerk-integration.md) — Show not SignedIn/SignedOut; derive clerkUserId from getAuth() only; proxy URL always unconditional.

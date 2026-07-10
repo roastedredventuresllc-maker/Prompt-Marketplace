@@ -4,11 +4,14 @@ import { z } from "zod/v4";
 
 export const usersTable = pgTable("users", {
   id: serial("id").primaryKey(),
+  clerkUserId: text("clerk_user_id").unique(),
   username: text("username").notNull().unique(),
   displayName: text("display_name").notNull(),
   bio: text("bio"),
   avatarUrl: text("avatar_url"),
   categories: text("categories").array().notNull().default([]),
+  orgType: text("org_type").notNull().default("individual"), // "individual" | "firm"
+  orgName: text("org_name"), // set when orgType = "firm"
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

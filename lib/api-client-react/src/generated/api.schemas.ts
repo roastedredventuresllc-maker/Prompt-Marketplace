@@ -9,12 +9,21 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface Subcategory {
+  id: number;
+  categoryId: number;
+  name: string;
+  slug: string;
+  description: string;
+}
+
 export interface Category {
   id: number;
   name: string;
   slug: string;
   icon: string;
   description: string;
+  sortOrder: number;
   promptCount: number;
 }
 
@@ -26,6 +35,10 @@ export interface Prompt {
   description?: string | null;
   categoryId: number;
   categoryName: string;
+  /** @nullable */
+  subcategoryId?: number | null;
+  /** @nullable */
+  subcategoryName?: string | null;
   tags: string[];
   authorUsername: string;
   authorDisplayName: string;
@@ -50,6 +63,8 @@ export interface PromptInput {
   content: string;
   description?: string;
   categoryId: number;
+  /** @nullable */
+  subcategoryId?: number | null;
   tags?: string[];
   authorUsername: string;
   isPublic?: boolean;
@@ -75,6 +90,14 @@ export interface SaveToggleResponse {
   saveCount: number;
 }
 
+export type UserOrgType = typeof UserOrgType[keyof typeof UserOrgType];
+
+
+export const UserOrgType = {
+  individual: 'individual',
+  firm: 'firm',
+} as const;
+
 export interface User {
   id: number;
   username: string;
@@ -84,13 +107,25 @@ export interface User {
   /** @nullable */
   avatarUrl?: string | null;
   categories: string[];
+  orgType: UserOrgType;
+  /** @nullable */
+  orgName?: string | null;
   promptCount: number;
   libraryCount: number;
   totalSaves: number;
   createdAt: string;
 }
 
+export type UserInputOrgType = typeof UserInputOrgType[keyof typeof UserInputOrgType];
+
+
+export const UserInputOrgType = {
+  individual: 'individual',
+  firm: 'firm',
+} as const;
+
 export interface UserInput {
+  clerkUserId?: string;
   /** @minLength 2 */
   username: string;
   /** @minLength 1 */
@@ -98,6 +133,8 @@ export interface UserInput {
   bio?: string;
   avatarUrl?: string;
   categories?: string[];
+  orgType?: UserInputOrgType;
+  orgName?: string;
 }
 
 export interface UserUpdate {
@@ -166,6 +203,10 @@ export type ListPromptsParams = {
  * @nullable
  */
 categoryId?: number | null;
+/**
+ * @nullable
+ */
+subcategoryId?: number | null;
 /**
  * @nullable
  */

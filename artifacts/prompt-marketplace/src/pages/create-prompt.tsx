@@ -1,181 +1,221 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
+import { useState, useEffect } from "react";
+import { useLocation, Link } from "wouter";
 import { Layout } from "@/components/layout";
 import { useCreatePrompt, useListCategories } from "@workspace/api-client-react";
-import { Terminal, Send, Lock, Globe, AlertTriangle } from "lucide-react";
+import { useUser, Show } from "@clerk/react";
+import { useQuery } from "@tanstack/react-query";
+import { X, Plus, LogIn } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function CreatePrompt() {
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+function useMyProfile() {
+  return useQuery({
+    queryKey: ["users", "me"],
+    queryFn: async () => {
+      const res = await fetch(`${basePath}/api/users/me`, { credentials: "include" });
+      if (res.status === 404) return null;
+      if (!res.ok) throw new Error("Failed to fetch profile");
+      return res.json() as Promise<{ username: string; displayName: string }>;
+    },
+    retry: false,
+  });
+}
+
+function CreatePromptForm() {
   const [, setLocation] = useLocation();
-  const { data: categories, isLoading: categoriesLoading } = useListCategories();
+  const { data: profile, isLoading: profileLoading } = useMyProfile();
+  const { data: categories, isLoading: catsLoading } = useListCategories();
   const createPrompt = useCreatePrompt();
 
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     title: "",
     content: "",
     description: "",
     categoryId: 0,
-    tags: "",
+    tags: [] as string[],
     isPublic: true,
-    authorUsername: "me" // Mock auth user
   });
-
+  const [tagInput, setTagInput] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = () => {
-    if (!formData.title || !formData.content || formData.categoryId === 0) {
+  useEffect(() => {
+    if (!profileLoading && !profile) setLocation("/onboarding");
+  }, [profile, profileLoading, setLocation]);
+
+  function addTag() {
+    const t = tagInput.trim().toLowerCase().replace(/\s+/g, "-");
+    if (t && !form.tags.includes(t) && form.tags.length < 8) {
+      setForm((p) => ({ ...p, tags: [...p.tags, t] }));
+      setTagInput("");
+    }
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.title || !form.content || !form.categoryId) {
       setError("Title, content, and category are required.");
       return;
     }
+    if (!profile?.username) return;
 
-    const payload = {
-      ...formData,
-      tags: formData.tags.split(",").map(t => t.trim()).filter(Boolean)
-    };
+    setError("");
+    createPrompt.mutate(
+      { data: { ...form, authorUsername: profile.username } },
+      { onSuccess: (p) => setLocation(`/prompt/${p.id}`) }
+    );
+  }
 
-    createPrompt.mutate({ data: payload }, {
-      onSuccess: (prompt) => {
-        setLocation(`/prompt/${prompt.id}`);
-      },
-      onError: (err: any) => {
-        setError("Failed to publish prompt. Ensure you have created a profile first.");
-      }
-    });
-  };
+  if (profileLoading) {
+    return (
+      <div className="max-w-2xl mx-auto px-6 py-16 space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-12 w-full rounded-xl" />
+        <Skeleton className="h-40 w-full rounded-xl" />
+      </div>
+    );
+  }
 
   return (
-    <Layout>
-      <div className="container mx-auto max-w-4xl px-4 py-8 md:py-12">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2">Publish Prompt</h1>
-            <p className="text-muted-foreground">List a new prompt on the marketplace.</p>
-          </div>
-          <div className="hidden sm:flex items-center gap-2 bg-secondary text-secondary-foreground px-3 py-1.5 rounded-md text-xs font-mono border border-border">
-            <Terminal className="h-3.5 w-3.5" /> MARKET_WRITE
-          </div>
-        </div>
+    <div className="max-w-2xl mx-auto px-6 py-12">
+      <div className="mb-8">
+        <p className="text-[12px] font-semibold uppercase tracking-widest text-foreground/40 mb-2">Publishing as @{profile?.username}</p>
+        <h1 className="text-3xl font-bold tracking-tight">New prompt</h1>
+      </div>
 
+      <form onSubmit={handleSubmit} className="space-y-5">
         {error && (
-          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-md flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 shrink-0" /> {error}
-          </div>
+          <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-xl">{error}</div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* Title & Category Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Title</label>
-                <input 
-                  type="text" 
-                  value={formData.title}
-                  onChange={e => setFormData({...formData, title: e.target.value})}
-                  placeholder="e.g. System Prompt for Next.js App Generation"
-                  className="w-full bg-card border border-border rounded-md py-2.5 px-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium placeholder:font-normal"
-                  data-testid="input-prompt-title"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Category</label>
-                <select 
-                  value={formData.categoryId}
-                  onChange={e => setFormData({...formData, categoryId: Number(e.target.value)})}
-                  className="w-full bg-card border border-border rounded-md py-2.5 px-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all appearance-none"
-                  data-testid="select-prompt-category"
-                >
-                  <option value={0} disabled>Select a category...</option>
-                  {categoriesLoading ? (
-                     <option disabled>Loading...</option>
-                  ) : categories?.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
+        <div>
+          <label className="block text-[12px] font-semibold uppercase tracking-wider text-foreground/40 mb-2">Title *</label>
+          <input
+            type="text"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            placeholder="Give your prompt a clear, descriptive title"
+            className="w-full bg-[#f5f5f7] rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-foreground/20"
+            data-testid="input-title"
+          />
+        </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Prompt Content</label>
-                <span className="text-[10px] font-mono text-muted-foreground uppercase bg-secondary px-1.5 rounded">Markdown Supported</span>
-              </div>
-              <textarea 
-                value={formData.content}
-                onChange={e => setFormData({...formData, content: e.target.value})}
-                placeholder="You are an expert developer..."
-                className="w-full bg-[#0A0A0A] border border-border rounded-md py-4 px-4 text-sm font-mono text-[#E5E5E5] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all min-h-[300px] resize-y"
-                data-testid="input-prompt-content"
-              />
-            </div>
+        <div>
+          <label className="block text-[12px] font-semibold uppercase tracking-wider text-foreground/40 mb-2">Description</label>
+          <input
+            type="text"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            placeholder="One sentence on what this prompt does"
+            className="w-full bg-[#f5f5f7] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-foreground/20"
+            data-testid="input-description"
+          />
+        </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Description (Optional)</label>
-              <textarea 
-                value={formData.description}
-                onChange={e => setFormData({...formData, description: e.target.value})}
-                placeholder="Explain what this prompt does best and how to use it..."
-                className="w-full bg-card border border-border rounded-md py-2.5 px-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all min-h-[100px] resize-none"
-                data-testid="input-prompt-description"
-              />
-            </div>
+        <div>
+          <label className="block text-[12px] font-semibold uppercase tracking-wider text-foreground/40 mb-2">Prompt content *</label>
+          <textarea
+            value={form.content}
+            onChange={(e) => setForm({ ...form, content: e.target.value })}
+            placeholder="Write your prompt here. Use {placeholders} for variable parts."
+            className="w-full bg-[#f5f5f7] rounded-xl px-4 py-3 text-[14px] font-mono focus:outline-none focus:ring-2 focus:ring-foreground/20 min-h-[200px] resize-none leading-relaxed"
+            data-testid="input-content"
+          />
+        </div>
 
+        <div>
+          <label className="block text-[12px] font-semibold uppercase tracking-wider text-foreground/40 mb-2">Category *</label>
+          <select
+            value={form.categoryId}
+            onChange={(e) => setForm({ ...form, categoryId: Number(e.target.value) })}
+            className="w-full bg-[#f5f5f7] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-foreground/20 appearance-none"
+            data-testid="select-category"
+          >
+            <option value={0} disabled>Choose a category…</option>
+            {catsLoading ? null : categories?.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-[12px] font-semibold uppercase tracking-wider text-foreground/40 mb-2">Tags (up to 8)</label>
+          <div className="flex gap-2 mb-2 flex-wrap">
+            {form.tags.map((t) => (
+              <span key={t} className="flex items-center gap-1 px-3 py-1 bg-foreground/[0.06] rounded-full text-[12px] font-medium">
+                #{t}
+                <button type="button" onClick={() => setForm((p) => ({ ...p, tags: p.tags.filter((x) => x !== t) }))} className="text-foreground/40 hover:text-foreground">
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
           </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            <div className="bg-card border border-border rounded-lg p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-wider mb-4 border-b border-border/50 pb-3">Metadata</h3>
-              
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-muted-foreground">Tags</label>
-                  <input 
-                    type="text" 
-                    value={formData.tags}
-                    onChange={e => setFormData({...formData, tags: e.target.value})}
-                    placeholder="react, coding, system (comma separated)"
-                    className="w-full bg-background border border-border rounded-md py-2 px-3 text-sm focus:outline-none focus:border-primary"
-                    data-testid="input-prompt-tags"
-                  />
-                </div>
-
-                <div className="pt-4 border-t border-border/50">
-                  <label className="text-xs font-semibold text-muted-foreground mb-3 block">Visibility</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button 
-                      onClick={() => setFormData({...formData, isPublic: true})}
-                      className={`flex flex-col items-center justify-center p-3 rounded-md border transition-all ${formData.isPublic ? 'bg-primary/10 border-primary text-primary' : 'bg-background border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'}`}
-                    >
-                      <Globe className="h-5 w-5 mb-1.5" />
-                      <span className="text-xs font-medium">Public</span>
-                    </button>
-                    <button 
-                      onClick={() => setFormData({...formData, isPublic: false})}
-                      className={`flex flex-col items-center justify-center p-3 rounded-md border transition-all ${!formData.isPublic ? 'bg-primary/10 border-primary text-primary' : 'bg-background border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'}`}
-                    >
-                      <Lock className="h-5 w-5 mb-1.5" />
-                      <span className="text-xs font-medium">Private</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <button 
-              onClick={handleSubmit}
-              disabled={createPrompt.isPending}
-              className="w-full bg-primary text-primary-foreground py-3.5 rounded-md font-bold hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(0,200,5,0.2)] hover:shadow-[0_0_25px_rgba(0,200,5,0.3)] disabled:opacity-50 disabled:shadow-none"
-              data-testid="btn-publish-prompt"
-            >
-              {createPrompt.isPending ? <Terminal className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-              {createPrompt.isPending ? "Publishing..." : "Publish to Market"}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
+              placeholder="Add a tag…"
+              className="flex-1 bg-[#f5f5f7] rounded-xl px-4 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-foreground/20"
+            />
+            <button type="button" onClick={addTag} className="px-4 py-2.5 bg-[#f5f5f7] rounded-xl text-[13px] font-medium hover:bg-[#eaeaea] transition-colors flex items-center gap-1">
+              <Plus className="h-3.5 w-3.5" /> Add
             </button>
           </div>
         </div>
 
-      </div>
+        <div className="flex items-center gap-3 py-2">
+          <button
+            type="button"
+            onClick={() => setForm((p) => ({ ...p, isPublic: !p.isPublic }))}
+            className={`relative w-10 h-6 rounded-full transition-colors ${form.isPublic ? "bg-foreground" : "bg-foreground/20"}`}
+            data-testid="toggle-public"
+          >
+            <span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.isPublic ? "translate-x-4" : "translate-x-0"}`} />
+          </button>
+          <span className="text-[14px] font-medium">{form.isPublic ? "Public" : "Private"}</span>
+          <span className="text-[13px] text-foreground/40">{form.isPublic ? "Visible to everyone" : "Only you can see this"}</span>
+        </div>
+
+        <div className="pt-2">
+          <button
+            type="submit"
+            disabled={createPrompt.isPending}
+            className="w-full bg-foreground text-background py-3.5 rounded-full font-medium text-[15px] hover:opacity-80 transition-opacity disabled:opacity-50"
+            data-testid="btn-publish"
+          >
+            {createPrompt.isPending ? "Publishing…" : "Publish prompt"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+export default function CreatePrompt() {
+  return (
+    <Layout>
+      <Show when="signed-in">
+        <CreatePromptForm />
+      </Show>
+      <Show when="signed-out">
+        <div className="flex-1 flex flex-col items-center justify-center px-4 py-24 text-center bg-[#f5f5f7]">
+          <div className="bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.08)] p-10 max-w-sm w-full">
+            <div className="w-12 h-12 rounded-2xl bg-foreground/[0.06] flex items-center justify-center mx-auto mb-5">
+              <LogIn className="h-5 w-5 text-foreground/50" />
+            </div>
+            <h2 className="text-xl font-bold mb-2">Sign in to publish</h2>
+            <p className="text-[14px] text-foreground/50 mb-6">Create an account to share your prompts with the world.</p>
+            <Link href="/sign-up" className="block w-full bg-foreground text-background py-3 rounded-full font-medium text-[14px] hover:opacity-80 transition-opacity text-center mb-3">
+              Create free account
+            </Link>
+            <Link href="/sign-in" className="block w-full text-[14px] text-foreground/60 hover:text-foreground text-center">
+              Already have an account? Sign in
+            </Link>
+          </div>
+        </div>
+      </Show>
     </Layout>
   );
 }

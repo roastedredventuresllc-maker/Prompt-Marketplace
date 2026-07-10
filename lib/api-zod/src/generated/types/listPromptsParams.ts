@@ -15,6 +15,10 @@ categoryId?: number | null;
 /**
  * @nullable
  */
+subcategoryId?: number | null;
+/**
+ * @nullable
+ */
 search?: string | null;
 /**
  * @nullable

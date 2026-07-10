@@ -13,6 +13,8 @@ export interface PromptInput {
   content: string;
   description?: string;
   categoryId: number;
+  /** @nullable */
+  subcategoryId?: number | null;
   tags?: string[];
   authorUsername: string;
   isPublic?: boolean;

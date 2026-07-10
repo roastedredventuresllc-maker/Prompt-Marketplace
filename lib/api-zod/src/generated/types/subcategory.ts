@@ -6,12 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface Category {
+export interface Subcategory {
   id: number;
+  categoryId: number;
   name: string;
   slug: string;
-  icon: string;
   description: string;
-  sortOrder: number;
-  promptCount: number;
 }

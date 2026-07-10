@@ -5,8 +5,10 @@
  * Prompt Marketplace API
  * OpenAPI spec version: 0.1.0
  */
+import type { UserInputOrgType } from './userInputOrgType';
 
 export interface UserInput {
+  clerkUserId?: string;
   /** @minLength 2 */
   username: string;
   /** @minLength 1 */
@@ -14,4 +16,6 @@ export interface UserInput {
   bio?: string;
   avatarUrl?: string;
   categories?: string[];
+  orgType?: UserInputOrgType;
+  orgName?: string;
 }
