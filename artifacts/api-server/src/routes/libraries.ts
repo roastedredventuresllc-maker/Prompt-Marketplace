@@ -52,6 +52,7 @@ async function buildLibraryResponse(library: typeof librariesTable.$inferSelect)
     promptCount: countResult?.count ?? 0,
     previewTitles: previewRows.map(r => r.title),
     isPublic: library.isPublic,
+    priceCents: library.priceCents ?? null,
     createdAt: library.createdAt.toISOString(),
     updatedAt: library.updatedAt.toISOString(),
   };
@@ -212,6 +213,10 @@ router.patch("/libraries/:id", async (req, res): Promise<void> => {
   if (parsed.data.name !== undefined) updates.name = parsed.data.name;
   if (parsed.data.description !== undefined) updates.description = parsed.data.description;
   if (parsed.data.isPublic !== undefined) updates.isPublic = parsed.data.isPublic;
+  const rawBody = req.body as Record<string, any>;
+  if (rawBody.priceCents !== undefined) {
+    updates.priceCents = rawBody.priceCents === null ? null : Number(rawBody.priceCents) || null;
+  }
 
   const [library] = await db
     .update(librariesTable)
@@ -225,7 +230,7 @@ router.patch("/libraries/:id", async (req, res): Promise<void> => {
   }
 
   const result = await buildLibraryResponse(library);
-  res.json(UpdateLibraryResponse.parse(result));
+  res.json({ ...UpdateLibraryResponse.parse(result), priceCents: library.priceCents ?? null });
 });
 
 router.delete("/libraries/:id", async (req, res): Promise<void> => {

@@ -22,6 +22,8 @@ type ProfileData = {
   orgName: string | null;
   avatarUrl: string | null;
   ownerClerkUserId?: string | null;
+  promptPriceCents: number;
+  collectionPriceCents: number;
 };
 
 function useProfile(username: string, enabled: boolean) {
@@ -40,7 +42,6 @@ function useProfile(username: string, enabled: boolean) {
 }
 
 async function uploadAvatar(file: File): Promise<string> {
-  // Step 1: request presigned URL
   const urlRes = await fetch(`${basePath}/api/storage/uploads/request-url`, {
     method: "POST",
     credentials: "include",
@@ -49,17 +50,22 @@ async function uploadAvatar(file: File): Promise<string> {
   });
   if (!urlRes.ok) throw new Error("Failed to get upload URL");
   const { uploadURL, objectPath } = await urlRes.json();
-
-  // Step 2: upload directly to GCS
   const uploadRes = await fetch(uploadURL, {
     method: "PUT",
     headers: { "Content-Type": file.type },
     body: file,
   });
   if (!uploadRes.ok) throw new Error("Upload failed");
-
-  // Return serving URL
   return `${basePath}/api/storage${objectPath}`;
+}
+
+function centsToStr(cents: number) {
+  return (cents / 100).toFixed(cents % 100 === 0 ? 0 : 2);
+}
+function strToCents(val: string): number | null {
+  const n = parseFloat(val.replace(/[^0-9.]/g, ""));
+  if (isNaN(n) || n <= 0) return null;
+  return Math.round(n * 100);
 }
 
 export default function EditProfile() {
@@ -70,18 +76,18 @@ export default function EditProfile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: profile, isLoading } = useProfile(username, isLoaded && !!isSignedIn);
-
   const isFirmProfile = !!(profile as any)?.ownerClerkUserId;
 
   const [form, setForm] = useState({
     displayName: "",
     bio: "",
     orgName: "",
-    orgType: "individual" as "individual" | "firm",
     categories: [] as string[],
     username: "",
     avatarUrl: null as string | null,
   });
+  const [promptPrice, setPromptPrice] = useState("5");
+  const [collectionPrice, setCollectionPrice] = useState("100");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -93,11 +99,12 @@ export default function EditProfile() {
         displayName: profile.displayName ?? "",
         bio: profile.bio ?? "",
         orgName: profile.orgName ?? "",
-        orgType: (profile.orgType as "individual" | "firm") ?? "individual",
         categories: profile.categories ?? [],
         username: profile.username ?? "",
         avatarUrl: profile.avatarUrl ?? null,
       });
+      setPromptPrice(centsToStr(profile.promptPriceCents ?? 500));
+      setCollectionPrice(centsToStr(profile.collectionPriceCents ?? 10000));
     }
   }, [profile]);
 
@@ -112,32 +119,37 @@ export default function EditProfile() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.displayName.trim()) return;
+    const nameField = isFirmProfile ? form.orgName : form.displayName;
+    if (!nameField.trim()) return;
     setSaveState("saving");
     setSaveError("");
 
     try {
-      let finalAvatarUrl = form.avatarUrl;
-
-      // Upload avatar if a new file was selected
+      let newAvatarUrl: string | null = null;
       if (avatarFile) {
-        finalAvatarUrl = await uploadAvatar(avatarFile);
+        newAvatarUrl = await uploadAvatar(avatarFile);
       }
 
+      const promptPriceCents = strToCents(promptPrice);
+      const collectionPriceCents = strToCents(collectionPrice);
+
       const targetUsername = username === "me" ? profile?.username : username;
+      const body: Record<string, any> = {
+        displayName: isFirmProfile ? (form.orgName.trim()) : form.displayName.trim(),
+        bio: form.bio.trim() || null,
+        orgName: isFirmProfile ? form.orgName.trim() : null,
+        categories: form.categories,
+        ...(newAvatarUrl ? { avatarUrl: newAvatarUrl } : {}),
+        ...(form.username !== profile?.username ? { username: form.username } : {}),
+        ...(promptPriceCents ? { promptPriceCents } : {}),
+        ...(collectionPriceCents ? { collectionPriceCents } : {}),
+      };
+
       const res = await fetch(`${basePath}/api/users/${targetUsername}`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          displayName: isFirmProfile ? (form.orgName.trim() || form.displayName.trim()) : form.displayName.trim(),
-          bio: form.bio.trim() || null,
-          orgType: form.orgType,
-          orgName: isFirmProfile ? (form.orgName.trim() || null) : (form.orgType === "firm" ? (form.orgName.trim() || form.displayName.trim()) : null),
-          categories: form.categories,
-          avatarUrl: finalAvatarUrl,
-          username: form.username !== profile?.username ? form.username : undefined,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
@@ -149,14 +161,14 @@ export default function EditProfile() {
       queryClient.invalidateQueries({ queryKey: ["profile-edit", username] });
       queryClient.invalidateQueries({ queryKey: ["users", "me"] });
       queryClient.invalidateQueries({ queryKey: ["users", "me", "username"] });
+      queryClient.invalidateQueries({ queryKey: ["users", "me", "info"] });
       queryClient.invalidateQueries({ queryKey: ["firms", "mine"] });
       setAvatarFile(null);
       setAvatarPreview(null);
       setSaveState("saved");
       setTimeout(() => setSaveState("idle"), 2500);
 
-      // If username changed, navigate to new URL
-      if (updated.username !== targetUsername) {
+      if (updated.username && updated.username !== targetUsername) {
         setLocation(`/profile/edit/${updated.username}`);
       }
     } catch (err: any) {
@@ -212,24 +224,16 @@ export default function EditProfile() {
 
         <form onSubmit={handleSave} className="space-y-5">
 
-          {/* Avatar upload */}
+          {/* Avatar */}
           <div>
-            <label className="block text-[12px] font-semibold uppercase tracking-wider text-foreground/40 mb-2">
-              Photo
-            </label>
+            <label className="block text-[12px] font-semibold uppercase tracking-wider text-foreground/40 mb-2">Photo</label>
             <div className="flex items-center gap-4">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="relative w-16 h-16 rounded-2xl overflow-hidden group shrink-0"
-              >
+              <button type="button" onClick={() => fileInputRef.current?.click()} className="relative w-16 h-16 rounded-2xl overflow-hidden group shrink-0">
                 {currentAvatar ? (
                   <img src={currentAvatar} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <div
-                    className="w-full h-full flex items-center justify-center text-2xl font-bold text-white"
-                    style={{ background: isFirmProfile ? "var(--orange)" : "rgba(0,0,0,0.10)", color: isFirmProfile ? undefined : "rgba(0,0,0,0.3)" }}
-                  >
+                  <div className="w-full h-full flex items-center justify-center text-2xl font-bold"
+                    style={{ background: isFirmProfile ? "var(--orange)" : "rgba(0,0,0,0.10)", color: isFirmProfile ? "white" : "rgba(0,0,0,0.3)" }}>
                     {(form.orgName || form.displayName || "?")[0]}
                   </div>
                 )}
@@ -238,65 +242,42 @@ export default function EditProfile() {
                 </div>
               </button>
               <div>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="text-[13px] font-medium text-foreground/70 hover:text-foreground transition-colors"
-                >
+                <button type="button" onClick={() => fileInputRef.current?.click()} className="text-[13px] font-medium text-foreground/70 hover:text-foreground transition-colors">
                   {currentAvatar ? "Change photo" : "Upload photo"}
                 </button>
                 <p className="text-[11px] text-foreground/40 mt-0.5">JPG, PNG or WebP. Max 5MB.</p>
               </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="hidden"
-                onChange={handleFileSelect}
-              />
+              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleFileSelect} />
             </div>
           </div>
 
-          {/* Firm name — only label for firm profiles */}
-          {isFirmProfile && (
-            <div>
-              <label className="block text-[12px] font-semibold uppercase tracking-wider text-foreground/40 mb-2">Firm name</label>
-              <input
-                type="text"
-                value={form.orgName}
+          {/* Name */}
+          <div>
+            <label className="block text-[12px] font-semibold uppercase tracking-wider text-foreground/40 mb-2">
+              {isFirmProfile ? "Firm name" : "Display name"}
+            </label>
+            {isFirmProfile ? (
+              <input type="text" value={form.orgName}
                 onChange={(e) => setForm(p => ({ ...p, orgName: e.target.value, displayName: e.target.value }))}
                 placeholder="Your firm's public name"
-                className="w-full bg-[#f5f5f7] rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-foreground/20"
-              />
-            </div>
-          )}
-
-          {/* Display name — only for personal profiles */}
-          {!isFirmProfile && (
-            <div>
-              <label className="block text-[12px] font-semibold uppercase tracking-wider text-foreground/40 mb-2">Display name</label>
-              <input
-                type="text"
-                value={form.displayName}
+                className="w-full bg-[#f5f5f7] rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-foreground/20" />
+            ) : (
+              <input type="text" value={form.displayName}
                 onChange={(e) => setForm(p => ({ ...p, displayName: e.target.value }))}
                 placeholder="Your name as shown on prompts"
-                className="w-full bg-[#f5f5f7] rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-foreground/20"
-              />
-            </div>
-          )}
+                className="w-full bg-[#f5f5f7] rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-foreground/20" />
+            )}
+          </div>
 
-          {/* Username / handle */}
+          {/* Username */}
           <div>
             <label className="block text-[12px] font-semibold uppercase tracking-wider text-foreground/40 mb-2">Username (handle)</label>
             <div className="flex items-center bg-[#f5f5f7] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-foreground/20">
               <span className="pl-4 text-[14px] text-foreground/40">@</span>
-              <input
-                type="text"
-                value={form.username}
+              <input type="text" value={form.username}
                 onChange={(e) => setForm(p => ({ ...p, username: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, "") }))}
                 placeholder="yourhandle"
-                className="flex-1 bg-transparent px-2 py-3 text-[14px] font-mono focus:outline-none"
-              />
+                className="flex-1 bg-transparent px-2 py-3 text-[14px] font-mono focus:outline-none" />
             </div>
             <p className="text-[11px] text-foreground/40 mt-1">Changing your handle will break existing links to your profile.</p>
           </div>
@@ -304,13 +285,9 @@ export default function EditProfile() {
           {/* Bio */}
           <div>
             <label className="block text-[12px] font-semibold uppercase tracking-wider text-foreground/40 mb-2">Bio</label>
-            <textarea
-              value={form.bio}
-              onChange={(e) => setForm(p => ({ ...p, bio: e.target.value }))}
-              placeholder="A short description of what you do"
-              rows={3}
-              className="w-full bg-[#f5f5f7] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-foreground/20 resize-none"
-            />
+            <textarea value={form.bio} onChange={(e) => setForm(p => ({ ...p, bio: e.target.value }))}
+              placeholder="A short description of what you do" rows={3}
+              className="w-full bg-[#f5f5f7] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-foreground/20 resize-none" />
           </div>
 
           {/* Specialities */}
@@ -318,68 +295,51 @@ export default function EditProfile() {
             <label className="block text-[12px] font-semibold uppercase tracking-wider text-foreground/40 mb-2">Specialities</label>
             <div className="flex flex-wrap gap-2">
               {ALL_CATEGORIES.map(cat => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => toggleCategory(cat)}
+                <button key={cat} type="button" onClick={() => toggleCategory(cat)}
                   className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors border ${
                     form.categories.includes(cat)
                       ? "bg-foreground text-background border-foreground"
                       : "bg-transparent text-foreground/60 border-black/[0.08] hover:border-black/20 hover:text-foreground"
-                  }`}
-                >
+                  }`}>
                   {cat}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Account type — only for personal profiles */}
+          {/* Pricing — only for personal profiles (firms use their own pricing in My Firms) */}
           {!isFirmProfile && (
-            <div>
-              <label className="block text-[12px] font-semibold uppercase tracking-wider text-foreground/40 mb-2">Account type</label>
-              <div className="flex gap-3">
-                {(["individual", "firm"] as const).map(type => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => setForm(p => ({ ...p, orgType: type }))}
-                    className={`flex-1 py-2.5 rounded-xl text-[13px] font-medium transition-colors border ${
-                      form.orgType === type
-                        ? "border-foreground bg-foreground text-background"
-                        : "border-black/[0.08] text-foreground/60 hover:border-black/20"
-                    }`}
-                  >
-                    {type === "individual" ? "Individual" : "Organization"}
-                  </button>
-                ))}
-              </div>
-              {form.orgType === "firm" && (
-                <>
-                  <div className="mt-3">
-                    <input
-                      type="text"
-                      value={form.orgName}
-                      onChange={(e) => setForm(p => ({ ...p, orgName: e.target.value }))}
-                      placeholder="Organization name"
-                      className="w-full bg-[#f5f5f7] rounded-xl px-4 py-2.5 text-[14px] focus:outline-none focus:ring-2 focus:ring-foreground/20"
-                    />
+            <div className="pt-2 border-t border-black/[0.06]">
+              <label className="block text-[12px] font-semibold uppercase tracking-wider text-foreground/40 mb-3">Pricing</label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[12px] text-foreground/60 mb-1.5 font-medium">Price per prompt</p>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-foreground/40 text-[14px]">$</span>
+                    <input type="number" min="0.01" step="0.01" value={promptPrice}
+                      onChange={e => setPromptPrice(e.target.value)}
+                      className="w-full pl-7 pr-3 py-2.5 bg-[#f5f5f7] rounded-xl text-[14px] font-medium focus:outline-none focus:ring-2 focus:ring-foreground/20" />
                   </div>
-                  <p className="text-[11px] text-foreground/40 mt-2">
-                    To manage multiple separate firm identities, use <Link href="/firms" className="underline hover:text-foreground">My firms</Link>.
-                  </p>
-                </>
-              )}
+                  <p className="text-[11px] text-foreground/35 mt-1">Charged per prompt</p>
+                </div>
+                <div>
+                  <p className="text-[12px] text-foreground/60 mb-1.5 font-medium">Price per collection</p>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-foreground/40 text-[14px]">$</span>
+                    <input type="number" min="0.01" step="0.01" value={collectionPrice}
+                      onChange={e => setCollectionPrice(e.target.value)}
+                      className="w-full pl-7 pr-3 py-2.5 bg-[#f5f5f7] rounded-xl text-[14px] font-medium focus:outline-none focus:ring-2 focus:ring-foreground/20" />
+                  </div>
+                  <p className="text-[11px] text-foreground/35 mt-1">Charged per collection</p>
+                </div>
+              </div>
             </div>
           )}
 
           {/* Save */}
           <div className="pt-2 flex items-center gap-3">
-            <button
-              type="submit"
-              disabled={saveState === "saving" || !form.displayName.trim()}
-              className="flex items-center gap-2 bg-foreground text-background px-6 py-3 rounded-full font-medium text-[14px] hover:opacity-80 transition-opacity disabled:opacity-50"
-            >
+            <button type="submit" disabled={saveState === "saving"}
+              className="flex items-center gap-2 bg-foreground text-background px-6 py-3 rounded-full font-medium text-[14px] hover:opacity-80 transition-opacity disabled:opacity-50">
               {saveState === "saving" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               {saveState === "saving" ? "Saving…" : "Save changes"}
             </button>

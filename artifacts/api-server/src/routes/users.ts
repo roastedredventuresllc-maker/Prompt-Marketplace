@@ -133,10 +133,11 @@ router.patch("/users/:username", async (req, res): Promise<void> => {
   // Must be authenticated
   if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
 
-  // Verify the caller owns this profile (by clerkUserId or ownerClerkUserId for firms)
+  // Verify the caller owns this profile (by clerkUserId, ownerClerkUserId, or adminClerkUserIds for firms)
   const [target] = await db.select().from(usersTable).where(eq(usersTable.username, params.data.username));
   if (!target) { res.status(404).json({ error: "User not found" }); return; }
-  if (target.clerkUserId !== userId && target.ownerClerkUserId !== userId) {
+  const isFirmAdmin = target.ownerClerkUserId && (target.adminClerkUserIds ?? []).includes(userId);
+  if (target.clerkUserId !== userId && target.ownerClerkUserId !== userId && !isFirmAdmin) {
     res.status(403).json({ error: "Forbidden" }); return;
   }
 
@@ -151,9 +152,11 @@ router.patch("/users/:username", async (req, res): Promise<void> => {
   if (parsed.data.bio !== undefined) updates.bio = parsed.data.bio;
   if (parsed.data.avatarUrl !== undefined) updates.avatarUrl = parsed.data.avatarUrl;
   if (parsed.data.categories !== undefined) updates.categories = parsed.data.categories;
-  // orgType and orgName are not in the generated schema, read from raw body
+  // orgType, orgName, pricing are not in the generated schema — read from raw body
   if (body.orgType !== undefined) updates.orgType = body.orgType;
   if (body.orgName !== undefined) updates.orgName = body.orgName || null;
+  if (typeof body.promptPriceCents === "number" && body.promptPriceCents > 0) updates.promptPriceCents = body.promptPriceCents;
+  if (typeof body.collectionPriceCents === "number" && body.collectionPriceCents > 0) updates.collectionPriceCents = body.collectionPriceCents;
   // Username change — check for conflicts
   if (body.username !== undefined && body.username !== params.data.username) {
     const newUsername = String(body.username).toLowerCase().trim();

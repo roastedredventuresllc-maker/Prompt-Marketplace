@@ -219,7 +219,8 @@ router.patch("/prompts/:id", async (req, res): Promise<void> => {
   const [existingPrompt] = await db.select().from(promptsTable).where(eq(promptsTable.id, params.data.id));
   if (!existingPrompt) { res.status(404).json({ error: "Prompt not found" }); return; }
   const [author] = await db.select().from(usersTable).where(eq(usersTable.username, existingPrompt.authorUsername));
-  if (!author || (author.clerkUserId !== clerkUserId && author.ownerClerkUserId !== clerkUserId)) {
+  const isFirmAdmin = author?.ownerClerkUserId && (author.adminClerkUserIds ?? []).includes(clerkUserId);
+  if (!author || (author.clerkUserId !== clerkUserId && author.ownerClerkUserId !== clerkUserId && !isFirmAdmin)) {
     res.status(403).json({ error: "Forbidden" }); return;
   }
 

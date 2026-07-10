@@ -1,4 +1,4 @@
-import { pgTable, serial, text, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, boolean, integer, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -8,6 +8,7 @@ export const librariesTable = pgTable("libraries", {
   description: text("description"),
   authorUsername: text("author_username").notNull(),
   isPublic: boolean("is_public").notNull().default(true),
+  priceCents: integer("price_cents"), // null = use author default; set to override per-collection
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

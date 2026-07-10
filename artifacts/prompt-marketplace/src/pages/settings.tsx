@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { Layout } from "@/components/layout";
 import { useUser } from "@clerk/react";
-import { ArrowLeft, Save, Building2, DollarSign, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, Save, DollarSign, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 type Pricing = {
   promptPriceCents: number;
   collectionPriceCents: number;
-  orgType: string;
+  username: string;
 };
 
 function centsToDisplay(cents: number) {
@@ -21,19 +23,18 @@ function parseDollarsToInts(val: string): number | null {
 }
 
 export default function Settings() {
-  const { isSignedIn, isLoaded, user } = useUser();
+  const { isSignedIn, isLoaded } = useUser();
   const [pricing, setPricing] = useState<Pricing | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "success" | "error">("idle");
 
-  // Form state
   const [promptPrice, setPromptPrice] = useState("");
   const [collectionPrice, setCollectionPrice] = useState("");
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
-    fetch("/api/settings/pricing", { credentials: "include" })
+    fetch(`${basePath}/api/settings/pricing`, { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
         setPricing(data);
@@ -55,7 +56,7 @@ export default function Settings() {
     setSaving(true);
     setSaveState("idle");
     try {
-      const r = await fetch("/api/settings/pricing", {
+      const r = await fetch(`${basePath}/api/settings/pricing`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -100,32 +101,16 @@ export default function Settings() {
     );
   }
 
-  if (pricing?.orgType !== "firm") {
-    return (
-      <Layout>
-        <div className="flex flex-col items-center justify-center min-h-[50vh] text-center gap-4 px-6">
-          <Building2 className="h-10 w-10 text-foreground/20" />
-          <h1 className="text-xl font-semibold">Firm accounts only</h1>
-          <p className="text-[14px] text-foreground/50">Pricing settings are available for firm accounts.</p>
-          <Link href="/onboarding" className="text-[14px] text-foreground/50 hover:text-foreground">
-            Upgrade to firm account
-          </Link>
-        </div>
-      </Layout>
-    );
-  }
-
   return (
     <Layout>
       <div className="bg-[#F5F5F7] min-h-full">
         <div className="max-w-2xl mx-auto px-6 py-14">
 
-          {/* Back */}
-          <Link href={`/profile/me`} className="inline-flex items-center gap-1.5 text-[13px] text-foreground/40 hover:text-foreground transition-colors mb-8">
+          <Link href={pricing?.username ? `/profile/${pricing.username}` : "/"}
+            className="inline-flex items-center gap-1.5 text-[13px] text-foreground/40 hover:text-foreground transition-colors mb-8">
             <ArrowLeft className="h-3.5 w-3.5" /> Back to profile
           </Link>
 
-          {/* Header */}
           <div className="flex items-center gap-3 mb-8">
             <div className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: "var(--orange-subtle)" }}>
               <DollarSign className="h-5 w-5" style={{ color: "var(--orange)" }} />
@@ -136,80 +121,49 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Pricing card */}
           <div className="bg-white rounded-2xl p-8 shadow-[0_2px_16px_rgba(0,0,0,0.06)] border border-black/[0.05] space-y-7">
 
-            {/* Prompt price */}
             <div>
-              <label className="block text-[13px] font-semibold text-foreground/70 mb-2">
-                Price per prompt
-              </label>
+              <label className="block text-[13px] font-semibold text-foreground/70 mb-2">Price per prompt</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/40 text-[15px] font-medium select-none">$</span>
-                <input
-                  type="number"
-                  min="1"
-                  step="0.01"
-                  value={promptPrice}
-                  onChange={(e) => setPromptPrice(e.target.value)}
+                <input type="number" min="1" step="0.01" value={promptPrice} onChange={(e) => setPromptPrice(e.target.value)}
                   className="w-full pl-8 pr-4 py-3 border border-black/[0.10] rounded-xl text-[15px] font-medium focus:outline-none focus:border-[var(--orange)] focus:ring-2 focus:ring-[var(--orange)] focus:ring-opacity-20 transition-all"
-                  placeholder="5.00"
-                />
+                  placeholder="5.00" />
               </div>
-              <p className="text-[12px] text-foreground/40 mt-1.5">
-                What buyers pay to access a single prompt from your profile. Default is $5.
-              </p>
+              <p className="text-[12px] text-foreground/40 mt-1.5">What buyers pay to access a single prompt from your profile.</p>
             </div>
 
-            {/* Collection price */}
             <div>
-              <label className="block text-[13px] font-semibold text-foreground/70 mb-2">
-                Price per collection
-              </label>
+              <label className="block text-[13px] font-semibold text-foreground/70 mb-2">Price per collection</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/40 text-[15px] font-medium select-none">$</span>
-                <input
-                  type="number"
-                  min="1"
-                  step="0.01"
-                  value={collectionPrice}
-                  onChange={(e) => setCollectionPrice(e.target.value)}
+                <input type="number" min="1" step="0.01" value={collectionPrice} onChange={(e) => setCollectionPrice(e.target.value)}
                   className="w-full pl-8 pr-4 py-3 border border-black/[0.10] rounded-xl text-[15px] font-medium focus:outline-none focus:border-[var(--orange)] focus:ring-2 focus:ring-[var(--orange)] focus:ring-opacity-20 transition-all"
-                  placeholder="100.00"
-                />
+                  placeholder="100.00" />
               </div>
-              <p className="text-[12px] text-foreground/40 mt-1.5">
-                What buyers pay for full access to one of your curated collections. Default is $100.
-              </p>
+              <p className="text-[12px] text-foreground/40 mt-1.5">What buyers pay for full access to one of your curated collections.</p>
             </div>
 
-            {/* Info box */}
             <div className="bg-[#F5F5F7] rounded-xl p-4 text-[13px] text-foreground/55 leading-relaxed">
-              Prices apply to new purchases. Existing buyers retain access at the price they paid. Payments are processed via Whop with a standard platform fee.
+              These are your default prices. You can override the price for individual collections from the collection page. Prices apply to new purchases — existing buyers keep access at the price they paid. Firm pricing is managed separately in <Link href="/firms" className="underline hover:text-foreground">My firms</Link>.
             </div>
 
-            {/* Save button */}
             <div className="flex items-center gap-4">
-              <button
-                onClick={handleSave}
-                disabled={saving}
+              <button onClick={handleSave} disabled={saving}
                 className="flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-[14px] text-white hover:opacity-80 transition-opacity disabled:opacity-50"
-                style={{ background: "var(--orange)" }}
-              >
+                style={{ background: "var(--orange)" }}>
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 {saving ? "Saving…" : "Save pricing"}
               </button>
-
               {saveState === "success" && (
                 <div className="flex items-center gap-1.5 text-[13px]" style={{ color: "var(--orange)" }}>
-                  <CheckCircle className="h-4 w-4" />
-                  Saved
+                  <CheckCircle className="h-4 w-4" /> Saved
                 </div>
               )}
               {saveState === "error" && (
                 <div className="flex items-center gap-1.5 text-[13px] text-red-500">
-                  <AlertCircle className="h-4 w-4" />
-                  Please enter valid prices
+                  <AlertCircle className="h-4 w-4" /> Please enter valid prices
                 </div>
               )}
             </div>

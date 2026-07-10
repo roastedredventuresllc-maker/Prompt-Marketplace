@@ -1,9 +1,32 @@
 import { useParams, Link } from "wouter";
 import { Layout } from "@/components/layout";
 import { useGetLibrary, getGetLibraryQueryKey } from "@workspace/api-client-react";
-import { Heart, AlertTriangle, ArrowLeft, BookOpen, Copy, Check, Building2 } from "lucide-react";
+import { Heart, AlertTriangle, ArrowLeft, BookOpen, Copy, Check, Building2, Pencil, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+function useMyUsername() {
+  return useQuery<string | null>({
+    queryKey: ["users", "me", "username"],
+    queryFn: async () => {
+      const res = await fetch(`${basePath}/api/users/me`, { credentials: "include" });
+      if (!res.ok) return null;
+      const d = await res.json();
+      return d.username ?? null;
+    },
+    retry: false,
+  });
+}
+
+function centsToStr(c: number) { return "$" + (c / 100).toFixed(c % 100 === 0 ? 0 : 2); }
+function strToCents(s: string): number | null {
+  const n = parseFloat(s.replace(/[^0-9.]/g, ""));
+  if (isNaN(n) || n <= 0) return null;
+  return Math.round(n * 100);
+}
 
 type PromptItem = {
   id: number;
@@ -98,10 +121,42 @@ export default function LibraryDetail() {
   const { id } = useParams();
   const libraryId = Number(id);
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [editingPrice, setEditingPrice] = useState(false);
+  const [priceInput, setPriceInput] = useState("");
+  const [savingPrice, setSavingPrice] = useState(false);
+  const queryClient = useQueryClient();
+  const { data: myUsername } = useMyUsername();
 
   const { data: library, isLoading, isError } = useGetLibrary(libraryId, {
     query: { enabled: !!libraryId, queryKey: getGetLibraryQueryKey(libraryId) },
   });
+
+  async function savePrice() {
+    const cents = strToCents(priceInput);
+    setSavingPrice(true);
+    await fetch(`${basePath}/api/libraries/${libraryId}`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ priceCents: cents }),
+    });
+    await queryClient.invalidateQueries({ queryKey: getGetLibraryQueryKey(libraryId) });
+    setSavingPrice(false);
+    setEditingPrice(false);
+  }
+
+  async function clearPrice() {
+    setSavingPrice(true);
+    await fetch(`${basePath}/api/libraries/${libraryId}`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ priceCents: null }),
+    });
+    await queryClient.invalidateQueries({ queryKey: getGetLibraryQueryKey(libraryId) });
+    setSavingPrice(false);
+    setEditingPrice(false);
+  }
 
   function handleCopy(e: React.MouseEvent, content: string, promptId: number) {
     e.preventDefault();
@@ -230,7 +285,56 @@ export default function LibraryDetail() {
                   >
                     {prompts.length} {prompts.length === 1 ? "prompt" : "prompts"}
                   </span>
+                  {/* Collection price */}
+                  {(library as any).priceCents != null && (
+                    <span className="flex items-center gap-1 text-[12px] font-semibold px-2.5 py-1 rounded-full bg-[#f5f5f7] text-foreground/60">
+                      <DollarSign className="h-3 w-3" />
+                      {centsToStr((library as any).priceCents)} collection
+                    </span>
+                  )}
                 </div>
+
+                {/* Owner: pricing editor */}
+                {myUsername === library.authorUsername && (
+                  <div className="mt-5">
+                    {editingPrice ? (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40 text-[13px]">$</span>
+                          <input
+                            type="number" min="0.01" step="0.01" value={priceInput}
+                            onChange={e => setPriceInput(e.target.value)}
+                            placeholder="0.00"
+                            className="pl-6 pr-3 py-2 bg-[#f5f5f7] rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-foreground/20 w-28"
+                            autoFocus
+                          />
+                        </div>
+                        <button onClick={savePrice} disabled={savingPrice}
+                          className="px-3 py-2 bg-foreground text-background rounded-xl text-[12px] font-medium hover:opacity-80 disabled:opacity-40 transition-opacity">
+                          {savingPrice ? "Saving…" : "Set price"}
+                        </button>
+                        {(library as any).priceCents != null && (
+                          <button onClick={clearPrice} disabled={savingPrice}
+                            className="px-3 py-2 text-[12px] text-foreground/50 hover:text-foreground rounded-xl hover:bg-[#f5f5f7] transition-colors">
+                            Use author default
+                          </button>
+                        )}
+                        <button onClick={() => setEditingPrice(false)}
+                          className="px-3 py-2 text-[12px] text-foreground/40 hover:text-foreground rounded-xl hover:bg-[#f5f5f7] transition-colors">
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => { setPriceInput((library as any).priceCents ? ((library as any).priceCents / 100).toFixed(2) : ""); setEditingPrice(true); }}
+                        className="flex items-center gap-1.5 text-[12px] text-foreground/40 hover:text-foreground transition-colors"
+                      >
+                        <Pencil className="h-3 w-3" />
+                        {(library as any).priceCents ? "Edit collection price" : "Set collection price"}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
