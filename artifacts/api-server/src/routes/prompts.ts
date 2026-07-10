@@ -28,9 +28,16 @@ function truncateContent(content: string): string {
   return snippet.length < content.trim().length ? snippet + "…" : snippet;
 }
 
-/** Server-side access check: true only if user has a recorded purchase (paid or free) */
+/** Server-side access check: true if author, purchased, or library-purchased */
 async function checkPromptAccess(clerkUserId: string | null, promptId: number): Promise<boolean> {
   if (!clerkUserId) return false;
+
+  // Author always has access (direct account or firm owner)
+  const [promptRow] = await db.select().from(promptsTable).where(eq(promptsTable.id, promptId));
+  if (promptRow) {
+    const [author] = await db.select().from(usersTable).where(eq(usersTable.username, promptRow.authorUsername));
+    if (author && (author.clerkUserId === clerkUserId || author.ownerClerkUserId === clerkUserId)) return true;
+  }
 
   // Direct purchase (paid or free)
   const [direct] = await db

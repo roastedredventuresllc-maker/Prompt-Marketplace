@@ -7,6 +7,7 @@ import promptsRouter from "./prompts";
 import librariesRouter from "./libraries";
 import statsRouter from "./stats";
 import accessRouter from "./access";
+import firmsRouter from "./firms";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(promptsRouter);
 router.use(librariesRouter);
 router.use(statsRouter);
 router.use(accessRouter);
+router.use(firmsRouter);
 
 export default router;

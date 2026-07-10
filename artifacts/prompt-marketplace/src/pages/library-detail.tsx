@@ -23,10 +23,10 @@ function accentForCategory(catName?: string | null) {
   return { color: "var(--orange)", subtle: "var(--orange-subtle)", label: catName ?? "" };
 }
 
-/* Determine collection's dominant accent from its first prompt */
+/* Determine collection's dominant accent — always orange */
 function collectionAccent(prompts: PromptItem[]) {
   const first = prompts[0];
-  return first ? accentForCategory(first.categoryName) : null;
+  return accentForCategory(first?.categoryName);
 }
 
 function PromptCard({ prompt, accent, onCopy, copied }: {

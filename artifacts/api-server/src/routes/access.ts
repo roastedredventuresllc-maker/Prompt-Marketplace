@@ -66,6 +66,16 @@ router.get("/access/prompt/:id", async (req, res): Promise<void> => {
     return;
   }
 
+  // Author (or firm owner) always has access to their own prompts
+  const [promptForAuth] = await db.select().from(promptsTable).where(eq(promptsTable.id, promptId));
+  if (promptForAuth) {
+    const [promptAuthor] = await db.select().from(usersTable).where(eq(usersTable.username, promptForAuth.authorUsername));
+    if (promptAuthor && (promptAuthor.clerkUserId === clerkUserId || promptAuthor.ownerClerkUserId === clerkUserId)) {
+      res.json({ hasAccess: true, reason: "author", freePromptsRemaining: Math.max(0, 3 - user.freePromptsUsed), priceCents: 0 });
+      return;
+    }
+  }
+
   // Direct purchase (paid or free)
   const [directPurchase] = await db
     .select()

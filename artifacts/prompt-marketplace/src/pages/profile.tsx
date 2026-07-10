@@ -9,8 +9,27 @@ import {
   getGetUserLibrariesQueryKey,
 } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, Calendar, User, BookOpen, Building2, Copy, Check } from "lucide-react";
+import { Heart, Calendar, User, BookOpen, Building2, Copy, Check, Pencil } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@clerk/react";
+import { useQuery } from "@tanstack/react-query";
+
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+function useMyUsername() {
+  const { isSignedIn } = useAuth();
+  return useQuery<string | null>({
+    queryKey: ["users", "me", "username"],
+    queryFn: async () => {
+      const res = await fetch(`${basePath}/api/users/me`, { credentials: "include" });
+      if (!res.ok) return null;
+      const d = await res.json();
+      return d.username ?? null;
+    },
+    enabled: !!isSignedIn,
+    retry: false,
+  });
+}
 
 function categoryAccentColor(_catName?: string | null): string {
   return "var(--orange)";
@@ -22,6 +41,7 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState<"prompts" | "libraries">("prompts");
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
+  const { data: myUsername } = useMyUsername();
   const { data: profile, isLoading: profileLoading, isError } = useGetUserProfile(safeUsername, {
     query: { enabled: !!safeUsername, queryKey: getGetUserProfileQueryKey(safeUsername) },
   });
@@ -83,6 +103,7 @@ export default function Profile() {
   const isFirm = (profile as any).orgType === "firm";
   const orgName = (profile as any).orgName as string | null;
   const displayName = orgName ?? profile.displayName;
+  const canEdit = myUsername === safeUsername;
 
   return (
     <Layout>
@@ -126,6 +147,17 @@ export default function Profile() {
 
                 {profile.bio && (
                   <p className="text-[15px] text-foreground/60 leading-relaxed max-w-2xl mb-5">{profile.bio}</p>
+                )}
+
+                {/* Edit button */}
+                {canEdit && (
+                  <Link
+                    href={`/profile/edit/${safeUsername}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-4 rounded-full text-[12px] font-medium bg-[#F5F5F7] text-foreground/60 hover:bg-[#eaeaea] hover:text-foreground transition-colors w-fit"
+                  >
+                    <Pencil className="h-3 w-3" />
+                    Edit profile
+                  </Link>
                 )}
 
                 {/* Stats row */}

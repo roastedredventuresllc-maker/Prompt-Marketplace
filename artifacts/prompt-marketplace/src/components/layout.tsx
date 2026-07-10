@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Search, Plus, LogIn, UserCircle, Building2, ChevronDown, Settings } from "lucide-react";
+import { Plus, LogIn, Building2, ChevronDown } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { useUser, useClerk, Show } from "@clerk/react";
 import { useState, useRef, useEffect } from "react";
@@ -50,12 +50,20 @@ function UserMenu() {
             <p className="text-[11px] text-foreground/40 truncate">{user.primaryEmailAddress?.emailAddress}</p>
           </div>
           <Link
-            href="/onboarding"
+            href="/profile/edit/me"
             onClick={() => setOpen(false)}
             className="block px-4 py-2 text-[13px] text-foreground/70 hover:bg-black/[0.04] hover:text-foreground transition-colors"
             data-testid="menu-profile"
           >
-            Set up profile
+            Edit profile
+          </Link>
+          <Link
+            href="/firms"
+            onClick={() => setOpen(false)}
+            className="block px-4 py-2 text-[13px] text-foreground/70 hover:bg-black/[0.04] hover:text-foreground transition-colors"
+            data-testid="menu-firms"
+          >
+            My firms
           </Link>
           <Link
             href="/create"
