@@ -519,29 +519,15 @@ export default function Profile() {
                   />
                 )}
 
-                {/* Stats */}
-                {!isEditing && (
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-[13px]">
-                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F5F5F7] text-foreground/60">
-                      <BookOpen className="h-3.5 w-3.5" />
-                      {profile.promptCount} prompts
-                    </span>
-                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F5F5F7]" style={{ color: "var(--orange)" }}>
-                      <Heart className="h-3.5 w-3.5" fill="currentColor" strokeWidth={0} />
-                      {profile.totalSaves} saves
-                    </span>
-                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F5F5F7] text-foreground/50">
-                      <Calendar className="h-3.5 w-3.5" />
-                      Joined {new Date(profile.createdAt).getFullYear()}
-                    </span>
-                    {isFirm && isOwner && (
-                      <Link
-                        href="/firms"
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F5F5F7] text-foreground/50 hover:text-foreground transition-colors"
-                      >
-                        <Building2 className="h-3.5 w-3.5" /> Manage firms
-                      </Link>
-                    )}
+                {/* Manage firms shortcut (firm owners only) */}
+                {!isEditing && isFirm && isOwner && (
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                    <Link
+                      href="/firms"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F5F5F7] text-[13px] text-foreground/50 hover:text-foreground transition-colors"
+                    >
+                      <Building2 className="h-3.5 w-3.5" /> Manage firms
+                    </Link>
                   </div>
                 )}
               </div>
@@ -674,13 +660,6 @@ export default function Profile() {
                               </button>
                               {/* Action row */}
                               <div className="flex items-center gap-1.5">
-                                <button
-                                  onClick={e => handleCopy(e, prompt.content, prompt.id)}
-                                  className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg bg-black/[0.04] hover:bg-black/[0.08] text-foreground/40 hover:text-foreground/70 font-medium transition-all"
-                                >
-                                  {copiedId === prompt.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                                  {copiedId === prompt.id ? "Copied" : "Copy"}
-                                </button>
                                 <div onClick={e => e.stopPropagation()} style={{ zIndex: 20 }}>
                                   <AddToLibraryMenu promptId={prompt.id} variant="icon" />
                                 </div>

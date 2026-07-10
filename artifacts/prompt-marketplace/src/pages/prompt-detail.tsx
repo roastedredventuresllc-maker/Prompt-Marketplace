@@ -39,31 +39,53 @@ function useMyUsername() {
 function RelatedCard({ prompt }: { prompt: any }) {
   const isFirm = prompt.authorOrgType === "firm";
   const authorName = isFirm ? (prompt.authorOrgName ?? prompt.authorDisplayName) : prompt.authorDisplayName;
+  const price = prompt.priceCents;
 
   return (
     <Link
       href={`/prompt/${prompt.id}`}
-      className="group shrink-0 w-[220px] block bg-white rounded-2xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.05] flex flex-col gap-2.5"
+      className="group shrink-0 w-[270px] block bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.06)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.05] flex flex-col gap-3"
       data-testid={`related-prompt-${prompt.id}`}
     >
-      <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full self-start" style={{ background: "var(--orange-subtle)", color: "var(--orange)" }}>
-        {prompt.subcategoryName ?? prompt.categoryName}
-      </span>
-      <h4 className="font-semibold text-[13px] leading-snug text-foreground group-hover:text-foreground/70 transition-colors line-clamp-3 flex-1">
-        {prompt.title}
-      </h4>
-      <div className="flex items-center justify-between pt-2 border-t border-black/[0.05]">
-        <div className="flex items-center gap-1.5 min-w-0">
-          <div className="w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-bold shrink-0"
-            style={isFirm ? { background: "var(--orange-subtle)", color: "var(--orange)" } : { background: "rgba(0,0,0,0.08)", color: "rgba(0,0,0,0.4)" }}>
-            {isFirm ? <Building2 className="h-2 w-2" /> : authorName[0]}
-          </div>
-          <span className="text-[11px] text-foreground/40 truncate">{authorName}</span>
-        </div>
-        <span className="flex items-center gap-0.5 text-[11px] tabular-nums shrink-0" style={{ color: "var(--orange)" }}>
+      {/* Category + saves */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full" style={{ background: "var(--orange-subtle)", color: "var(--orange)" }}>
+          {prompt.subcategoryName ?? prompt.categoryName}
+        </span>
+        <span className="flex items-center gap-0.5 text-[11px] tabular-nums shrink-0 font-medium" style={{ color: "var(--orange)" }}>
           <Heart className="h-2.5 w-2.5" fill="currentColor" strokeWidth={0} />
           {prompt.saveCount}
         </span>
+      </div>
+
+      {/* Title + description */}
+      <div className="flex-1">
+        <h4 className="font-semibold text-[14px] leading-snug text-foreground group-hover:text-foreground/70 transition-colors line-clamp-2 mb-1.5">
+          {prompt.title}
+        </h4>
+        {prompt.description && (
+          <p className="text-[12px] text-foreground/50 line-clamp-2 leading-relaxed">
+            {prompt.description}
+          </p>
+        )}
+      </div>
+
+      {/* Footer: author + price */}
+      <div className="flex items-center justify-between pt-2.5 border-t border-black/[0.05]">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <div className="w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-bold shrink-0"
+            style={isFirm ? { background: "var(--orange-subtle)", color: "var(--orange)" } : { background: "rgba(0,0,0,0.08)", color: "rgba(0,0,0,0.4)" }}>
+            {isFirm ? <Building2 className="h-2 w-2" /> : (authorName ?? "?")[0]}
+          </div>
+          <span className="text-[11px] text-foreground/45 truncate font-medium">{authorName}</span>
+        </div>
+        {price ? (
+          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: "var(--orange-subtle)", color: "var(--orange)" }}>
+            ${(price / 100).toFixed(price % 100 === 0 ? 0 : 2)}
+          </span>
+        ) : (
+          <span className="text-[11px] font-medium text-foreground/30">Free</span>
+        )}
       </div>
     </Link>
   );

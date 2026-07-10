@@ -43,19 +43,39 @@ function UserMenu() {
     : user.primaryEmailAddress?.emailAddress?.[0]?.toUpperCase() ?? "?";
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative flex items-center gap-0.5" ref={ref}>
+      {/* Avatar → direct link to own profile */}
+      {myUsername ? (
+        <Link
+          href={`/profile/${myUsername}`}
+          className="flex items-center p-1 rounded-lg hover:bg-black/[0.04] transition-colors"
+          data-testid="user-avatar-link"
+        >
+          {user.imageUrl ? (
+            <img src={user.imageUrl} alt={user.fullName ?? ""} className="w-7 h-7 rounded-full object-cover" />
+          ) : (
+            <div className="w-7 h-7 rounded-full bg-foreground text-background flex items-center justify-center text-[11px] font-semibold">
+              {initials}
+            </div>
+          )}
+        </Link>
+      ) : (
+        <div className="flex items-center p-1">
+          {user.imageUrl ? (
+            <img src={user.imageUrl} alt={user.fullName ?? ""} className="w-7 h-7 rounded-full object-cover" />
+          ) : (
+            <div className="w-7 h-7 rounded-full bg-foreground text-background flex items-center justify-center text-[11px] font-semibold">
+              {initials}
+            </div>
+          )}
+        </div>
+      )}
+      {/* Chevron → dropdown menu */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 p-1 rounded-lg hover:bg-black/[0.04] transition-colors"
+        className="flex items-center p-1 rounded-lg hover:bg-black/[0.04] transition-colors"
         data-testid="user-menu-btn"
       >
-        {user.imageUrl ? (
-          <img src={user.imageUrl} alt={user.fullName ?? ""} className="w-7 h-7 rounded-full object-cover" />
-        ) : (
-          <div className="w-7 h-7 rounded-full bg-foreground text-background flex items-center justify-center text-[11px] font-semibold">
-            {initials}
-          </div>
-        )}
         <ChevronDown className="h-3.5 w-3.5 text-foreground/50" />
       </button>
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import {
   Search, ArrowRight, Heart, ChevronRight,
-  Building2, User, Copy, Check,
+  Building2, User,
 } from "lucide-react";
 import { Layout } from "@/components/layout";
 import {
@@ -44,7 +44,7 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 /* ─── Prompt card ──────────────────────────────────────────── */
 function PromptCard({ prompt }: { prompt: Prompt }) {
-  const [copied, setCopied] = useState(false);
+  const [confirmBuy, setConfirmBuy] = useState(false);
   const { isSignedIn } = useAuth();
   const [, setLocation] = useLocation();
   const isFirm = prompt.authorOrgType === "firm";
@@ -55,15 +55,13 @@ function PromptCard({ prompt }: { prompt: Prompt }) {
   );
   const authorName = isFirm ? (prompt.authorOrgName ?? prompt.authorDisplayName) : prompt.authorDisplayName;
 
-  function handleCopy(e: React.MouseEvent) {
-    e.preventDefault(); e.stopPropagation();
-    navigator.clipboard.writeText(prompt.content);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
   function handleBuy(e: React.MouseEvent) {
     e.preventDefault(); e.stopPropagation();
+    if (!confirmBuy) {
+      setConfirmBuy(true);
+      setTimeout(() => setConfirmBuy(false), 3000);
+      return;
+    }
     setLocation(`/prompt/${prompt.id}`);
   }
 
@@ -120,29 +118,24 @@ function PromptCard({ prompt }: { prompt: Prompt }) {
             </button>
           </div>
 
-          {/* Action bar — always visible, dims when not hovering */}
+          {/* Action bar */}
           <div className="flex items-center gap-1.5">
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg bg-black/[0.04] hover:bg-black/[0.08] text-foreground/40 hover:text-foreground/70 font-medium transition-all"
-            >
-              {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-              {copied ? "Copied" : "Copy"}
-            </button>
-
             {isSignedIn && (
               <div className="relative" onClick={e => e.stopPropagation()} style={{ zIndex: 20 }}>
                 <AddToLibraryMenu promptId={prompt.id} variant="icon" />
               </div>
             )}
-
-            <button
-              onClick={handleBuy}
-              className="ml-auto flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg font-semibold text-white hover:opacity-80 transition-opacity"
-              style={{ background: "var(--orange)" }}
-            >
-              Buy
-            </button>
+            <div className="ml-auto flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+              <button
+                onClick={handleBuy}
+                className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg font-semibold transition-all"
+                style={confirmBuy
+                  ? { background: "var(--orange)", color: "white", outline: "2px solid var(--orange)", outlineOffset: "2px" }
+                  : { background: "var(--orange)", color: "white" }}
+              >
+                {confirmBuy ? "Open →" : "Buy"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
