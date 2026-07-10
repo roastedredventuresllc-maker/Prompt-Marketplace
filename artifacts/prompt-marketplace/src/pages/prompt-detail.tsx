@@ -1,11 +1,29 @@
 import { useParams, Link } from "wouter";
 import { Layout } from "@/components/layout";
 import { useGetPrompt, useToggleSavePrompt, useGetTrendingPrompts, getGetPromptQueryKey } from "@workspace/api-client-react";
-import { Copy, Heart, Share2, AlertTriangle, Eye, Check, Building2, User } from "lucide-react";
+import { Copy, Heart, Share2, AlertTriangle, Eye, Check, User, Pencil } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { PaywallGate } from "@/components/paywall-gate";
+import { useAuth } from "@clerk/react";
+
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+function useMyUsername() {
+  const { isSignedIn } = useAuth();
+  return useQuery<string | null>({
+    queryKey: ["users", "me", "username"],
+    queryFn: async () => {
+      const res = await fetch(`${basePath}/api/users/me`, { credentials: "include" });
+      if (!res.ok) return null;
+      const d = await res.json();
+      return d.username ?? null;
+    },
+    enabled: !!isSignedIn,
+    retry: false,
+  });
+}
 
 function categoryAccentColor(_catName?: string): string {
   return "var(--orange)";
@@ -17,6 +35,7 @@ export default function PromptDetail() {
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
+  const { data: myUsername } = useMyUsername();
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" }); }, [promptId]);
 
@@ -85,6 +104,7 @@ export default function PromptDetail() {
   }
 
   const isFirm = prompt.authorOrgType === "firm";
+  const isAuthor = !!myUsername && myUsername === prompt.authorUsername;
 
   return (
     <Layout>
@@ -125,7 +145,17 @@ export default function PromptDetail() {
                   </span>
                 </div>
 
-                <h1 className="text-2xl font-bold tracking-tight mb-3">{prompt.title}</h1>
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <h1 className="text-2xl font-bold tracking-tight">{prompt.title}</h1>
+                  {isAuthor && (
+                    <Link
+                      href={`/prompt/${promptId}/edit`}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium bg-[#f5f5f7] text-foreground/60 hover:bg-[#eaeaea] hover:text-foreground transition-colors shrink-0"
+                    >
+                      <Pencil className="h-3 w-3" /> Edit
+                    </Link>
+                  )}
+                </div>
 
                 {prompt.description && (
                   <p className="text-[15px] text-foreground/60 leading-relaxed mb-6">{prompt.description}</p>

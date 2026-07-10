@@ -1,4 +1,4 @@
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { Layout } from "@/components/layout";
 import {
   useGetUserProfile,
@@ -9,22 +9,22 @@ import {
   getGetUserLibrariesQueryKey,
 } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, Calendar, User, BookOpen, Building2, Copy, Check, Pencil } from "lucide-react";
+import { Heart, Calendar, User, BookOpen, Copy, Check, Pencil, Plus } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@clerk/react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-function useMyUsername() {
-  const { isSignedIn } = useAuth();
-  return useQuery<string | null>({
-    queryKey: ["users", "me", "username"],
+function useMyInfo() {
+  const { isSignedIn, userId } = useAuth();
+  return useQuery<{ username: string | null; clerkUserId: string | null }>({
+    queryKey: ["users", "me", "info"],
     queryFn: async () => {
       const res = await fetch(`${basePath}/api/users/me`, { credentials: "include" });
-      if (!res.ok) return null;
+      if (!res.ok) return { username: null, clerkUserId: null };
       const d = await res.json();
-      return d.username ?? null;
+      return { username: d.username ?? null, clerkUserId: userId ?? null };
     },
     enabled: !!isSignedIn,
     retry: false,
@@ -35,25 +35,47 @@ function categoryAccentColor(_catName?: string | null): string {
   return "var(--orange)";
 }
 
+type LibraryMeta = { id: number; name: string; promptCount: number };
+
 export default function Profile() {
   const { username } = useParams();
+  const [, setLocation] = useLocation();
   const safeUsername = username || "me";
   const [activeTab, setActiveTab] = useState<"prompts" | "libraries">("prompts");
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [selectedLibraryId, setSelectedLibraryId] = useState<number | null>(null);
+  const [newCollectionName, setNewCollectionName] = useState("");
+  const [creatingCollection, setCreatingCollection] = useState(false);
+  const [collectionSaving, setCollectionSaving] = useState(false);
+  const queryClient = useQueryClient();
 
-  const { data: myUsername } = useMyUsername();
+  const { data: myInfo } = useMyInfo();
+  const { userId } = useAuth();
+
   const { data: profile, isLoading: profileLoading, isError } = useGetUserProfile(safeUsername, {
     query: { enabled: !!safeUsername, queryKey: getGetUserProfileQueryKey(safeUsername) },
   });
 
-  const listPromptsParams = { username: safeUsername, limit: 24 };
+  const listPromptsParams = { username: safeUsername, limit: 48 };
   const { data: promptsData, isLoading: promptsLoading } = useListPrompts(
     listPromptsParams,
     { query: { enabled: activeTab === "prompts", queryKey: getListPromptsQueryKey(listPromptsParams) } }
   );
 
   const { data: librariesData, isLoading: libLoading } = useGetUserLibraries(safeUsername, {
-    query: { enabled: activeTab === "libraries", queryKey: getGetUserLibrariesQueryKey(safeUsername) },
+    query: { enabled: activeTab === "libraries" || activeTab === "prompts", queryKey: getGetUserLibrariesQueryKey(safeUsername) },
+  });
+
+  // Fetch prompts for selected library
+  const { data: libraryDetail } = useQuery<{ prompts: any[] } | null>({
+    queryKey: ["library-detail-prompts", selectedLibraryId],
+    queryFn: async () => {
+      if (!selectedLibraryId) return null;
+      const res = await fetch(`${basePath}/api/libraries/${selectedLibraryId}`, { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: selectedLibraryId !== null,
   });
 
   function handleCopy(e: React.MouseEvent, content: string, id: number) {
@@ -61,6 +83,28 @@ export default function Profile() {
     navigator.clipboard.writeText(content);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  }
+
+  async function handleCreateCollection(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newCollectionName.trim()) return;
+    setCollectionSaving(true);
+    try {
+      const res = await fetch(`${basePath}/api/libraries`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newCollectionName.trim(), authorUsername: safeUsername, isPublic: true }),
+      });
+      if (res.ok) {
+        await queryClient.invalidateQueries({ queryKey: getGetUserLibrariesQueryKey(safeUsername) });
+        setNewCollectionName("");
+        setCreatingCollection(false);
+        setActiveTab("libraries");
+      }
+    } finally {
+      setCollectionSaving(false);
+    }
   }
 
   if (profileLoading) {
@@ -103,7 +147,23 @@ export default function Profile() {
   const isFirm = (profile as any).orgType === "firm";
   const orgName = (profile as any).orgName as string | null;
   const displayName = orgName ?? profile.displayName;
-  const canEdit = myUsername === safeUsername;
+  const profileOwnerClerkUserId = (profile as any).ownerClerkUserId as string | null;
+
+  // canEdit: own profile OR owns this firm
+  const canEdit = myInfo?.username === safeUsername || (profileOwnerClerkUserId && profileOwnerClerkUserId === userId);
+
+  // Active prompts list (filtered by collection if selected)
+  const allPrompts = promptsData?.prompts ?? [];
+  const displayedPrompts = selectedLibraryId && libraryDetail
+    ? libraryDetail.prompts
+    : allPrompts;
+
+  // Collection filter options
+  const libraryOptions: LibraryMeta[] = (librariesData ?? []).map((l: any) => ({
+    id: l.id,
+    name: l.name,
+    promptCount: l.promptCount ?? 0,
+  }));
 
   return (
     <Layout>
@@ -123,8 +183,8 @@ export default function Profile() {
                 />
               ) : (
                 <div
-                  className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-bold text-white shrink-0"
-                  style={{ background: isFirm ? "var(--orange)" : "rgba(0,0,0,0.10)", color: isFirm ? undefined : "rgba(0,0,0,0.3)" }}
+                  className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-bold shrink-0"
+                  style={{ background: isFirm ? "var(--orange)" : "rgba(0,0,0,0.10)", color: isFirm ? "white" : "rgba(0,0,0,0.3)" }}
                 >
                   {displayName.charAt(0)}
                 </div>
@@ -135,10 +195,7 @@ export default function Profile() {
                 <div className="flex items-center gap-3 flex-wrap justify-center md:justify-start mb-1">
                   <h1 className="text-2xl font-bold tracking-tight">{displayName}</h1>
                   {isFirm && (
-                    <span
-                      className="text-[10px] px-2 py-0.5 rounded font-bold text-white"
-                      style={{ background: "var(--orange)" }}
-                    >
+                    <span className="text-[10px] px-2 py-0.5 rounded font-bold text-white" style={{ background: "var(--orange)" }}>
                       FIRM
                     </span>
                   )}
@@ -156,7 +213,7 @@ export default function Profile() {
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 mb-4 rounded-full text-[12px] font-medium bg-[#F5F5F7] text-foreground/60 hover:bg-[#eaeaea] hover:text-foreground transition-colors w-fit"
                   >
                     <Pencil className="h-3 w-3" />
-                    Edit profile
+                    Edit {isFirm ? "firm" : "profile"}
                   </Link>
                 )}
 
@@ -186,7 +243,7 @@ export default function Profile() {
             {(["prompts", "libraries"] as const).map(tab => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => { setActiveTab(tab); setSelectedLibraryId(null); setCreatingCollection(false); }}
                 className="py-3.5 text-[14px] font-medium capitalize transition-all border-b-2"
                 style={activeTab === tab
                   ? { borderColor: "var(--orange)", color: "var(--orange)" }
@@ -204,171 +261,247 @@ export default function Profile() {
 
           {/* Prompts tab */}
           {activeTab === "prompts" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {promptsLoading
-                ? Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-48 w-full rounded-2xl" />)
-                : promptsData?.prompts.length
-                ? promptsData.prompts.map(prompt => {
-                    const accent = categoryAccentColor(prompt.categoryName);
-                    return (
-                      <Link
-                        key={prompt.id}
-                        href={`/prompt/${prompt.id}`}
-                        className="group block"
-                        data-testid={`profile-prompt-${prompt.id}`}
+            <>
+              {/* Toolbar: collection filter + create button */}
+              <div className="flex items-center gap-3 mb-6 flex-wrap">
+                {/* Collection filter pills */}
+                {libraryOptions.length > 0 && (
+                  <div className="flex items-center gap-2 flex-wrap flex-1">
+                    <button
+                      onClick={() => setSelectedLibraryId(null)}
+                      className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors border ${
+                        selectedLibraryId === null
+                          ? "bg-foreground text-background border-foreground"
+                          : "border-black/[0.08] text-foreground/60 hover:border-black/20"
+                      }`}
+                    >
+                      All
+                    </button>
+                    {libraryOptions.map(lib => (
+                      <button
+                        key={lib.id}
+                        onClick={() => setSelectedLibraryId(lib.id)}
+                        className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors border ${
+                          selectedLibraryId === lib.id
+                            ? "text-white border-transparent"
+                            : "border-black/[0.08] text-foreground/60 hover:border-black/20"
+                        }`}
+                        style={selectedLibraryId === lib.id ? { background: "var(--orange)", borderColor: "var(--orange)" } : {}}
                       >
-                        <div className="h-full bg-white rounded-2xl p-5 flex flex-col gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.05]">
-                          <div className="flex items-center justify-between gap-2">
-                            <span
-                              className="text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wide"
-                              style={accent
-                                ? { background: `${accent}12`, color: accent }
-                                : { background: "rgba(0,0,0,0.05)", color: "rgba(0,0,0,0.45)" }}
-                            >
-                              {prompt.subcategoryName ?? prompt.categoryName}
-                            </span>
-                            <span className="flex items-center gap-1 text-[11px] tabular-nums" style={{ color: "var(--orange)" }}>
-                              <Heart className="h-3 w-3" fill={prompt.saveCount > 0 ? "currentColor" : "none"} strokeWidth={prompt.saveCount > 0 ? 0 : 1.5} />
-                              {prompt.saveCount}
-                            </span>
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-[15px] leading-snug mb-1.5 group-hover:text-foreground/70 transition-colors line-clamp-2">
-                              {prompt.title}
-                            </h3>
-                            <p className="text-[13px] text-foreground/50 line-clamp-2 leading-relaxed">
-                              {prompt.description}
-                            </p>
-                          </div>
-                          <div className="flex items-center justify-between pt-3 border-t border-black/[0.04]">
-                            <span className="text-[12px] text-foreground/35">
-                              {new Date(prompt.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
-                            </span>
-                            <button
-                              onClick={e => handleCopy(e, prompt.content, prompt.id)}
-                              className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-lg bg-black/[0.04] hover:bg-black/[0.08] text-foreground/50 font-medium"
-                            >
-                              {copiedId === prompt.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                              {copiedId === prompt.id ? "Copied" : "Copy"}
-                            </button>
-                          </div>
-                        </div>
-                      </Link>
-                    );
-                  })
-                : (
-                  <div className="col-span-full py-16 text-center">
-                    <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center mx-auto mb-4">
-                      <BookOpen className="h-5 w-5 text-foreground/30" />
-                    </div>
-                    <h3 className="font-semibold mb-1">No prompts yet</h3>
-                    <p className="text-[14px] text-foreground/50">This creator has not published any prompts.</p>
+                        {lib.name}
+                      </button>
+                    ))}
                   </div>
                 )}
-            </div>
+                {canEdit && (
+                  <Link
+                    href="/create"
+                    className="flex items-center gap-1.5 ml-auto px-3 py-1.5 rounded-full text-[12px] font-medium bg-foreground text-background hover:opacity-80 transition-opacity shrink-0"
+                  >
+                    <Plus className="h-3 w-3" /> New prompt
+                  </Link>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {promptsLoading
+                  ? Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-48 w-full rounded-2xl" />)
+                  : displayedPrompts.length > 0
+                  ? displayedPrompts.map((prompt: any) => {
+                      const accent = categoryAccentColor(prompt.categoryName);
+                      const isOwner = canEdit && (myInfo?.username === prompt.authorUsername || myInfo?.username === safeUsername);
+                      return (
+                        <Link
+                          key={prompt.id}
+                          href={`/prompt/${prompt.id}`}
+                          className="group block"
+                          data-testid={`profile-prompt-${prompt.id}`}
+                        >
+                          <div className="h-full bg-white rounded-2xl p-5 flex flex-col gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.05]">
+                            <div className="flex items-center justify-between gap-2">
+                              <span
+                                className="text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wide"
+                                style={{ background: `${accent}12`, color: accent }}
+                              >
+                                {prompt.subcategoryName ?? prompt.categoryName}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                {isOwner && (
+                                  <Link
+                                    href={`/prompt/${prompt.id}/edit`}
+                                    onClick={e => e.stopPropagation()}
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg hover:bg-[#f5f5f7] text-foreground/40 hover:text-foreground"
+                                    title="Edit prompt"
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </Link>
+                                )}
+                                <span className="flex items-center gap-1 text-[11px] tabular-nums" style={{ color: "var(--orange)" }}>
+                                  <Heart className="h-3 w-3" fill={prompt.saveCount > 0 ? "currentColor" : "none"} strokeWidth={prompt.saveCount > 0 ? 0 : 1.5} />
+                                  {prompt.saveCount}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-[15px] leading-snug mb-1.5 group-hover:text-foreground/70 transition-colors line-clamp-2">
+                                {prompt.title}
+                              </h3>
+                              <p className="text-[13px] text-foreground/50 line-clamp-2 leading-relaxed">
+                                {prompt.description}
+                              </p>
+                            </div>
+                            <div className="flex items-center justify-between pt-3 border-t border-black/[0.04]">
+                              <span className="text-[12px] text-foreground/35">
+                                {new Date(prompt.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                              </span>
+                              <button
+                                onClick={e => handleCopy(e, prompt.content, prompt.id)}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-lg bg-black/[0.04] hover:bg-black/[0.08] text-foreground/50 font-medium"
+                              >
+                                {copiedId === prompt.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                                {copiedId === prompt.id ? "Copied" : "Copy"}
+                              </button>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })
+                  : (
+                    <div className="col-span-full py-16 text-center">
+                      <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center mx-auto mb-4">
+                        <BookOpen className="h-5 w-5 text-foreground/30" />
+                      </div>
+                      <h3 className="font-semibold mb-1">
+                        {selectedLibraryId ? "No prompts in this collection" : "No prompts yet"}
+                      </h3>
+                      <p className="text-[14px] text-foreground/50">
+                        {selectedLibraryId ? "Add prompts from a prompt page." : "This creator has not published any prompts."}
+                      </p>
+                      {canEdit && !selectedLibraryId && (
+                        <Link href="/create" className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full text-[13px] font-medium bg-foreground text-background hover:opacity-80 transition-opacity">
+                          <Plus className="h-3.5 w-3.5" /> Create first prompt
+                        </Link>
+                      )}
+                    </div>
+                  )}
+              </div>
+            </>
           )}
 
           {/* Libraries tab */}
           {activeTab === "libraries" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {libLoading
-                ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-56 w-full rounded-2xl" />)
-                : librariesData?.length
-                ? librariesData.map(lib => {
-                    // Derive accent from the profile's firm category
-                    const cats: string[] = (profile as any).categories ?? [];
-                    const accent = { color: "var(--orange)", subtle: "var(--orange-subtle)" };
-                    const previewTitles: string[] = (lib as any).previewTitles ?? [];
-                    return (
-                      <Link
-                        key={lib.id}
-                        href={`/library/${lib.id}`}
-                        className="group block"
-                        data-testid={`library-card-${lib.id}`}
-                      >
-                        <div
-                          className="h-full bg-white rounded-2xl p-6 flex flex-col gap-4 shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_36px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.05]"
-                          style={accent ? { borderTop: `3px solid ${accent.color}` } : {}}
-                        >
-                          {/* Header */}
-                          <div className="flex items-start gap-3">
-                            <div
-                              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                              style={accent ? { background: accent.subtle } : { background: "#F5F5F7" }}
-                            >
-                              <BookOpen
-                                className="h-4 w-4"
-                                style={{ color: accent?.color ?? "rgba(0,0,0,0.35)" }}
-                              />
+            <>
+              {/* Toolbar */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-[15px] font-semibold text-foreground/60">Collections</h2>
+                {canEdit && (
+                  <button
+                    onClick={() => setCreatingCollection(c => !c)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium bg-foreground text-background hover:opacity-80 transition-opacity"
+                  >
+                    <Plus className="h-3 w-3" /> New collection
+                  </button>
+                )}
+              </div>
+
+              {/* Inline create form */}
+              {creatingCollection && (
+                <form onSubmit={handleCreateCollection} className="mb-6 flex gap-3 items-center bg-white rounded-2xl px-5 py-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-black/[0.04]">
+                  <input
+                    value={newCollectionName}
+                    onChange={e => setNewCollectionName(e.target.value)}
+                    placeholder="Collection name…"
+                    className="flex-1 bg-[#f5f5f7] rounded-xl px-4 py-2.5 text-[14px] focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    disabled={collectionSaving || !newCollectionName.trim()}
+                    className="px-4 py-2.5 rounded-xl bg-foreground text-background text-[13px] font-medium hover:opacity-80 disabled:opacity-40 transition-opacity shrink-0"
+                  >
+                    {collectionSaving ? "Creating…" : "Create"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCreatingCollection(false)}
+                    className="px-3 py-2.5 rounded-xl text-[13px] text-foreground/50 hover:bg-[#f5f5f7] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </form>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {libLoading
+                  ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-56 w-full rounded-2xl" />)
+                  : librariesData?.length
+                  ? librariesData.map((lib: any) => {
+                      const accent = { color: "var(--orange)", subtle: "var(--orange-subtle)" };
+                      const previewTitles: string[] = lib.previewTitles ?? [];
+                      return (
+                        <Link key={lib.id} href={`/library/${lib.id}`} className="group block" data-testid={`library-card-${lib.id}`}>
+                          <div
+                            className="h-full bg-white rounded-2xl p-6 flex flex-col gap-4 shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_36px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.05]"
+                            style={{ borderTop: `3px solid ${accent.color}` }}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: accent.subtle }}>
+                                <BookOpen className="h-4 w-4" style={{ color: accent.color }} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-[16px] leading-tight group-hover:opacity-70 transition-opacity mb-0.5">{lib.name}</h3>
+                                <span className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: accent.subtle, color: accent.color }}>
+                                  {lib.promptCount} {lib.promptCount === 1 ? "prompt" : "prompts"}
+                                </span>
+                              </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-bold text-[16px] leading-tight group-hover:opacity-70 transition-opacity mb-0.5">
-                                {lib.name}
-                              </h3>
-                              <span
-                                className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                                style={accent
-                                  ? { background: accent.subtle, color: accent.color }
-                                  : { background: "#F5F5F7", color: "rgba(0,0,0,0.4)" }}
-                              >
-                                {lib.promptCount} {lib.promptCount === 1 ? "prompt" : "prompts"}
+                            {lib.description && (
+                              <p className="text-[13px] text-foreground/60 leading-relaxed">{lib.description}</p>
+                            )}
+                            {previewTitles.length > 0 && (
+                              <ul className="space-y-1.5">
+                                {previewTitles.map((t: string) => (
+                                  <li key={t} className="flex items-center gap-2 text-[13px] text-foreground/55">
+                                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: accent.color }} />
+                                    <span className="line-clamp-1">{t}</span>
+                                  </li>
+                                ))}
+                                {lib.promptCount > previewTitles.length && (
+                                  <li className="text-[12px] pl-3.5" style={{ color: accent.color }}>+{lib.promptCount - previewTitles.length} more</li>
+                                )}
+                              </ul>
+                            )}
+                            <div className="mt-auto pt-4 border-t border-black/[0.05] flex items-center justify-between">
+                              <span className="text-[12px] text-foreground/35">
+                                {new Date(lib.updatedAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                              </span>
+                              <span className="text-[13px] font-medium group-hover:underline" style={{ color: accent.color }}>
+                                View →
                               </span>
                             </div>
                           </div>
-
-                          {/* Description — full, no clamp */}
-                          {lib.description && (
-                            <p className="text-[13px] text-foreground/60 leading-relaxed">
-                              {lib.description}
-                            </p>
-                          )}
-
-                          {/* Preview prompt titles */}
-                          {previewTitles.length > 0 && (
-                            <ul className="space-y-1.5">
-                              {previewTitles.map(t => (
-                                <li key={t} className="flex items-center gap-2 text-[13px] text-foreground/55">
-                                  <span
-                                    className="w-1.5 h-1.5 rounded-full shrink-0"
-                                    style={{ background: accent?.color ?? "rgba(0,0,0,0.25)" }}
-                                  />
-                                  <span className="line-clamp-1">{t}</span>
-                                </li>
-                              ))}
-                              {lib.promptCount > previewTitles.length && (
-                                <li className="text-[12px] pl-3.5" style={{ color: accent?.color ?? "rgba(0,0,0,0.35)" }}>
-                                  +{lib.promptCount - previewTitles.length} more
-                                </li>
-                              )}
-                            </ul>
-                          )}
-
-                          {/* Footer */}
-                          <div className="mt-auto pt-4 border-t border-black/[0.05] flex items-center justify-between">
-                            <span className="text-[12px] text-foreground/35">
-                              {new Date(lib.updatedAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
-                            </span>
-                            <span
-                              className="text-[13px] font-medium group-hover:underline"
-                              style={{ color: accent?.color ?? "rgba(0,0,0,0.5)" }}
-                            >
-                              View collection →
-                            </span>
-                          </div>
-                        </div>
-                      </Link>
-                    );
-                  })
-                : (
-                  <div className="col-span-full py-16 text-center">
-                    <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center mx-auto mb-4">
-                      <BookOpen className="h-5 w-5 text-foreground/30" />
+                        </Link>
+                      );
+                    })
+                  : (
+                    <div className="col-span-full py-16 text-center">
+                      <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center mx-auto mb-4">
+                        <BookOpen className="h-5 w-5 text-foreground/30" />
+                      </div>
+                      <h3 className="font-semibold mb-1">No collections yet</h3>
+                      <p className="text-[14px] text-foreground/50">Group your prompts into collections to share curated sets.</p>
+                      {canEdit && (
+                        <button
+                          onClick={() => setCreatingCollection(true)}
+                          className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full text-[13px] font-medium bg-foreground text-background hover:opacity-80 transition-opacity"
+                        >
+                          <Plus className="h-3.5 w-3.5" /> Create first collection
+                        </button>
+                      )}
                     </div>
-                    <h3 className="font-semibold mb-1">No collections yet</h3>
-                    <p className="text-[14px] text-foreground/50">This creator has not curated any collections.</p>
-                  </div>
-                )}
-            </div>
+                  )}
+              </div>
+            </>
           )}
         </div>
       </div>

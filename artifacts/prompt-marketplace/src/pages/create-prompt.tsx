@@ -59,6 +59,10 @@ export default function CreatePrompt() {
   });
   const [tagInput, setTagInput] = useState("");
   const [error, setError] = useState("");
+  // Collection selector state
+  const [collectionMode, setCollectionMode] = useState<"none" | "existing" | "new">("none");
+  const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null);
+  const [newCollectionName, setNewCollectionName] = useState("");
 
   // Redirect to onboarding if signed in but no profile yet
   useEffect(() => {
@@ -72,6 +76,19 @@ export default function CreatePrompt() {
     if (profile && !selectedAuthor) setSelectedAuthor(profile.username);
   }, [profile, selectedAuthor]);
 
+  // Fetch collections for the selected author
+  const activeAuthorUsername = selectedAuthor || profile?.username;
+  const { data: authorLibraries = [] } = useQuery<{ id: number; name: string }[]>({
+    queryKey: ["libraries", "user", activeAuthorUsername],
+    queryFn: async () => {
+      if (!activeAuthorUsername) return [];
+      const res = await fetch(`${basePath}/api/users/${activeAuthorUsername}/libraries`, { credentials: "include" });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!activeAuthorUsername,
+  });
+
   function addTag() {
     const t = tagInput.trim().toLowerCase().replace(/\s+/g, "-");
     if (t && !form.tags.includes(t) && form.tags.length < 8) {
@@ -80,7 +97,7 @@ export default function CreatePrompt() {
     }
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.title.trim() || !form.content.trim() || !form.categoryId) {
       setError("Title, content, and category are required.");
@@ -88,12 +105,38 @@ export default function CreatePrompt() {
     }
     const authorUsername = selectedAuthor || profile?.username;
     if (!authorUsername) return;
-
     setError("");
+
     createPrompt.mutate(
       { data: { ...form, authorUsername } },
       {
-        onSuccess: (p) => setLocation(`/prompt/${p.id}`),
+        onSuccess: async (p) => {
+          // Add to collection after prompt creation
+          try {
+            let libId = selectedCollectionId;
+            if (collectionMode === "new" && newCollectionName.trim()) {
+              const libRes = await fetch(`${basePath}/api/libraries`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: newCollectionName.trim(), authorUsername, isPublic: true }),
+              });
+              if (libRes.ok) {
+                const lib = await libRes.json();
+                libId = lib.id;
+              }
+            }
+            if (libId) {
+              await fetch(`${basePath}/api/libraries/${libId}/prompts`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ promptId: p.id }),
+              });
+            }
+          } catch { /* non-critical */ }
+          setLocation(`/prompt/${p.id}`);
+        },
         onError: (err: any) => setError(err?.message ?? "Failed to publish. Please try again."),
       },
     );
@@ -261,6 +304,50 @@ export default function CreatePrompt() {
                 <Plus className="h-3.5 w-3.5" /> Add
               </button>
             </div>
+          </div>
+
+          {/* Collection */}
+          <div>
+            <label className="block text-[12px] font-semibold uppercase tracking-wider text-foreground/40 mb-2">Add to collection <span className="normal-case font-normal">(optional)</span></label>
+            <div className="flex gap-2 flex-wrap mb-2">
+              {(["none", "existing", "new"] as const)
+                .filter(m => m !== "existing" || authorLibraries.length > 0)
+                .map(m => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => { setCollectionMode(m); setSelectedCollectionId(null); setNewCollectionName(""); }}
+                    className={`px-3 py-1.5 rounded-full text-[12px] font-medium border transition-colors ${
+                      collectionMode === m
+                        ? "bg-foreground text-background border-foreground"
+                        : "border-black/[0.08] text-foreground/60 hover:border-black/20"
+                    }`}
+                  >
+                    {m === "none" ? "None" : m === "existing" ? "Add to existing" : "Create new"}
+                  </button>
+                ))}
+            </div>
+            {collectionMode === "existing" && (
+              <select
+                value={selectedCollectionId ?? ""}
+                onChange={e => setSelectedCollectionId(Number(e.target.value))}
+                className="w-full bg-[#f5f5f7] rounded-xl px-4 py-2.5 text-[14px] focus:outline-none focus:ring-2 focus:ring-foreground/20 appearance-none"
+              >
+                <option value="" disabled>Select a collection…</option>
+                {authorLibraries.map((lib: any) => (
+                  <option key={lib.id} value={lib.id}>{lib.name}</option>
+                ))}
+              </select>
+            )}
+            {collectionMode === "new" && (
+              <input
+                type="text"
+                value={newCollectionName}
+                onChange={e => setNewCollectionName(e.target.value)}
+                placeholder="New collection name…"
+                className="w-full bg-[#f5f5f7] rounded-xl px-4 py-2.5 text-[14px] focus:outline-none focus:ring-2 focus:ring-foreground/20"
+              />
+            )}
           </div>
 
           {/* Visibility */}

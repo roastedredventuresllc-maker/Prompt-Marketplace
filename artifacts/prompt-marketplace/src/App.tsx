@@ -19,6 +19,7 @@ import PaymentSuccess from "@/pages/payment-success";
 import Settings from "@/pages/settings";
 import EditProfile from "@/pages/edit-profile";
 import Firms from "@/pages/firms";
+import PromptEdit from "@/pages/prompt-edit";
 
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
@@ -132,6 +133,7 @@ function Router() {
       <Route path="/payment-success" component={PaymentSuccess} />
       <Route path="/profile/edit/:username" component={EditProfile} />
       <Route path="/firms" component={Firms} />
+      <Route path="/prompt/:id/edit" component={PromptEdit} />
       <Route path="/sign-in/*?" component={SignInPage} />
       <Route path="/sign-up/*?" component={SignUpPage} />
     </Switch>

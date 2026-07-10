@@ -2,3 +2,5 @@
 - [Whop paywall integration](whop-paywall-integration.md) — Whop IDs, purchases table, access check pattern, server-side content truncation, checkout+verify flow.
 - [Profile/library hooks queryKey](profile-hooks-querykey.md) — useListPrompts and useGetUserLibraries require explicit queryKey in query options when enabled is conditional.
 - [Users table columns](users-table-columns.md) — No prompt_count/total_saves columns; API computes these dynamically from prompts. LibraryDetail uses prompts array not promptCount.
+- [Auth/ownership patterns](auth-ownership-patterns.md) — `if (userId && ...)` is unsafe; always 401 before ownership check or unauthenticated callers slip through.
+- [Username cascade](username-cascade.md) — Renaming username must cascade to prompts.authorUsername and libraries.authorUsername; catch PG 23505 for 409.

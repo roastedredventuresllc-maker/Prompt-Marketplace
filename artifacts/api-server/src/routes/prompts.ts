@@ -208,9 +208,20 @@ router.get("/prompts/:id", async (req, res): Promise<void> => {
 });
 
 router.patch("/prompts/:id", async (req, res): Promise<void> => {
+  const { userId: clerkUserId } = getAuth(req);
+  if (!clerkUserId) { res.status(401).json({ error: "Unauthorized" }); return; }
+
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = UpdatePromptParams.safeParse({ id: parseInt(rawId, 10) });
   if (!params.success) { res.status(400).json({ error: "Invalid ID" }); return; }
+
+  // Ownership check: caller must own the author account (or be the firm owner)
+  const [existingPrompt] = await db.select().from(promptsTable).where(eq(promptsTable.id, params.data.id));
+  if (!existingPrompt) { res.status(404).json({ error: "Prompt not found" }); return; }
+  const [author] = await db.select().from(usersTable).where(eq(usersTable.username, existingPrompt.authorUsername));
+  if (!author || (author.clerkUserId !== clerkUserId && author.ownerClerkUserId !== clerkUserId)) {
+    res.status(403).json({ error: "Forbidden" }); return;
+  }
 
   const parsed = UpdatePromptBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
