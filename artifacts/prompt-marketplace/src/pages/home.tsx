@@ -175,11 +175,7 @@ function FirmScrollCard({ firm, subcats, accent }: { firm: ApiUser; subcats: str
           )}
         </div>
       )}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 text-[11px] text-foreground/45">
-          <span><span className="font-semibold text-foreground/70">{firm.promptCount}</span> prompts</span>
-          <span style={{ color: accent.color }}><span className="font-semibold">{firm.totalSaves}</span> saves</span>
-        </div>
+      <div className="flex justify-end">
         <span className="text-[11px] font-medium group-hover:underline" style={{ color: accent.color }}>Browse →</span>
       </div>
     </Link>
@@ -417,10 +413,6 @@ export default function Home() {
                           <span className="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 text-white" style={{ background: "var(--orange)" }}>FIRM</span>
                         </div>
                         <p className="text-[12px] text-foreground/35">@{c.username}</p>
-                        <div className="flex items-center gap-3 mt-2 text-[12px] text-foreground/40">
-                          <span>{c.promptCount} prompts</span>
-                          <span style={{ color: "var(--orange)" }}>{c.totalSaves} saves</span>
-                        </div>
                       </div>
                     </Link>
                   ))}
@@ -448,10 +440,6 @@ export default function Home() {
                           <span className="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 text-white" style={{ background: "var(--orange)" }}>FIRM</span>
                         </div>
                         <p className="text-[12px] text-foreground/35">@{c.username}</p>
-                        <div className="flex items-center gap-3 mt-2 text-[12px] text-foreground/40">
-                          <span>{c.promptCount} prompts</span>
-                          <span style={{ color: "var(--orange)" }}>{c.totalSaves} saves</span>
-                        </div>
                       </div>
                     </Link>
                   ))}
@@ -474,7 +462,7 @@ export default function Home() {
                       </div>
                       <div className="min-w-0">
                         <p className="font-semibold text-[13px] truncate group-hover:text-foreground/70 transition-colors">{c.displayName}</p>
-                        <p className="text-[11px] text-foreground/35">{c.promptCount} prompts</p>
+                        <p className="text-[11px] text-foreground/35">@{c.username}</p>
                       </div>
                     </Link>
                   ))}
