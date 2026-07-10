@@ -5,6 +5,7 @@
  * Prompt Marketplace API
  * OpenAPI spec version: 0.1.0
  */
+import type { PromptAuthorOrgType } from './promptAuthorOrgType';
 
 export interface Prompt {
   id: number;
@@ -23,6 +24,9 @@ export interface Prompt {
   authorDisplayName: string;
   /** @nullable */
   authorAvatarUrl?: string | null;
+  authorOrgType: PromptAuthorOrgType;
+  /** @nullable */
+  authorOrgName?: string | null;
   saveCount: number;
   viewCount: number;
   isPublic: boolean;

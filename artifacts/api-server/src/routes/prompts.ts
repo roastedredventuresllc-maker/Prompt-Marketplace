@@ -54,6 +54,8 @@ async function buildPromptResponse(prompt: typeof promptsTable.$inferSelect) {
     authorUsername: prompt.authorUsername,
     authorDisplayName: author?.displayName ?? prompt.authorUsername,
     authorAvatarUrl: author?.avatarUrl ?? null,
+    authorOrgType: author?.orgType ?? "individual",
+    authorOrgName: author?.orgName ?? null,
     saveCount: prompt.saveCount,
     viewCount: prompt.viewCount,
     isPublic: prompt.isPublic,

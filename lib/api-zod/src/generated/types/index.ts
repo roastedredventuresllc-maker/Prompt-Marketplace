@@ -20,6 +20,7 @@ export * from './listPromptsParams';
 export * from './listPromptsSort';
 export * from './marketplaceStats';
 export * from './prompt';
+export * from './promptAuthorOrgType';
 export * from './promptInput';
 export * from './promptListResponse';
 export * from './promptUpdate';

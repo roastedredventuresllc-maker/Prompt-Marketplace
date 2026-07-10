@@ -27,6 +27,14 @@ export interface Category {
   promptCount: number;
 }
 
+export type PromptAuthorOrgType = typeof PromptAuthorOrgType[keyof typeof PromptAuthorOrgType];
+
+
+export const PromptAuthorOrgType = {
+  individual: 'individual',
+  firm: 'firm',
+} as const;
+
 export interface Prompt {
   id: number;
   title: string;
@@ -44,6 +52,9 @@ export interface Prompt {
   authorDisplayName: string;
   /** @nullable */
   authorAvatarUrl?: string | null;
+  authorOrgType: PromptAuthorOrgType;
+  /** @nullable */
+  authorOrgName?: string | null;
   saveCount: number;
   viewCount: number;
   isPublic: boolean;

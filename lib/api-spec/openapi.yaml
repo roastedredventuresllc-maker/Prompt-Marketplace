@@ -600,6 +600,11 @@ components:
           type: string
         authorAvatarUrl:
           type: ["string", "null"]
+        authorOrgType:
+          type: string
+          enum: [individual, firm]
+        authorOrgName:
+          type: ["string", "null"]
         saveCount:
           type: integer
         viewCount:
@@ -619,6 +624,7 @@ components:
         - tags
         - authorUsername
         - authorDisplayName
+        - authorOrgType
         - saveCount
         - viewCount
         - isPublic
