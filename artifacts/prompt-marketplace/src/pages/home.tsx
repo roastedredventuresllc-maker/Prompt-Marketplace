@@ -109,8 +109,8 @@ function PromptCard({ prompt }: { prompt: Prompt }) {
   );
 }
 
-/* ─── Firm curator card (large) ────────────────────────────── */
-function FirmCard({
+/* ─── Firm scroll card (compact) ───────────────────────────── */
+function FirmScrollCard({
   firm,
   subcats,
   accent,
@@ -123,67 +123,60 @@ function FirmCard({
   return (
     <Link
       href={`/profile/${firm.username}`}
-      className="group block bg-white rounded-2xl p-6 shadow-[0_2px_16px_rgba(0,0,0,0.07)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.05]"
-      style={{ borderLeft: `4px solid ${accent.color}` }}
+      className="group shrink-0 w-[260px] block bg-white rounded-2xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.06)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.05]"
+      style={{ borderTop: `3px solid ${accent.color}` }}
       data-testid={`firm-card-${firm.username}`}
     >
       {/* Header */}
-      <div className="flex items-start gap-4 mb-4">
+      <div className="flex items-center gap-3 mb-3">
         <div
-          className="w-14 h-14 rounded-xl flex items-center justify-center text-white text-2xl font-bold shrink-0"
+          className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-base font-bold shrink-0"
           style={{ background: accent.color }}
         >
           {orgName[0]}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <h3 className="font-bold text-[17px] text-foreground group-hover:text-foreground/70 transition-colors">
-              {orgName}
-            </h3>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 mb-0">
+            <p className="font-semibold text-[13px] truncate leading-tight">{orgName}</p>
             <span
-              className="text-[9px] px-2 py-0.5 rounded font-bold text-white shrink-0"
+              className="text-[8px] px-1.5 py-0.5 rounded font-bold text-white shrink-0"
               style={{ background: accent.color }}
             >
               FIRM
             </span>
           </div>
-          <p className="text-[13px] text-foreground/40">@{firm.username}</p>
+          <p className="text-[11px] text-foreground/35">@{firm.username}</p>
         </div>
-        <span
-          className="shrink-0 text-[12px] font-medium px-3 py-1.5 rounded-full group-hover:opacity-80 transition-opacity text-white"
-          style={{ background: accent.color }}
-        >
-          Browse prompts →
-        </span>
       </div>
 
-      {/* Bio */}
-      {firm.bio && (
-        <p className="text-[14px] text-foreground/60 leading-relaxed mb-4">{firm.bio}</p>
-      )}
-
-      {/* Specialty subcategory chips */}
+      {/* Subcategory chips — max 3 */}
       {subcats.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-5">
-          {subcats.map(s => (
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {subcats.slice(0, 3).map(s => (
             <span
               key={s}
-              className="text-[11px] px-2.5 py-1 rounded-full font-medium"
+              className="text-[10px] px-2 py-0.5 rounded-full font-medium"
               style={{ background: accent.subtle, color: accent.color }}
             >
               {s}
             </span>
           ))}
+          {subcats.length > 3 && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-black/[0.05] text-foreground/40">
+              +{subcats.length - 3}
+            </span>
+          )}
         </div>
       )}
 
-      {/* Stats */}
-      <div className="flex items-center gap-5 text-[13px]">
-        <span className="text-foreground/50">
-          <span className="font-semibold text-foreground">{firm.promptCount}</span> prompts
-        </span>
-        <span style={{ color: accent.color }}>
-          <span className="font-semibold">{firm.totalSaves}</span> saves
+      {/* Stats + CTA */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 text-[11px] text-foreground/45">
+          <span><span className="font-semibold text-foreground/70">{firm.promptCount}</span> prompts</span>
+          <span style={{ color: accent.color }}><span className="font-semibold">{firm.totalSaves}</span> saves</span>
+        </div>
+        <span className="text-[11px] font-medium group-hover:underline" style={{ color: accent.color }}>
+          Browse →
         </span>
       </div>
     </Link>
@@ -396,28 +389,26 @@ export default function Home() {
 
       {/* ── Firm curators (within active category) ──────────── */}
       {accent && categoryFirms.length > 0 && (
-        <section className="bg-[#F5F5F7] px-6 pb-16">
-          <div className="max-w-6xl mx-auto">
-            <div
-              className="rounded-2xl p-7 border"
-              style={{ background: accent.subtle, borderColor: `${accent.color}20` }}
-            >
-              <div className="flex items-center gap-2 mb-6">
-                <Building2 className="h-4 w-4" style={{ color: accent.color }} />
-                <h2 className="text-[14px] font-bold uppercase tracking-widest" style={{ color: accent.color }}>
-                  Professional organizations in {accent.label}
-                </h2>
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                {categoryFirms.map(firm => (
-                  <FirmCard
-                    key={firm.id}
-                    firm={firm}
-                    subcats={firmSubcatMap.get(firm.username) ?? []}
-                    accent={accent}
-                  />
-                ))}
-              </div>
+        <section className="bg-[#F5F5F7] pb-12">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Building2 className="h-3.5 w-3.5" style={{ color: accent.color }} />
+              <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: accent.color }}>
+                Professional organizations
+              </span>
+            </div>
+          </div>
+          {/* Scroll container — bleeds edge to edge */}
+          <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="flex gap-3 px-6 pb-1" style={{ width: "max-content" }}>
+              {categoryFirms.map(firm => (
+                <FirmScrollCard
+                  key={firm.id}
+                  firm={firm}
+                  subcats={firmSubcatMap.get(firm.username) ?? []}
+                  accent={accent}
+                />
+              ))}
             </div>
           </div>
         </section>
