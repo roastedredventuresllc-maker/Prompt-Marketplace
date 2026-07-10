@@ -120,8 +120,14 @@ router.get("/users/:username", async (req, res): Promise<void> => {
   if (!user) { res.status(404).json({ error: "User not found" }); return; }
 
   const userResponse = await buildUserResponse(user);
-  // Include ownerClerkUserId so the frontend can check firm ownership
-  res.json({ ...GetUserProfileResponse.parse(userResponse), ownerClerkUserId: user.ownerClerkUserId ?? null });
+  // Include extra firm/pricing fields the frontend needs
+  res.json({
+    ...GetUserProfileResponse.parse(userResponse),
+    ownerClerkUserId: user.ownerClerkUserId ?? null,
+    adminClerkUserIds: user.adminClerkUserIds ?? [],
+    promptPriceCents: user.promptPriceCents,
+    collectionPriceCents: user.collectionPriceCents,
+  });
 });
 
 router.patch("/users/:username", async (req, res): Promise<void> => {

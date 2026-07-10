@@ -4,3 +4,5 @@
 - [Users table columns](users-table-columns.md) — No prompt_count/total_saves columns; API computes these dynamically from prompts. LibraryDetail uses prompts array not promptCount.
 - [Auth/ownership patterns](auth-ownership-patterns.md) — `if (userId && ...)` is unsafe; always 401 before ownership check or unauthenticated callers slip through.
 - [Username cascade](username-cascade.md) — Renaming username must cascade to prompts.authorUsername and libraries.authorUsername; catch PG 23505 for 409.
+- [Collection buy flow](collection-buy-flow.md) — GET /access/library/:id checks author/admin bypass first; library.priceCents overrides author default; POST /checkout/library/:id creates Whop config; duplicate settings routes in access.ts removed (settings.ts owns them).
+- [Firm profile patterns](firm-profile-patterns.md) — Profile page owns firm inline edit + Team tab; firms.tsx is for create/delete only; adminClerkUserIds + pricing returned by GET /users/:username.

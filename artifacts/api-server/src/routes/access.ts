@@ -158,7 +158,14 @@ router.get("/access/library/:id", async (req, res): Promise<void> => {
 
   const [library] = await db.select().from(librariesTable).where(eq(librariesTable.id, libraryId));
   const [author] = library ? await db.select().from(usersTable).where(eq(usersTable.username, library.authorUsername)) : [];
-  const priceCents = author?.collectionPriceCents ?? 10000;
+
+  // Author / firm owner always has access
+  if (author && clerkUserId && (author.clerkUserId === clerkUserId || author.ownerClerkUserId === clerkUserId || (author.adminClerkUserIds ?? []).includes(clerkUserId))) {
+    res.json({ hasAccess: true, reason: "author", priceCents: 0 }); return;
+  }
+
+  // Collection price: library override first, then author default
+  const priceCents = library?.priceCents ?? author?.collectionPriceCents ?? 10000;
 
   res.json({ hasAccess: false, reason: "not_purchased", priceCents });
 });
@@ -195,7 +202,8 @@ router.post("/checkout/library/:id", async (req, res): Promise<void> => {
 
   const [library] = await db.select().from(librariesTable).where(eq(librariesTable.id, libraryId));
   const [author] = library ? await db.select().from(usersTable).where(eq(usersTable.username, library.authorUsername)) : [];
-  const priceCents = author?.collectionPriceCents ?? 10000;
+  // Collection price: library override first, then author default
+  const priceCents = library?.priceCents ?? author?.collectionPriceCents ?? 10000;
 
   const planId = await resolvePlanId(priceCents);
   const baseUrl = `https://${(process.env.REPLIT_DOMAINS ?? "localhost").split(",")[0]}`;
@@ -258,36 +266,5 @@ router.post("/whop/verify", async (req, res): Promise<void> => {
   res.json({ success: true, itemType, itemId });
 });
 
-/* ── GET /api/settings/pricing ──────────────────────────────────────── */
-router.get("/settings/pricing", async (req, res): Promise<void> => {
-  const { userId: clerkUserId } = getAuth(req);
-  if (!clerkUserId) { res.status(401).json({ error: "Unauthorized" }); return; }
-
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.clerkUserId, clerkUserId));
-  if (!user) { res.status(404).json({ error: "User not found" }); return; }
-
-  res.json({ promptPriceCents: user.promptPriceCents, collectionPriceCents: user.collectionPriceCents, orgType: user.orgType });
-});
-
-/* ── PATCH /api/settings/pricing ────────────────────────────────────── */
-router.patch("/settings/pricing", async (req, res): Promise<void> => {
-  const { userId: clerkUserId } = getAuth(req);
-  if (!clerkUserId) { res.status(401).json({ error: "Unauthorized" }); return; }
-
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.clerkUserId, clerkUserId));
-  if (!user || user.orgType !== "firm") { res.status(403).json({ error: "Only firm accounts can set pricing" }); return; }
-
-  const { promptPriceCents, collectionPriceCents } = req.body as { promptPriceCents?: number; collectionPriceCents?: number };
-  const updates: Record<string, number> = {};
-  if (typeof promptPriceCents === "number" && promptPriceCents > 0) updates.promptPriceCents = Math.round(promptPriceCents);
-  if (typeof collectionPriceCents === "number" && collectionPriceCents > 0) updates.collectionPriceCents = Math.round(collectionPriceCents);
-
-  if (Object.keys(updates).length > 0) {
-    await db.update(usersTable).set(updates).where(eq(usersTable.clerkUserId, clerkUserId));
-  }
-
-  const [updated] = await db.select().from(usersTable).where(eq(usersTable.clerkUserId, clerkUserId));
-  res.json({ promptPriceCents: updated.promptPriceCents, collectionPriceCents: updated.collectionPriceCents });
-});
 
 export default router;
