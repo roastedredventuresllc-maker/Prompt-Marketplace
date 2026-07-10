@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, librariesTable, libraryPromptsTable, promptsTable, categoriesTable, usersTable } from "@workspace/db";
+import { db, librariesTable, libraryPromptsTable, promptsTable, categoriesTable, subcategoriesTable, usersTable } from "@workspace/db";
 import { eq, sql, desc, and } from "drizzle-orm";
 import {
   CreateLibraryBody,
@@ -34,6 +34,15 @@ async function buildLibraryResponse(library: typeof librariesTable.$inferSelect)
     .from(usersTable)
     .where(eq(usersTable.username, library.authorUsername));
 
+  // Fetch up to 3 preview prompt titles for the card
+  const previewRows = await db
+    .select({ title: promptsTable.title })
+    .from(libraryPromptsTable)
+    .innerJoin(promptsTable, eq(libraryPromptsTable.promptId, promptsTable.id))
+    .where(eq(libraryPromptsTable.libraryId, library.id))
+    .orderBy(libraryPromptsTable.addedAt)
+    .limit(3);
+
   return {
     id: library.id,
     name: library.name,
@@ -41,6 +50,7 @@ async function buildLibraryResponse(library: typeof librariesTable.$inferSelect)
     authorUsername: library.authorUsername,
     authorDisplayName: author?.displayName ?? library.authorUsername,
     promptCount: countResult?.count ?? 0,
+    previewTitles: previewRows.map(r => r.title),
     isPublic: library.isPublic,
     createdAt: library.createdAt.toISOString(),
     updatedAt: library.updatedAt.toISOString(),
@@ -50,6 +60,9 @@ async function buildLibraryResponse(library: typeof librariesTable.$inferSelect)
 async function buildPromptItem(prompt: typeof promptsTable.$inferSelect) {
   const [category] = await db.select().from(categoriesTable).where(eq(categoriesTable.id, prompt.categoryId));
   const [author] = await db.select().from(usersTable).where(eq(usersTable.username, prompt.authorUsername));
+  const [subcategory] = prompt.subcategoryId
+    ? await db.select().from(subcategoriesTable).where(eq(subcategoriesTable.id, prompt.subcategoryId))
+    : [undefined];
   return {
     id: prompt.id,
     title: prompt.title,
@@ -57,10 +70,14 @@ async function buildPromptItem(prompt: typeof promptsTable.$inferSelect) {
     description: prompt.description ?? null,
     categoryId: prompt.categoryId,
     categoryName: category?.name ?? "Uncategorized",
+    subcategoryId: prompt.subcategoryId ?? null,
+    subcategoryName: subcategory?.name ?? null,
     tags: prompt.tags ?? [],
     authorUsername: prompt.authorUsername,
     authorDisplayName: author?.displayName ?? prompt.authorUsername,
     authorAvatarUrl: author?.avatarUrl ?? null,
+    authorOrgType: (author as any)?.orgType ?? null,
+    authorOrgName: (author as any)?.orgName ?? null,
     saveCount: prompt.saveCount,
     viewCount: prompt.viewCount,
     isPublic: prompt.isPublic,

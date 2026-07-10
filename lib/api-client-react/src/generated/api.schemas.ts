@@ -164,6 +164,7 @@ export interface Library {
   authorUsername: string;
   authorDisplayName: string;
   promptCount: number;
+  previewTitles: string[];
   isPublic: boolean;
   createdAt: string;
   updatedAt: string;

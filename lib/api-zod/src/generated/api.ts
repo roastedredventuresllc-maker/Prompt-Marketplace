@@ -407,6 +407,7 @@ export const GetUserLibrariesResponseItem = zod.object({
   "authorUsername": zod.string(),
   "authorDisplayName": zod.string(),
   "promptCount": zod.number(),
+  "previewTitles": zod.array(zod.string()),
   "isPublic": zod.boolean(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -429,6 +430,7 @@ export const ListLibrariesResponseItem = zod.object({
   "authorUsername": zod.string(),
   "authorDisplayName": zod.string(),
   "promptCount": zod.number(),
+  "previewTitles": zod.array(zod.string()),
   "isPublic": zod.boolean(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -456,6 +458,7 @@ export const CreateLibraryResponse = zod.object({
   "authorUsername": zod.string(),
   "authorDisplayName": zod.string(),
   "promptCount": zod.number(),
+  "previewTitles": zod.array(zod.string()),
   "isPublic": zod.boolean(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -525,6 +528,7 @@ export const UpdateLibraryResponse = zod.object({
   "authorUsername": zod.string(),
   "authorDisplayName": zod.string(),
   "promptCount": zod.number(),
+  "previewTitles": zod.array(zod.string()),
   "isPublic": zod.boolean(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -559,6 +563,7 @@ export const AddPromptToLibraryResponse = zod.object({
   "authorUsername": zod.string(),
   "authorDisplayName": zod.string(),
   "promptCount": zod.number(),
+  "previewTitles": zod.array(zod.string()),
   "isPublic": zod.boolean(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -580,6 +585,7 @@ export const RemovePromptFromLibraryResponse = zod.object({
   "authorUsername": zod.string(),
   "authorDisplayName": zod.string(),
   "promptCount": zod.number(),
+  "previewTitles": zod.array(zod.string()),
   "isPublic": zod.boolean(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()

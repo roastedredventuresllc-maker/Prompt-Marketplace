@@ -241,36 +241,99 @@ export default function Profile() {
 
           {/* Libraries tab */}
           {activeTab === "libraries" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {libLoading
-                ? Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-40 w-full rounded-2xl" />)
+                ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-56 w-full rounded-2xl" />)
                 : librariesData?.length
-                ? librariesData.map(lib => (
-                  <Link
-                    key={lib.id}
-                    href={`/library/${lib.id}`}
-                    className="group block"
-                    data-testid={`library-card-${lib.id}`}
-                  >
-                    <div className="h-full bg-white rounded-2xl p-5 flex flex-col gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.05]">
-                      <div className="flex items-start gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-[#F5F5F7] flex items-center justify-center shrink-0">
-                          <BookOpen className="h-4 w-4 text-foreground/40" />
+                ? librariesData.map(lib => {
+                    // Derive accent from the profile's firm category
+                    const cats: string[] = (profile as any).categories ?? [];
+                    const accent = cats.includes("finance")
+                      ? { color: "var(--orange)", subtle: "var(--orange-subtle)" }
+                      : cats.includes("law")
+                      ? { color: "var(--forest)", subtle: "var(--forest-subtle)" }
+                      : null;
+                    const previewTitles: string[] = (lib as any).previewTitles ?? [];
+                    return (
+                      <Link
+                        key={lib.id}
+                        href={`/library/${lib.id}`}
+                        className="group block"
+                        data-testid={`library-card-${lib.id}`}
+                      >
+                        <div
+                          className="h-full bg-white rounded-2xl p-6 flex flex-col gap-4 shadow-[0_2px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_36px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.05]"
+                          style={accent ? { borderTop: `3px solid ${accent.color}` } : {}}
+                        >
+                          {/* Header */}
+                          <div className="flex items-start gap-3">
+                            <div
+                              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                              style={accent ? { background: accent.subtle } : { background: "#F5F5F7" }}
+                            >
+                              <BookOpen
+                                className="h-4 w-4"
+                                style={{ color: accent?.color ?? "rgba(0,0,0,0.35)" }}
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-bold text-[16px] leading-tight group-hover:opacity-70 transition-opacity mb-0.5">
+                                {lib.name}
+                              </h3>
+                              <span
+                                className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                                style={accent
+                                  ? { background: accent.subtle, color: accent.color }
+                                  : { background: "#F5F5F7", color: "rgba(0,0,0,0.4)" }}
+                              >
+                                {lib.promptCount} {lib.promptCount === 1 ? "prompt" : "prompts"}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Description — full, no clamp */}
+                          {lib.description && (
+                            <p className="text-[13px] text-foreground/60 leading-relaxed">
+                              {lib.description}
+                            </p>
+                          )}
+
+                          {/* Preview prompt titles */}
+                          {previewTitles.length > 0 && (
+                            <ul className="space-y-1.5">
+                              {previewTitles.map(t => (
+                                <li key={t} className="flex items-center gap-2 text-[13px] text-foreground/55">
+                                  <span
+                                    className="w-1.5 h-1.5 rounded-full shrink-0"
+                                    style={{ background: accent?.color ?? "rgba(0,0,0,0.25)" }}
+                                  />
+                                  <span className="line-clamp-1">{t}</span>
+                                </li>
+                              ))}
+                              {lib.promptCount > previewTitles.length && (
+                                <li className="text-[12px] pl-3.5" style={{ color: accent?.color ?? "rgba(0,0,0,0.35)" }}>
+                                  +{lib.promptCount - previewTitles.length} more
+                                </li>
+                              )}
+                            </ul>
+                          )}
+
+                          {/* Footer */}
+                          <div className="mt-auto pt-4 border-t border-black/[0.05] flex items-center justify-between">
+                            <span className="text-[12px] text-foreground/35">
+                              {new Date(lib.updatedAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                            </span>
+                            <span
+                              className="text-[13px] font-medium group-hover:underline"
+                              style={{ color: accent?.color ?? "rgba(0,0,0,0.5)" }}
+                            >
+                              View collection →
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-[15px] group-hover:text-foreground/70 transition-colors truncate">{lib.name}</h3>
-                          <p className="text-[12px] text-foreground/40">{lib.promptCount} prompts</p>
-                        </div>
-                      </div>
-                      {lib.description && (
-                        <p className="text-[13px] text-foreground/50 leading-relaxed line-clamp-2">{lib.description}</p>
-                      )}
-                      <div className="pt-3 border-t border-black/[0.04] text-[12px] text-foreground/35">
-                        Updated {new Date(lib.updatedAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
-                      </div>
-                    </div>
-                  </Link>
-                ))
+                      </Link>
+                    );
+                  })
                 : (
                   <div className="col-span-full py-16 text-center">
                     <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center mx-auto mb-4">

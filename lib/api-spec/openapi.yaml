@@ -811,6 +811,10 @@ components:
           type: string
         promptCount:
           type: integer
+        previewTitles:
+          type: array
+          items:
+            type: string
         isPublic:
           type: boolean
         createdAt:
@@ -823,6 +827,7 @@ components:
         - authorUsername
         - authorDisplayName
         - promptCount
+        - previewTitles
         - isPublic
         - createdAt
         - updatedAt
