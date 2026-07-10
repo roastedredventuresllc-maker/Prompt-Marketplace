@@ -12,11 +12,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Heart, Calendar, User, BookOpen, Building2, Copy, Check } from "lucide-react";
 import { useState } from "react";
 
-function categoryAccentColor(catName?: string | null): string | null {
-  const n = catName?.toLowerCase();
-  if (n === "finance") return "var(--orange)";
-  if (n === "law")     return "var(--forest)";
-  return null;
+function categoryAccentColor(_catName?: string | null): string {
+  return "var(--orange)";
 }
 
 export default function Profile() {
@@ -248,11 +245,7 @@ export default function Profile() {
                 ? librariesData.map(lib => {
                     // Derive accent from the profile's firm category
                     const cats: string[] = (profile as any).categories ?? [];
-                    const accent = cats.includes("finance")
-                      ? { color: "var(--orange)", subtle: "var(--orange-subtle)" }
-                      : cats.includes("law")
-                      ? { color: "var(--forest)", subtle: "var(--forest-subtle)" }
-                      : null;
+                    const accent = { color: "var(--orange)", subtle: "var(--orange-subtle)" };
                     const previewTitles: string[] = (lib as any).previewTitles ?? [];
                     return (
                       <Link

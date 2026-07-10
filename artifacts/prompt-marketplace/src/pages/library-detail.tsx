@@ -20,10 +20,7 @@ type PromptItem = {
 };
 
 function accentForCategory(catName?: string | null) {
-  const n = catName?.toLowerCase();
-  if (n === "finance") return { color: "var(--orange)", subtle: "var(--orange-subtle)", label: "Finance" };
-  if (n === "law")     return { color: "var(--forest)", subtle: "var(--forest-subtle)", label: "Law" };
-  return null;
+  return { color: "var(--orange)", subtle: "var(--orange-subtle)", label: catName ?? "" };
 }
 
 /* Determine collection's dominant accent from its first prompt */

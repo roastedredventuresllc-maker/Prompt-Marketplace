@@ -201,7 +201,7 @@ export default function Settings() {
               </button>
 
               {saveState === "success" && (
-                <div className="flex items-center gap-1.5 text-[13px]" style={{ color: "var(--forest)" }}>
+                <div className="flex items-center gap-1.5 text-[13px]" style={{ color: "var(--orange)" }}>
                   <CheckCircle className="h-4 w-4" />
                   Saved
                 </div>

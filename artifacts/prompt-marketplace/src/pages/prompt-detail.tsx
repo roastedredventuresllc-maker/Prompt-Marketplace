@@ -7,11 +7,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { PaywallGate } from "@/components/paywall-gate";
 
-function categoryAccentColor(catName?: string): string | null {
-  const n = catName?.toLowerCase();
-  if (n === "finance") return "var(--orange)";
-  if (n === "law") return "var(--forest)";
-  return null;
+function categoryAccentColor(_catName?: string): string {
+  return "var(--orange)";
 }
 
 export default function PromptDetail() {
@@ -120,9 +117,7 @@ export default function PromptDetail() {
                 <div className="flex items-center gap-2 mb-5">
                   <span
                     className="text-[11px] font-semibold px-3 py-1 rounded-full uppercase tracking-wide"
-                    style={accentColor
-                      ? { background: `${accentColor}12`, color: accentColor }
-                      : { background: "rgba(0,0,0,0.05)", color: "rgba(0,0,0,0.5)" }}
+                    style={{ background: `${accentColor}12`, color: accentColor }}
                   >
                     {prompt.subcategoryName ?? prompt.categoryName}
                   </span>
@@ -149,7 +144,7 @@ export default function PromptDetail() {
                     <button
                       onClick={handleCopy}
                       className="flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-[14px] text-white transition-opacity hover:opacity-80"
-                      style={{ background: accentColor ?? "#1d1d1f" }}
+                      style={{ background: accentColor }}
                       data-testid="copy-btn"
                     >
                       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}

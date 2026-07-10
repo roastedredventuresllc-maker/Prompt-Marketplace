@@ -20,7 +20,7 @@ type Accent = { color: string; subtle: string; label: string };
 
 function categoryAccent(slug: string | null): Accent | null {
   if (slug === "finance")    return { color: "var(--orange)", subtle: "var(--orange-subtle)", label: "Finance" };
-  if (slug === "law")        return { color: "var(--forest)", subtle: "var(--forest-subtle)", label: "Law" };
+  if (slug === "law")        return { color: "var(--orange)", subtle: "var(--orange-subtle)", label: "Law" };
   return null;
 }
 
@@ -502,27 +502,27 @@ export default function Home() {
             {lawFirms.length > 0 && (
               <div className="mb-10">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-3 h-3 rounded-sm" style={{ background: "var(--forest)" }} />
-                  <h3 className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "var(--forest)" }}>Law</h3>
+                  <div className="w-3 h-3 rounded-sm" style={{ background: "var(--orange)" }} />
+                  <h3 className="text-[12px] font-bold uppercase tracking-widest" style={{ color: "var(--orange)" }}>Law</h3>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {lawFirms.map(c => (
                     <Link key={c.id} href={`/profile/${c.username}`}
                       className="group bg-white rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.04] flex items-start gap-4"
-                      style={{ borderLeft: "3px solid var(--forest)" }}
+                      style={{ borderLeft: "3px solid var(--orange)" }}
                     >
-                      <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-lg font-bold shrink-0" style={{ background: "var(--forest)" }}>
+                      <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-lg font-bold shrink-0" style={{ background: "var(--orange)" }}>
                         {((c as any).orgName ?? c.displayName)[0]}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-0.5">
                           <p className="font-semibold text-[14px] truncate">{(c as any).orgName ?? c.displayName}</p>
-                          <span className="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 text-white" style={{ background: "var(--forest)" }}>FIRM</span>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 text-white" style={{ background: "var(--orange)" }}>FIRM</span>
                         </div>
                         <p className="text-[12px] text-foreground/35">@{c.username}</p>
                         <div className="flex items-center gap-3 mt-2 text-[12px] text-foreground/40">
                           <span>{c.promptCount} prompts</span>
-                          <span style={{ color: "var(--forest)" }}>{c.totalSaves} saves</span>
+                          <span style={{ color: "var(--orange)" }}>{c.totalSaves} saves</span>
                         </div>
                       </div>
                     </Link>

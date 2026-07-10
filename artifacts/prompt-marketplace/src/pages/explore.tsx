@@ -9,10 +9,8 @@ import { useDebounce } from "@/hooks/use-debounce";
 /* ─── Helpers ──────────────────────────────────────────────── */
 type Accent = { color: string; subtle: string };
 
-function categoryAccent(slug: string | null): Accent | null {
-  if (slug === "finance") return { color: "var(--orange)", subtle: "var(--orange-subtle)" };
-  if (slug === "law") return { color: "var(--forest)", subtle: "var(--forest-subtle)" };
-  return null;
+function categoryAccent(_slug: string | null): Accent {
+  return { color: "var(--orange)", subtle: "var(--orange-subtle)" };
 }
 
 function useSubcategories(slug: string | null) {
@@ -34,11 +32,7 @@ function useSubcategories(slug: string | null) {
 function PromptCard({ prompt }: { prompt: Prompt }) {
   const [copied, setCopied] = useState(false);
   const isFirm = prompt.authorOrgType === "firm";
-  const accent = categoryAccent(
-    prompt.categoryName?.toLowerCase() === "finance" ? "finance"
-    : prompt.categoryName?.toLowerCase() === "law" ? "law"
-    : null
-  );
+  const accent = categoryAccent(prompt.categoryName?.toLowerCase() ?? null);
 
   function handleCopy(e: React.MouseEvent) {
     e.preventDefault(); e.stopPropagation();
@@ -54,9 +48,7 @@ function PromptCard({ prompt }: { prompt: Prompt }) {
         <div className="flex items-center justify-between gap-2">
           <span
             className="text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wide"
-            style={accent
-              ? { background: accent.subtle, color: accent.color }
-              : { background: "rgba(0,0,0,0.05)", color: "rgba(0,0,0,0.45)" }}
+            style={{ background: accent.subtle, color: accent.color }}
           >
             {prompt.subcategoryName ?? prompt.categoryName}
           </span>
@@ -82,8 +74,8 @@ function PromptCard({ prompt }: { prompt: Prompt }) {
           <div className="flex items-center gap-1.5 min-w-0">
             {isFirm ? (
               <>
-                <Building2 className="h-3 w-3 shrink-0" style={{ color: accent?.color ?? "var(--orange)" }} />
-                <span className="text-[12px] font-semibold truncate" style={{ color: accent?.color ?? "var(--orange)" }}>
+                <Building2 className="h-3 w-3 shrink-0" style={{ color: accent.color }} />
+                <span className="text-[12px] font-semibold truncate" style={{ color: accent.color }}>
                   {prompt.authorOrgName ?? prompt.authorDisplayName}
                 </span>
               </>
