@@ -484,6 +484,8 @@ export const GetLibraryResponse = zod.object({
   "authorUsername": zod.string(),
   "authorDisplayName": zod.string(),
   "isPublic": zod.boolean(),
+  "kind": zod.string().optional().default("collection"),
+  "priceCents": zod.number().nullish(),
   "prompts": zod.array(zod.object({
   "id": zod.number(),
   "title": zod.string(),
@@ -535,6 +537,8 @@ export const UpdateLibraryResponse = zod.object({
   "promptCount": zod.number(),
   "previewTitles": zod.array(zod.string()),
   "isPublic": zod.boolean(),
+  "kind": zod.string().optional().default("collection"),
+  "priceCents": zod.number().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -570,6 +574,8 @@ export const AddPromptToLibraryResponse = zod.object({
   "promptCount": zod.number(),
   "previewTitles": zod.array(zod.string()),
   "isPublic": zod.boolean(),
+  "kind": zod.string().optional().default("collection"),
+  "priceCents": zod.number().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -592,6 +598,8 @@ export const RemovePromptFromLibraryResponse = zod.object({
   "promptCount": zod.number(),
   "previewTitles": zod.array(zod.string()),
   "isPublic": zod.boolean(),
+  "kind": zod.string().optional().default("collection"),
+  "priceCents": zod.number().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
