@@ -1,0 +1,151 @@
+[
+  {
+    "username": "ada_prompts",
+    "displayName": "Ada Chen",
+    "bio": "Design systems and UX strategy for product teams.",
+    "avatarUrl": null,
+    "categories": [
+      "design",
+      "education"
+    ],
+    "orgType": "individual",
+    "orgName": null
+  },
+  {
+    "username": "marcus_writes",
+    "displayName": "Marcus Wright",
+    "bio": "Brand voice, content strategy, and editorial craft.",
+    "avatarUrl": null,
+    "categories": [
+      "writing",
+      "marketing"
+    ],
+    "orgType": "individual",
+    "orgName": null
+  },
+  {
+    "username": "sasha_design",
+    "displayName": "Sasha Rivera",
+    "bio": "Visual identity, presentation design, and creative direction.",
+    "avatarUrl": null,
+    "categories": [
+      "design",
+      "business"
+    ],
+    "orgType": "individual",
+    "orgName": null
+  },
+  {
+    "username": "dr_research",
+    "displayName": "Dr. Priya Nair",
+    "bio": "Research methodology, learning design, and data analysis.",
+    "avatarUrl": null,
+    "categories": [
+      "research",
+      "education"
+    ],
+    "orgType": "individual",
+    "orgName": null
+  },
+  {
+    "username": "acme_capital_research",
+    "displayName": "Acme Capital Research",
+    "bio": "Institutional-grade prompts for equity analysis, portfolio management, and macro research.",
+    "avatarUrl": null,
+    "categories": [
+      "finance"
+    ],
+    "orgType": "firm",
+    "orgName": "Acme Capital"
+  },
+  {
+    "username": "meridian_legal",
+    "displayName": "Meridian Legal LLP",
+    "bio": "Practical legal prompts for business counsel, contracts, and regulatory compliance.",
+    "avatarUrl": null,
+    "categories": [
+      "law"
+    ],
+    "orgType": "firm",
+    "orgName": "Meridian Legal"
+  },
+  {
+    "username": "horizons_tax",
+    "displayName": "Horizons Tax Advisory",
+    "bio": "Tax planning and accounting prompts for individuals and small businesses.",
+    "avatarUrl": null,
+    "categories": [
+      "finance"
+    ],
+    "orgType": "firm",
+    "orgName": "Horizons Tax"
+  },
+  {
+    "username": "open_counsel",
+    "displayName": "Open Counsel",
+    "bio": "Open-source legal prompt library for startups and entrepreneurs.",
+    "avatarUrl": null,
+    "categories": [
+      "law"
+    ],
+    "orgType": "firm",
+    "orgName": "Open Counsel"
+  },
+  {
+    "username": "james_foster",
+    "displayName": "James Foster",
+    "bio": "Business strategy, go-to-market planning, and sales leadership.",
+    "avatarUrl": null,
+    "categories": [
+      "business",
+      "marketing"
+    ],
+    "orgType": "individual",
+    "orgName": null
+  },
+  {
+    "username": "elena_voss",
+    "displayName": "Elena Voss",
+    "bio": "Professional writing, editing, and curriculum design.",
+    "avatarUrl": null,
+    "categories": [
+      "writing",
+      "education"
+    ],
+    "orgType": "individual",
+    "orgName": null
+  },
+  {
+    "username": "kai_morgan",
+    "displayName": "Kai Morgan",
+    "bio": "Data analytics, market research, and business intelligence.",
+    "avatarUrl": null,
+    "categories": [
+      "data-analytics",
+      "research"
+    ],
+    "orgType": "individual",
+    "orgName": null
+  },
+  {
+    "username": "ravi_tech",
+    "displayName": "Ravi Sharma",
+    "bio": "Product strategy, system design, and technology leadership.",
+    "avatarUrl": null,
+    "categories": [
+      "technology",
+      "business"
+    ],
+    "orgType": "individual",
+    "orgName": null
+  },
+  {
+    "username": "promptly",
+    "displayName": "Promptly",
+    "bio": "Curated starter prompts from the Promptly team.",
+    "avatarUrl": null,
+    "categories": [],
+    "orgType": "individual",
+    "orgName": null
+  }
+]

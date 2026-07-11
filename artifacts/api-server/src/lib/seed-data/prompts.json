@@ -1,0 +1,2158 @@
+[
+  {
+    "title": "Code Review Expert",
+    "description": "Get a senior engineer-level code review on any code snippet.",
+    "content": "You are a senior software engineer conducting a thorough code review. Analyze the following code for: 1) Correctness and edge cases 2) Performance bottlenecks 3) Security vulnerabilities 4) Maintainability and readability 5) Design patterns and best practices. Provide specific, actionable feedback with examples. Code to review: {code}",
+    "categoryId": 1,
+    "subcategoryId": null,
+    "tags": [
+      "code-review",
+      "engineering",
+      "quality"
+    ],
+    "authorUsername": "ada_prompts",
+    "saveCount": 342,
+    "viewCount": 1892
+  },
+  {
+    "title": "Debug Like a Detective",
+    "description": "Systematic debugging methodology for any error.",
+    "content": "You are debugging the following error. Walk through a systematic investigation: 1) State what you know from the error message 2) List your top 3 hypotheses 3) For each hypothesis, describe how you would test it 4) Identify the most likely root cause 5) Propose a fix and explain why it works. Error: {error_message}. Context: {context}",
+    "categoryId": 1,
+    "subcategoryId": null,
+    "tags": [
+      "debugging",
+      "problem-solving",
+      "engineering"
+    ],
+    "authorUsername": "ada_prompts",
+    "saveCount": 218,
+    "viewCount": 1230
+  },
+  {
+    "title": "SQL Query Optimizer",
+    "description": "Turn slow SQL queries into fast ones with expert analysis. Output: Optimized SQL query in text.",
+    "content": "Analyze this SQL query for performance issues. Identify: 1) Missing indexes 2) Inefficient joins 3) N+1 query patterns 4) Unnecessary subqueries 5) Column selection issues. Rewrite the query for optimal performance and explain each change. Query: {sql_query}",
+    "categoryId": 4,
+    "subcategoryId": null,
+    "tags": [
+      "sql",
+      "database",
+      "performance"
+    ],
+    "authorUsername": "ada_prompts",
+    "saveCount": 189,
+    "viewCount": 980
+  },
+  {
+    "title": "The Ruthless Editor",
+    "description": "A no-mercy edit that strips fat and leaves only signal. Output: Edited text with markup.",
+    "content": "You are a world-class editor known for brutal honesty. Review the following text and: 1) Identify every word that earns zero weight — cut it 2) Flag passive voice and rewrite it active 3) Mark clichés and replace with specifics 4) Rate each paragraph for signal-to-noise ratio 5) Rewrite the weakest paragraph as a model. Be merciless. Good writing has no room for sentiment. Text: {text}",
+    "categoryId": 2,
+    "subcategoryId": null,
+    "tags": [
+      "editing",
+      "writing",
+      "clarity"
+    ],
+    "authorUsername": "marcus_writes",
+    "saveCount": 401,
+    "viewCount": 2340
+  },
+  {
+    "title": "Cold Email that Converts",
+    "description": "High-converting cold emails with zero fluff. Output: Ready-to-send email copy.",
+    "content": "Write a cold outreach email for {product/service} targeting {target_persona}. Requirements: 1) Subject line under 8 words with a specific hook 2) Opening line references something real about their company 3) Problem statement in one sentence 4) Value proposition with a measurable claim 5) Single CTA that takes under 2 minutes to act on. No buzzwords. No \"I hope this email finds you well.\"",
+    "categoryId": 3,
+    "subcategoryId": null,
+    "tags": [
+      "email",
+      "outreach",
+      "conversion",
+      "copywriting"
+    ],
+    "authorUsername": "marcus_writes",
+    "saveCount": 287,
+    "viewCount": 1561
+  },
+  {
+    "title": "Brand Voice Architect",
+    "description": "Build a distinctive brand voice that stands apart from the noise. Output: Brand voice guide in text.",
+    "content": "Define a comprehensive brand voice for {company_name} in {industry}. Deliver: 1) Three words that capture the personality (with anti-examples for each) 2) How this voice differs from the top 3 competitors 3) Writing examples in this voice vs. generic voice 4) 10 words this brand says / 10 words it never says 5) A paragraph in this voice about the company mission. Target audience: {audience}.",
+    "categoryId": 3,
+    "subcategoryId": null,
+    "tags": [
+      "brand",
+      "voice",
+      "strategy",
+      "identity"
+    ],
+    "authorUsername": "marcus_writes",
+    "saveCount": 156,
+    "viewCount": 890
+  },
+  {
+    "title": "UX Heuristic Audit",
+    "description": "Rigorous heuristic evaluation with actionable improvements. Output: Heuristic audit report in text.",
+    "content": "Conduct a UX audit of the following interface description using Nielsen's 10 heuristics. For each heuristic: 1) Score it 1-10 2) Identify the specific violation if any 3) Provide a concrete improvement recommendation. Then rank the top 3 issues by impact on user success. Interface: {interface_description}",
+    "categoryId": 5,
+    "subcategoryId": null,
+    "tags": [
+      "ux",
+      "usability",
+      "design-review",
+      "heuristics"
+    ],
+    "authorUsername": "sasha_design",
+    "saveCount": 234,
+    "viewCount": 1340
+  },
+  {
+    "title": "Design System Component Brief",
+    "description": "Complete component specs that engineers can build from directly. Output: Component spec in text.",
+    "content": "Write a component specification for {component_name} in a design system. Include: 1) Component purpose and when to use it (vs. when not to) 2) Props/variants table with type, default, and description 3) Accessibility requirements (ARIA, keyboard, contrast) 4) States: default, hover, focus, disabled, loading, error 5) Usage examples (correct and incorrect side-by-side). Audience: frontend engineers and designers.",
+    "categoryId": 5,
+    "subcategoryId": null,
+    "tags": [
+      "design-system",
+      "components",
+      "specs",
+      "accessibility"
+    ],
+    "authorUsername": "sasha_design",
+    "saveCount": 198,
+    "viewCount": 1120
+  },
+  {
+    "title": "Literature Review Synthesizer",
+    "description": "Turn a stack of papers into a structured literature review. Output: Literature review in text.",
+    "content": "You are a research scholar. Synthesize the following set of papers on {topic}. Produce: 1) A 200-word executive summary of the field consensus 2) Three major themes across the papers with supporting citations 3) The key disagreements or open questions 4) Methodological strengths and gaps 5) Three directions for future research. Papers: {paper_abstracts}",
+    "categoryId": 6,
+    "subcategoryId": null,
+    "tags": [
+      "research",
+      "synthesis",
+      "academic",
+      "literature-review"
+    ],
+    "authorUsername": "dr_research",
+    "saveCount": 312,
+    "viewCount": 1780
+  },
+  {
+    "title": "Socratic Tutor",
+    "description": "Learn anything deeply by being guided to discover it yourself. Output: Socratic dialogue in text.",
+    "content": "Act as a Socratic tutor teaching {concept} to a {level} student. Do not explain the concept directly. Instead: 1) Ask a question that surfaces what they already know 2) Listen for misconceptions in their answer 3) Ask a follow-up that challenges the misconception 4) Guide them to derive the insight themselves 5) Consolidate with a question that tests transfer. If they are stuck, provide the smallest possible hint. Start with your first Socratic question.",
+    "categoryId": 8,
+    "subcategoryId": null,
+    "tags": [
+      "teaching",
+      "learning",
+      "education",
+      "socratic-method"
+    ],
+    "authorUsername": "dr_research",
+    "saveCount": 267,
+    "viewCount": 1450
+  },
+  {
+    "title": "Rewrite This Simply",
+    "description": "Turn any complex text into plain, easy-to-read language. Output: Simplified rewrite in text.",
+    "content": "Take the following text and rewrite it so a 12-year-old could understand it. Keep all the important information but use everyday words, short sentences, and a friendly tone. Remove jargon completely. Text: {text}",
+    "categoryId": 2,
+    "subcategoryId": null,
+    "tags": [
+      "simplify",
+      "clarity",
+      "plain-language"
+    ],
+    "authorUsername": "marcus_writes",
+    "saveCount": 521,
+    "viewCount": 2900
+  },
+  {
+    "title": "Write a Thank You Note",
+    "description": "A genuine thank you note that actually sounds like you. Output: Thank you note in text.",
+    "content": "Write a heartfelt thank you note to {recipient} for {reason}. Make it feel genuine and personal, not generic. Include a specific detail about why their help/gift/action meant something. Keep it to 3-4 sentences. Tone: {warm/professional/casual}.",
+    "categoryId": 2,
+    "subcategoryId": null,
+    "tags": [
+      "thank-you",
+      "personal",
+      "note"
+    ],
+    "authorUsername": "marcus_writes",
+    "saveCount": 389,
+    "viewCount": 2100
+  },
+  {
+    "title": "Turn Bullet Points Into an Email",
+    "description": "Instantly turn rough notes into a polished email. Output: Full email in text.",
+    "content": "Turn these bullet points into a clear, professional email. Use a friendly but direct tone. Write a subject line, greeting, body, and sign-off. My name is {name}. Bullet points: {bullets}",
+    "categoryId": 2,
+    "subcategoryId": null,
+    "tags": [
+      "email",
+      "writing",
+      "professional"
+    ],
+    "authorUsername": "marcus_writes",
+    "saveCount": 445,
+    "viewCount": 2450
+  },
+  {
+    "title": "Write a Caption for This Photo",
+    "description": "Five ready-to-post Instagram captions for any photo. Output: 5 captions in text.",
+    "content": "Write 5 different Instagram captions for a photo of {description}. Include: 1) A funny one 2) A heartfelt one 3) A short punchy one (under 8 words) 4) One that asks a question to boost engagement 5) One that tells a mini story. Include 3-5 relevant hashtags for each.",
+    "categoryId": 2,
+    "subcategoryId": null,
+    "tags": [
+      "instagram",
+      "caption",
+      "social-media"
+    ],
+    "authorUsername": "marcus_writes",
+    "saveCount": 612,
+    "viewCount": 3300
+  },
+  {
+    "title": "Write a Product Description",
+    "description": "A clear, honest product description that actually sells. Output: Product copy in text.",
+    "content": "Write a compelling product description for {product_name}. It is used for {purpose} by {target_customer}. Highlight: the main benefit (not just the feature), who it is perfect for, and why it is better than doing nothing. Keep it under 80 words. No hyperbole or buzzwords.",
+    "categoryId": 3,
+    "subcategoryId": null,
+    "tags": [
+      "product",
+      "description",
+      "ecommerce"
+    ],
+    "authorUsername": "marcus_writes",
+    "saveCount": 334,
+    "viewCount": 1800
+  },
+  {
+    "title": "Create a Week of Social Posts",
+    "description": "A full week of social content planned in minutes. Output: 7 ready-to-post captions in text.",
+    "content": "Create 7 social media posts for a {type_of_business} targeting {audience}. Each post should have: a hook (first line that stops scrolling), the main content (2-3 sentences), and a call to action. Vary the content types: tips, behind-the-scenes, customer story, question, announcement, fun fact, and personal story.",
+    "categoryId": 3,
+    "subcategoryId": null,
+    "tags": [
+      "social-media",
+      "content-plan",
+      "posting"
+    ],
+    "authorUsername": "marcus_writes",
+    "saveCount": 478,
+    "viewCount": 2600
+  },
+  {
+    "title": "Prepare for a Difficult Conversation",
+    "description": "Go into hard conversations with a clear plan. Output: Conversation prep guide in text.",
+    "content": "Help me prepare for a difficult conversation with {person} about {topic}. Give me: 1) How to open the conversation without putting them on the defensive 2) Three key points to make clearly 3) How to handle it if they get upset 4) What a good outcome looks like. My goal is: {goal}.",
+    "categoryId": 7,
+    "subcategoryId": null,
+    "tags": [
+      "communication",
+      "conflict",
+      "conversation"
+    ],
+    "authorUsername": "marcus_writes",
+    "saveCount": 567,
+    "viewCount": 3100
+  },
+  {
+    "title": "Write a Simple Business Plan Summary",
+    "description": "A clear one-pager that explains your business idea to anyone. Output: One-page plan in text.",
+    "content": "Write a one-page business plan summary for {business idea}. Include: What it is (1 sentence), Who it is for, The problem it solves, How it makes money, What makes it different, and What is needed to get started. Write it clearly enough that anyone could understand it.",
+    "categoryId": 7,
+    "subcategoryId": null,
+    "tags": [
+      "business",
+      "startup",
+      "planning"
+    ],
+    "authorUsername": "ada_prompts",
+    "saveCount": 298,
+    "viewCount": 1650
+  },
+  {
+    "title": "Make a Study Plan",
+    "description": "A realistic, week-by-week plan to learn anything. Output: Study schedule in text.",
+    "content": "Create a practical study plan for learning {subject} in {timeframe}. I am a {beginner/intermediate} level. Break it into weekly goals, recommend free resources for each week, and include how to test my progress. Make it realistic for someone with {hours_per_week} hours per week.",
+    "categoryId": 8,
+    "subcategoryId": null,
+    "tags": [
+      "study",
+      "learning",
+      "self-improvement"
+    ],
+    "authorUsername": "dr_research",
+    "saveCount": 423,
+    "viewCount": 2300
+  },
+  {
+    "title": "Quiz Me on This Topic",
+    "description": "Test your understanding of any topic instantly. Output: Quiz questions + answers in text.",
+    "content": "Create a 10-question quiz on {topic} for someone at the {beginner/intermediate/advanced} level. For each question: write the question, give 4 multiple choice options (labeled A-D), and provide the answer with a brief explanation of why it is correct. Make the questions progressively harder.",
+    "categoryId": 8,
+    "subcategoryId": null,
+    "tags": [
+      "quiz",
+      "learning",
+      "test-yourself"
+    ],
+    "authorUsername": "dr_research",
+    "saveCount": 356,
+    "viewCount": 1950
+  },
+  {
+    "title": "Explain This Code to Me",
+    "description": "Understand any code without being a programmer. Output: Plain-English explanation in text.",
+    "content": "Explain what this code does in plain English. Assume I am not a programmer. Walk through it step by step, explain what each part does, and tell me what the end result is. If there are any potential problems, flag them simply. Code: {code}",
+    "categoryId": 1,
+    "subcategoryId": null,
+    "tags": [
+      "explain",
+      "non-technical",
+      "learning"
+    ],
+    "authorUsername": "ada_prompts",
+    "saveCount": 445,
+    "viewCount": 2450
+  },
+  {
+    "title": "Write a README for My Project",
+    "description": "A README that actually gets people excited to use your project. Output: Markdown README file.",
+    "content": "Write a clear, friendly README for my project called {project_name}. It does: {what_it_does}. Built with: {tech_stack}. Include: a one-sentence description, how to install it, how to use it (with an example), and how someone could contribute. Keep it simple and welcoming for beginners.",
+    "categoryId": 1,
+    "subcategoryId": null,
+    "tags": [
+      "readme",
+      "documentation",
+      "open-source"
+    ],
+    "authorUsername": "ada_prompts",
+    "saveCount": 267,
+    "viewCount": 1480
+  },
+  {
+    "title": "Give Me Honest Feedback on My Design",
+    "description": "Honest design critique focused on what actually matters. Output: Design critique in text.",
+    "content": "Review my design for {what_it_is} and give me honest, actionable feedback. Look at: 1) Is the most important thing the most visually prominent? 2) Is it clear what to do next? 3) Does the spacing feel comfortable or cramped? 4) What is the single biggest thing to fix first? Be direct. I can handle critical feedback.",
+    "categoryId": 5,
+    "subcategoryId": null,
+    "tags": [
+      "feedback",
+      "critique",
+      "design-review"
+    ],
+    "authorUsername": "sasha_design",
+    "saveCount": 389,
+    "viewCount": 2150
+  },
+  {
+    "title": "Pick Colors for My Brand",
+    "description": "A thoughtful color palette picked for your specific brand. Output: Color palette + rationale in text.",
+    "content": "Help me choose a color palette for {type_of_brand} that targets {audience} and wants to feel {adjective_1} and {adjective_2}. Give me: a primary color (with hex code), a secondary color, an accent color, and a background color. Explain in one sentence why each color fits the brand. Then show an example of how they would work together.",
+    "categoryId": 5,
+    "subcategoryId": null,
+    "tags": [
+      "colors",
+      "branding",
+      "palette"
+    ],
+    "authorUsername": "sasha_design",
+    "saveCount": 512,
+    "viewCount": 2800
+  },
+  {
+    "title": "Summarize This Article",
+    "description": "Get the key points from any article in 30 seconds. Output: Summary bullet points in text.",
+    "content": "Summarize the following article in 5 bullet points. Each bullet should be one clear sentence. Start with the most important point. At the end, add one sentence on what this means practically for someone who {describe_reader}. Article: {article_text}",
+    "categoryId": 6,
+    "subcategoryId": null,
+    "tags": [
+      "summary",
+      "reading",
+      "efficiency"
+    ],
+    "authorUsername": "dr_research",
+    "saveCount": 678,
+    "viewCount": 3701
+  },
+  {
+    "title": "Help Me Decide Between Two Options",
+    "description": "A clear framework to make any decision with confidence. Output: Decision framework in text.",
+    "content": "Help me decide between {option_a} and {option_b}. My situation: {context}. What matters most to me: {priorities}. Give me: a quick pros and cons for each (max 3 each), which one you would recommend and why, and the one question I should ask myself before deciding.",
+    "categoryId": 6,
+    "subcategoryId": null,
+    "tags": [
+      "decision",
+      "comparison",
+      "clarity"
+    ],
+    "authorUsername": "dr_research",
+    "saveCount": 534,
+    "viewCount": 2950
+  },
+  {
+    "title": "DCF Valuation Assistant",
+    "description": "Step-by-step DCF analysis with scenario sensitivity tables. Output: Excel-ready financial model.",
+    "content": "You are a financial analyst. Walk me through a full discounted cash flow (DCF) analysis for the company below. Include revenue growth assumptions, margin projections, WACC calculation, terminal value, and a bull/bear/base sensitivity table.\n\nCompany: {company_name}\nIndustry: {industry}\nKey data: {financial_data}",
+    "categoryId": 9,
+    "subcategoryId": 4,
+    "tags": [
+      "dcf",
+      "valuation",
+      "finance"
+    ],
+    "authorUsername": "acme_capital_research",
+    "saveCount": 94,
+    "viewCount": 282
+  },
+  {
+    "title": "Stock Earnings Call Summarizer",
+    "description": "Pull actionable insights from earnings calls in seconds. Output: Structured summary in text.",
+    "content": "Summarize the following earnings call transcript. Extract: (1) key financial metrics vs. expectations, (2) management guidance for next quarter, (3) major risks mentioned, (4) analyst Q&A highlights, and (5) an overall sentiment score (bullish/neutral/bearish) with reasoning.\n\nTranscript: {transcript}",
+    "categoryId": 9,
+    "subcategoryId": 2,
+    "tags": [
+      "earnings",
+      "stocks",
+      "analysis"
+    ],
+    "authorUsername": "acme_capital_research",
+    "saveCount": 78,
+    "viewCount": 235
+  },
+  {
+    "title": "Personal Budget Optimizer",
+    "description": "Get a personalized budget analysis and savings plan. Output: Monthly budget plan in text.",
+    "content": "Act as a personal finance coach. Review my monthly budget and: (1) identify overspending relative to the 50/30/20 rule, (2) suggest three specific cuts with the least lifestyle impact, (3) propose an optimal savings allocation, and (4) give me a 6-month milestone.\n\nMonthly income: {income}\nExpenses: {expenses}",
+    "categoryId": 9,
+    "subcategoryId": 1,
+    "tags": [
+      "budget",
+      "savings",
+      "personal-finance"
+    ],
+    "authorUsername": "horizons_tax",
+    "saveCount": 112,
+    "viewCount": 337
+  },
+  {
+    "title": "Tax Deduction Finder",
+    "description": "Find hidden deductions for your specific situation. Output: Itemized deduction list in text.",
+    "content": "I am a {occupation} in {state}. Identify every potentially overlooked tax deduction I might qualify for. For each deduction explain eligibility requirements, estimated value, and documentation needed.\n\nMy situation: {situation_details}",
+    "categoryId": 9,
+    "subcategoryId": 3,
+    "tags": [
+      "taxes",
+      "deductions",
+      "accounting"
+    ],
+    "authorUsername": "horizons_tax",
+    "saveCount": 87,
+    "viewCount": 262
+  },
+  {
+    "title": "Crypto Portfolio Risk Analyzer",
+    "description": "Comprehensive crypto portfolio risk assessment. Output: Risk analysis report in text.",
+    "content": "Analyze my crypto portfolio for risk. For each asset provide: (1) market cap and liquidity risk, (2) correlation with Bitcoin, (3) regulatory risk score, (4) suggested position size given my risk tolerance.\n\nPortfolio: {portfolio}\nRisk tolerance: {risk_level}",
+    "categoryId": 9,
+    "subcategoryId": 6,
+    "tags": [
+      "crypto",
+      "portfolio",
+      "risk"
+    ],
+    "authorUsername": "acme_capital_research",
+    "saveCount": 65,
+    "viewCount": 195
+  },
+  {
+    "title": "Rental Property ROI Analyzer",
+    "description": "Quick ROI model for any rental property. Output: ROI calculation in text.",
+    "content": "Analyze this investment property. Calculate: cap rate, cash-on-cash return, gross rent multiplier, and break-even occupancy. Model 3 scenarios: optimistic (5% appreciation), base (2%), pessimistic (0%).\n\nProperty price: {price}\nMonthly rent: {rent}\nExpenses: {expenses}\nDown payment: {down_payment}",
+    "categoryId": 9,
+    "subcategoryId": 5,
+    "tags": [
+      "real-estate",
+      "investment",
+      "roi"
+    ],
+    "authorUsername": "acme_capital_research",
+    "saveCount": 71,
+    "viewCount": 213
+  },
+  {
+    "title": "NDA Clause Red Flag Finder",
+    "description": "Identify risky NDA clauses before you sign. Output: Annotated clause list in text.",
+    "content": "You are a business attorney. Review the NDA below and flag: (1) unusually broad confidentiality provisions, (2) ambiguous definitions, (3) missing standard protections, (4) negotiation recommendations for each issue.\n\nNDA text: {nda_text}",
+    "categoryId": 10,
+    "subcategoryId": 7,
+    "tags": [
+      "nda",
+      "contracts",
+      "legal"
+    ],
+    "authorUsername": "meridian_legal",
+    "saveCount": 88,
+    "viewCount": 264
+  },
+  {
+    "title": "Employment Contract Reviewer",
+    "description": "Understand your employment contract before signing. Output: Plain-English review in text.",
+    "content": "Review this employment contract and provide a plain-language summary of: (1) compensation and equity terms, (2) non-compete and non-solicit clauses, (3) IP assignment provisions, (4) termination conditions, (5) red flags for a {role} in {location}.\n\nContract: {contract_text}",
+    "categoryId": 10,
+    "subcategoryId": 8,
+    "tags": [
+      "employment",
+      "contract",
+      "hr"
+    ],
+    "authorUsername": "meridian_legal",
+    "saveCount": 103,
+    "viewCount": 309
+  },
+  {
+    "title": "Privacy Policy Generator",
+    "description": "Generate a compliant privacy policy for your business. Output: Full privacy policy document.",
+    "content": "Draft a GDPR and CCPA compliant privacy policy for my {business_type}. Include: data collected, legal basis, retention periods, user rights, cookies, third-party sharing, and contact info.\n\nBusiness: {business_name}\nCountries: {countries}\nData types: {data_types}",
+    "categoryId": 10,
+    "subcategoryId": 11,
+    "tags": [
+      "privacy",
+      "gdpr",
+      "ccpa"
+    ],
+    "authorUsername": "open_counsel",
+    "saveCount": 134,
+    "viewCount": 402
+  },
+  {
+    "title": "IP License Term Sheet Drafter",
+    "description": "Structure an IP licensing deal with a clear term sheet. Output: Term sheet draft in text.",
+    "content": "Draft a non-binding term sheet for licensing the IP below. Include: scope (exclusive vs non-exclusive), territory, duration, royalty structure, sublicensing, improvements ownership, termination triggers, and dispute resolution.\n\nIP: {ip_description}\nLicensor: {licensor}\nLicensee: {licensee}",
+    "categoryId": 10,
+    "subcategoryId": 9,
+    "tags": [
+      "ip",
+      "licensing",
+      "patents"
+    ],
+    "authorUsername": "meridian_legal",
+    "saveCount": 56,
+    "viewCount": 168
+  },
+  {
+    "title": "Lease Red Flag Finder",
+    "description": "Find risky lease clauses before you sign. Output: Annotated risk list in text.",
+    "content": "Review this lease and identify: (1) unusual tenant-unfavorable clauses, (2) missing standard protections, (3) auto-renewal traps, (4) liability risks, (5) negotiation priorities.\n\nLease text: {lease_text}",
+    "categoryId": 10,
+    "subcategoryId": 10,
+    "tags": [
+      "lease",
+      "real-estate",
+      "legal"
+    ],
+    "authorUsername": "open_counsel",
+    "saveCount": 79,
+    "viewCount": 237
+  },
+  {
+    "title": "Case Brief Generator",
+    "description": "Generate a complete case brief from any court opinion. Output: Formatted case brief in text.",
+    "content": "Write a structured case brief. Include: (1) Citation, (2) Facts, (3) Issue(s), (4) Holding, (5) Reasoning, (6) Dissents, (7) Rule of law, (8) Significance.\n\nCase: {case_name}\nOpinion: {opinion_text}",
+    "categoryId": 10,
+    "subcategoryId": 12,
+    "tags": [
+      "legal-research",
+      "case-brief",
+      "litigation"
+    ],
+    "authorUsername": "meridian_legal",
+    "saveCount": 62,
+    "viewCount": 186
+  },
+  {
+    "title": "App Concept Validator",
+    "description": "Stress-test your app idea before you build anything. Output: Validation report in text.",
+    "content": "I want to build [describe your app idea in 2-3 sentences]. Help me validate this concept by: (1) Identifying the core problem it solves and whether people actually have this problem, (2) Describing the ideal target user in detail, (3) Listing 3 to 5 existing alternatives and how they fall short, (4) Flagging the top 3 risks or assumptions I need to test first, (5) Suggesting a minimum version I could build in 30 days to test the idea. Be direct about weaknesses — do not soften the critique.",
+    "categoryId": 1,
+    "subcategoryId": 13,
+    "tags": [
+      "product",
+      "validation",
+      "startup"
+    ],
+    "authorUsername": "ravi_tech",
+    "saveCount": 134,
+    "viewCount": 890
+  },
+  {
+    "title": "Technical Roadmap Planner",
+    "description": "Turn goals into a realistic, prioritized engineering roadmap. Output: Roadmap document in text.",
+    "content": "I am building [describe your product]. My team has [number] engineers and [number] months before we need to show meaningful results. Here is what we want to achieve: [list your goals]. Create a realistic roadmap that prioritizes ruthlessly based on user impact, identifies dependencies and risks, suggests what to defer or cut, and breaks work into two-week sprints. Flag anything that sounds over-engineered for our stage.",
+    "categoryId": 1,
+    "subcategoryId": 17,
+    "tags": [
+      "roadmap",
+      "planning",
+      "engineering"
+    ],
+    "authorUsername": "ravi_tech",
+    "saveCount": 98,
+    "viewCount": 612
+  },
+  {
+    "title": "AI Workflow Designer",
+    "description": "Replace repetitive work with a practical, well-designed AI workflow. Output: Workflow design spec in text.",
+    "content": "I run [describe your business or team role]. My most time-consuming repeated task is: [describe the task in detail]. Design an AI-assisted workflow that: (1) Maps each step of the current process, (2) Identifies which steps AI can handle fully, partially, or not at all, (3) Proposes a new workflow with clear human-to-AI handoffs, (4) Estimates time savings per week, (5) Lists the tools best suited for each step. Write this for someone who is not deeply technical.",
+    "categoryId": 1,
+    "subcategoryId": 16,
+    "tags": [
+      "ai",
+      "automation",
+      "productivity"
+    ],
+    "authorUsername": "ravi_tech",
+    "saveCount": 187,
+    "viewCount": 1240
+  },
+  {
+    "title": "Security Audit Checklist",
+    "description": "A launch-ready security checklist any founder can share with their team. Output: Security checklist in text.",
+    "content": "I am preparing to launch [describe your product or service] and want a thorough security review before going live. Create a comprehensive checklist covering: data storage and encryption, user authentication and access control, third-party integrations, common attack surfaces, and regulatory compliance (GDPR or SOC 2 where relevant). Write this for a non-technical founder who will share it with an engineering team. Include the questions to ask and red flags to watch for.",
+    "categoryId": 1,
+    "subcategoryId": 15,
+    "tags": [
+      "security",
+      "launch",
+      "compliance"
+    ],
+    "authorUsername": "ravi_tech",
+    "saveCount": 76,
+    "viewCount": 445
+  },
+  {
+    "title": "System Architecture Explainer",
+    "description": "Translate complex technical architecture into language any stakeholder can follow. Output: Architecture explainer in text.",
+    "content": "I need to explain the technical architecture of [describe your system or product] to [describe your audience: investors, board, new team members, or non-technical stakeholders]. Write a clear, jargon-free explanation that covers: what the system does and why it is built the way it is, how the main components connect, how data flows through the system, how we handle reliability and scale, and what makes our approach defensible. Avoid technical abbreviations without explanation.",
+    "categoryId": 1,
+    "subcategoryId": 14,
+    "tags": [
+      "architecture",
+      "communication",
+      "stakeholders"
+    ],
+    "authorUsername": "ravi_tech",
+    "saveCount": 88,
+    "viewCount": 530
+  },
+  {
+    "title": "Vendor Evaluation Framework",
+    "description": "Choose the right tool with a structured, honest comparison framework. Output: Evaluation scorecard in text.",
+    "content": "I need to choose between [list 2 to 4 tools, platforms, or vendors] for [describe your use case]. My organization is [small startup, mid-size company, or enterprise] and my main constraints are [budget, time, technical complexity, or compliance requirements]. Build an evaluation framework that: lists the criteria that matter most for my situation, scores each option against those criteria, highlights hidden costs or lock-in risks, and gives a clear recommendation with reasoning. Do not hedge — make a definitive call.",
+    "categoryId": 1,
+    "subcategoryId": 17,
+    "tags": [
+      "tools",
+      "decision",
+      "procurement"
+    ],
+    "authorUsername": "marcus_writes",
+    "saveCount": 112,
+    "viewCount": 701
+  },
+  {
+    "title": "Cover Letter That Gets Interviews",
+    "description": "A cover letter that earns attention in the first sentence. Output: Cover letter in text.",
+    "content": "I am applying for [job title] at [company name]. Here is what I know about the role: [paste job description or key requirements]. Here is my background: [list your relevant experience in 3 to 5 bullet points]. Write a compelling cover letter that: opens with a specific hook rather than \"I am writing to apply,\" connects my experience directly to their stated needs, shows genuine knowledge of the company, and closes with a confident call to action. Keep it under 350 words. Make it sound human, not templated.",
+    "categoryId": 2,
+    "subcategoryId": 19,
+    "tags": [
+      "career",
+      "cover-letter",
+      "job-search"
+    ],
+    "authorUsername": "elena_voss",
+    "saveCount": 218,
+    "viewCount": 1540
+  },
+  {
+    "title": "Personal Essay That Shows, Not Tells",
+    "description": "Open your essay with a scene that makes readers stop and lean in. Output: Essay opening in text.",
+    "content": "I am writing a personal essay about [topic or experience] for [college application, fellowship, or publication]. The main thing I want the reader to understand about me is: [one sentence]. The specific moment or scene I want to open with is: [describe briefly]. Help me write an opening three paragraphs that use sensory detail, resist over-explaining, and create a strong sense of voice. Then give me three suggestions for how the essay could develop from there.",
+    "categoryId": 2,
+    "subcategoryId": 20,
+    "tags": [
+      "writing",
+      "essay",
+      "storytelling"
+    ],
+    "authorUsername": "elena_voss",
+    "saveCount": 163,
+    "viewCount": 1090
+  },
+  {
+    "title": "Thought Leadership Article Outline",
+    "description": "Turn your expertise into a publishable article with a clear argument. Output: Article outline in text.",
+    "content": "I want to write an article about [your topic or thesis] for [target audience: executives, founders, practitioners, or general readers]. My core argument is: [one sentence]. Supporting evidence I have: [list 3 to 5 data points, examples, or observations]. Write a full article outline with: a magnetic headline, a compelling opening paragraph, 4 to 5 sections with subheadings and the key point for each, and a strong conclusion with a clear takeaway. Then write the opening section in full.",
+    "categoryId": 2,
+    "subcategoryId": 21,
+    "tags": [
+      "content",
+      "thought-leadership",
+      "writing"
+    ],
+    "authorUsername": "marcus_writes",
+    "saveCount": 142,
+    "viewCount": 870
+  },
+  {
+    "title": "Academic Essay Polisher",
+    "description": "Get a rigorous, precise edit on your academic draft. Output: Edited essay in text.",
+    "content": "Here is a draft of my essay or section: [paste your text]. The essay is for [course, journal, or conference] and the argument I am making is: [one sentence]. Please review this draft and: (1) Identify where the argument is unclear or unsupported, (2) Suggest stronger transitions between paragraphs, (3) Flag any passive voice or wordiness, (4) Recommend where I need more evidence or citation, (5) Rewrite the two weakest paragraphs. Preserve my voice but make the writing sharper and the argument tighter.",
+    "categoryId": 2,
+    "subcategoryId": 22,
+    "tags": [
+      "academic",
+      "essay",
+      "editing"
+    ],
+    "authorUsername": "dr_research",
+    "saveCount": 94,
+    "viewCount": 580
+  },
+  {
+    "title": "Keynote Speech Builder",
+    "description": "Build a speech that moves people, not just informs them. Output: Speech outline in text.",
+    "content": "I am giving a speech at [event or occasion] to an audience of [describe the audience]. The speech should be approximately [number] minutes. My main message is: [one sentence]. I want the audience to leave feeling: [describe the emotion or insight]. Write a full speech structure with: an opening that creates immediate connection, three narrative movements with clear transitions, at least one specific story that illustrates the main idea, and a closing line they will remember. Then write the opening two minutes in full.",
+    "categoryId": 2,
+    "subcategoryId": 24,
+    "tags": [
+      "speech",
+      "keynote",
+      "public-speaking"
+    ],
+    "authorUsername": "elena_voss",
+    "saveCount": 176,
+    "viewCount": 1100
+  },
+  {
+    "title": "Ruthless Edit Pass",
+    "description": "Cut ruthlessly. Keep only what earns its place on the page. Output: Edited version in text.",
+    "content": "Here is a piece of writing I want you to edit: [paste your text]. Do a ruthless edit pass that: cuts any sentence that does not earn its place, eliminates hedging language and qualifiers, replaces vague words with specific ones, shortens long paragraphs, and makes the opening sentence impossible to ignore. Show me the before and after side by side for the most significant changes. Aim to cut 20 to 30 percent of the word count while making the piece stronger. Be direct — do not apologize for the cuts.",
+    "categoryId": 2,
+    "subcategoryId": 23,
+    "tags": [
+      "editing",
+      "writing",
+      "revision"
+    ],
+    "authorUsername": "elena_voss",
+    "saveCount": 201,
+    "viewCount": 1380
+  },
+  {
+    "title": "Brand Positioning Statement",
+    "description": "Sharpen your market position into language that actually sticks. Output: Positioning statement in text.",
+    "content": "I am building [describe your product or service] for [target audience]. Our main competitors are [list 2 to 3 competitors]. What makes us different is [your differentiator, even if rough]. Help me write: (1) A crisp positioning statement in the format \"For [audience] who [need], [brand] is the [category] that [benefit], unlike [alternative],\" (2) Three alternative taglines, (3) The core emotional promise of the brand in one sentence, (4) The one thing we should never say in our marketing. Push back if my differentiator sounds generic — do not let me hide behind vague language.",
+    "categoryId": 3,
+    "subcategoryId": 25,
+    "tags": [
+      "branding",
+      "positioning",
+      "marketing"
+    ],
+    "authorUsername": "james_foster",
+    "saveCount": 156,
+    "viewCount": 981
+  },
+  {
+    "title": "Social Media Content Calendar",
+    "description": "A four-week social calendar you can actually stick to. Output: 4-week content calendar in text.",
+    "content": "I run [describe your business] and want to build a consistent social media presence on [platform or platforms]. My audience is [describe them]. I can commit to posting [number] times per week. My content pillars are: [list 2 to 4 themes I could talk about authentically]. Create a four-week content calendar with: post ideas for each week, a mix of educational, entertaining, and promotional content, suggested formats for each post, and full sample captions for five posts. Make the captions sound like a real person, not a brand account.",
+    "categoryId": 3,
+    "subcategoryId": 26,
+    "tags": [
+      "social-media",
+      "content",
+      "marketing"
+    ],
+    "authorUsername": "marcus_writes",
+    "saveCount": 189,
+    "viewCount": 1280
+  },
+  {
+    "title": "Cold Email Sequence That Converts",
+    "description": "Three emails that feel personal, not spammy — and actually get replies. Output: 3-email sequence in text.",
+    "content": "I am reaching out to [describe your ideal customer] to introduce [your product or service]. The main problem I solve for them is: [one sentence]. My credibility or proof includes: [list any results, clients, or backing]. Write a three-email cold outreach sequence. Email 1: a short, specific opener with one value proposition and a soft call to action. Email 2 (3 days later): a different angle or piece of evidence. Email 3 (5 days later): a graceful closing that leaves the door open. Each email should be under 120 words. Do not use subject lines that look like mass outreach.",
+    "categoryId": 3,
+    "subcategoryId": 27,
+    "tags": [
+      "email",
+      "outreach",
+      "sales"
+    ],
+    "authorUsername": "james_foster",
+    "saveCount": 213,
+    "viewCount": 1470
+  },
+  {
+    "title": "Product Launch Announcement",
+    "description": "Write a launch announcement that makes people stop and pay attention. Output: Email + social copy in text.",
+    "content": "I am launching [product name and one-line description] on [date or timeframe]. The audience I am announcing to is [existing customers, email list, press, or social following]. The core benefit for them is: [one sentence]. The most surprising or impressive thing about the product is: [specific detail]. Write: five launch email subject line options, the full launch email body, a social media announcement post, and a one-paragraph press release opening. Prioritize clarity and genuine excitement over marketing-speak.",
+    "categoryId": 3,
+    "subcategoryId": 30,
+    "tags": [
+      "launch",
+      "product",
+      "announcement"
+    ],
+    "authorUsername": "james_foster",
+    "saveCount": 147,
+    "viewCount": 930
+  },
+  {
+    "title": "SEO Content Brief",
+    "description": "Rank higher by writing articles that actually answer what people are searching for. Output: Editorial brief in text.",
+    "content": "I want to write an article targeting the search intent behind [keyword or topic]. My website covers [describe your site and audience]. Create a complete SEO content brief including: the primary keyword and 5 to 8 supporting terms, the likely search intent, a recommended title and meta description, a detailed section-by-section outline with subheadings, the top 3 questions this article must answer, and notes on what the best-ranking articles are likely missing. Then write the introduction in full as a model for the tone.",
+    "categoryId": 3,
+    "subcategoryId": 29,
+    "tags": [
+      "seo",
+      "content",
+      "search"
+    ],
+    "authorUsername": "marcus_writes",
+    "saveCount": 98,
+    "viewCount": 640
+  },
+  {
+    "title": "Paid Ad Copy Variations",
+    "description": "Test-ready ad copy with enough variation to find what actually converts. Output: Ad copy variants in text.",
+    "content": "I am running paid ads for [product or service] targeting [describe audience] on [platform: Meta, Google, or LinkedIn]. The single outcome I want the ad to drive is: [specific action]. My top three customer pain points are: [list them]. Write: (1) Five headline variations under 30 characters each, (2) Three body copy variations with different emotional angles such as urgency, aspiration, and fear of loss, (3) Three call-to-action options, (4) A recommendation on which combination to test first and why. Note which approach tends to perform best on the platform I named.",
+    "categoryId": 3,
+    "subcategoryId": 28,
+    "tags": [
+      "advertising",
+      "paid-ads",
+      "copywriting"
+    ],
+    "authorUsername": "james_foster",
+    "saveCount": 124,
+    "viewCount": 790
+  },
+  {
+    "title": "Executive KPI Dashboard",
+    "description": "Design a dashboard your leadership team will actually read every week. Output: Dashboard spec in text.",
+    "content": "I lead [describe your team or company] and need to build an executive dashboard that gives leadership a clear view of performance. Our main business goals are: [list 2 to 3 goals]. The audience for this dashboard is [executives, board, investors, or department heads]. Design a KPI framework that: identifies the 6 to 10 most important metrics, groups them by strategic priority, defines how each metric is calculated and where the data comes from, sets a baseline and target for each, and flags which are leading vs. lagging indicators. Format this as a table I can share with my team.",
+    "categoryId": 4,
+    "subcategoryId": 36,
+    "tags": [
+      "kpis",
+      "dashboards",
+      "reporting"
+    ],
+    "authorUsername": "kai_morgan",
+    "saveCount": 108,
+    "viewCount": 680
+  },
+  {
+    "title": "Market Sizing Model",
+    "description": "Build a credible market size estimate that holds up in an investor meeting. Output: Market sizing model in text.",
+    "content": "I need to estimate the market size for [describe your product or service] to include in an investor pitch or business plan. My target customer is [describe them in detail]. The geography I am focusing on is [region or country]. Walk me through a market sizing approach that: uses both top-down (TAM, SAM, SOM) and bottom-up methods, identifies the key assumptions and where to find data to validate them, shows the math in a format I can build in a spreadsheet, and gives a realistic serviceable market estimate. Flag which assumptions are most uncertain.",
+    "categoryId": 4,
+    "subcategoryId": 32,
+    "tags": [
+      "market-research",
+      "sizing",
+      "strategy"
+    ],
+    "authorUsername": "kai_morgan",
+    "saveCount": 143,
+    "viewCount": 910
+  },
+  {
+    "title": "Customer Survey That People Complete",
+    "description": "A short, honest survey that gets responses and surfaces real insights. Output: Survey questions in text.",
+    "content": "I want to run a customer survey to understand [your research question]. My respondents are [describe your customer segment]. I need to learn: [list 2 to 3 specific things]. Design a survey that: stays under 10 questions, uses clear and unbiased language, mixes question types strategically, avoids leading questions, and ends with a question that surfaces something I did not think to ask. Then write an invitation email that achieves a 30 percent or higher response rate from existing customers.",
+    "categoryId": 4,
+    "subcategoryId": 33,
+    "tags": [
+      "survey",
+      "research",
+      "customer"
+    ],
+    "authorUsername": "kai_morgan",
+    "saveCount": 87,
+    "viewCount": 540
+  },
+  {
+    "title": "Churn Analysis Framework",
+    "description": "Stop guessing why customers leave. Build a framework that shows you. Output: Churn analysis framework in text.",
+    "content": "We are experiencing [describe your churn situation: percentage churning, when in the lifecycle, from which segments]. Our product is [brief description]. I want to understand why customers leave and what to do about it. Build a churn analysis framework that: identifies data signals that predict churn before it happens, segments churned customers into meaningful groups, suggests qualitative research to understand the reasons behind the numbers, and recommends the top 3 interventions to test first. Frame this as a team meeting agenda I can run next week.",
+    "categoryId": 4,
+    "subcategoryId": 34,
+    "tags": [
+      "churn",
+      "retention",
+      "analytics"
+    ],
+    "authorUsername": "kai_morgan",
+    "saveCount": 119,
+    "viewCount": 750
+  },
+  {
+    "title": "Data Story for Any Audience",
+    "description": "Turn a data finding into a story that makes non-technical leaders act. Output: Data story narrative in text.",
+    "content": "I need to present the following finding to [describe audience: CEO, board, sales team, or marketing] who are not data experts: [describe your finding in plain terms, for example \"our activation rate dropped 12 percent this quarter\"]. The action I want them to take is: [specific ask]. Write a data narrative that: opens with the so-what rather than the methodology, uses an analogy or concrete example to make the number real, acknowledges uncertainty honestly, and ends with a clear recommendation. Suggest one visualization that would make this finding immediately clear.",
+    "categoryId": 4,
+    "subcategoryId": 35,
+    "tags": [
+      "data",
+      "storytelling",
+      "communication"
+    ],
+    "authorUsername": "kai_morgan",
+    "saveCount": 134,
+    "viewCount": 865
+  },
+  {
+    "title": "Competitive Landscape Analysis",
+    "description": "Map your competitive landscape clearly so you know where you can win. Output: Competitive matrix in text.",
+    "content": "I am analyzing the competitive landscape for [your industry or market]. My company is [brief description]. I want to understand who the key players are, how they are positioned, where the market is moving, and where the gaps are. Structure a complete competitive analysis covering: direct and indirect competitors, the dimensions to evaluate each player on, market share signals and funding trajectories, emerging threats, and a clear view of where we can win. Then apply the framework to [name 3 specific competitors] based on what you know.",
+    "categoryId": 4,
+    "subcategoryId": 32,
+    "tags": [
+      "competitive",
+      "market",
+      "strategy"
+    ],
+    "authorUsername": "kai_morgan",
+    "saveCount": 96,
+    "viewCount": 607
+  },
+  {
+    "title": "Brand Identity Brief",
+    "description": "Give any designer everything they need to get your brand right the first time. Output: Brand identity brief in text.",
+    "content": "I am building a brand for [describe your company, product, or personal brand]. Our audience is [describe them]. The feeling we want to evoke is [list 3 adjectives]. Our closest competitors look like [describe their aesthetic]. Create a comprehensive brand identity brief covering: brand personality and voice, visual direction including color mood, typography style, and imagery approach, moodboard references to pull from, things our brand should never look like, and three distinct visual directions we could explore. Format this as a brief I can hand directly to a designer.",
+    "categoryId": 5,
+    "subcategoryId": 37,
+    "tags": [
+      "branding",
+      "identity",
+      "design"
+    ],
+    "authorUsername": "sasha_design",
+    "saveCount": 178,
+    "viewCount": 1190
+  },
+  {
+    "title": "UX Critique and Recommendations",
+    "description": "Get a structured, expert-level UX critique of any screen or product flow. Output: UX critique report in text.",
+    "content": "Act as a senior UX designer critiquing [describe the screen, flow, or product you want reviewed]. The primary user goal is: [one sentence]. The main action I want users to take is: [one sentence]. Give me: (1) A structured assessment of what is working and why, (2) The top 5 usability issues ranked by severity, (3) Specific recommendations for each issue, (4) One quick win I can ship this week, (5) One structural change that would meaningfully improve the experience. Be precise — reference layout, hierarchy, copy, and interaction patterns specifically.",
+    "categoryId": 5,
+    "subcategoryId": 38,
+    "tags": [
+      "ux",
+      "design",
+      "product"
+    ],
+    "authorUsername": "ada_prompts",
+    "saveCount": 152,
+    "viewCount": 990
+  },
+  {
+    "title": "Presentation Narrative Designer",
+    "description": "Turn your evidence into a presentation arc that people remember. Output: Slide narrative in text.",
+    "content": "I need to present [topic] to [audience] in [time available]. The one thing I need them to believe by the end is: [your core message]. Supporting evidence I have: [list your key points or data]. Design the full narrative structure: (1) The opening hook that earns their attention in 60 seconds, (2) The story arc or problem-solution structure, (3) How to sequence my evidence for maximum impact, (4) The closing moment that makes the message stick. Then write the speaker notes for the first slide in full. Design for speaking, not for reading from a screen.",
+    "categoryId": 5,
+    "subcategoryId": 40,
+    "tags": [
+      "presentation",
+      "storytelling",
+      "design"
+    ],
+    "authorUsername": "sasha_design",
+    "saveCount": 167,
+    "viewCount": 1070
+  },
+  {
+    "title": "Typography and Color System",
+    "description": "Build a visual language that is coherent, distinctive, and defensible. Output: Typography and color system in text.",
+    "content": "I am building a visual identity for [describe the brand or project]. The brand personality is [list 3 adjectives]. The primary use case is [digital, print, or both]. The audience is [describe them in detail]. Recommend: (1) A primary typeface pairing with reasoning for each choice, (2) A color palette of 5 to 7 colors with usage rules for each, (3) Spacing and sizing principles, (4) What to avoid for this brand, (5) Examples of brands that use a similar visual language and what we can learn from them. Explain the reasoning behind every choice — not just what, but why.",
+    "categoryId": 5,
+    "subcategoryId": 39,
+    "tags": [
+      "typography",
+      "color",
+      "visual-design"
+    ],
+    "authorUsername": "sasha_design",
+    "saveCount": 134,
+    "viewCount": 850
+  },
+  {
+    "title": "Photography Art Direction Brief",
+    "description": "Brief any photographer or creative team with confidence and precision. Output: Art direction brief in text.",
+    "content": "I need to art direct a photo shoot for [describe the product, brand, or campaign]. The mood I am going for is [describe in words or reference brands]. The shots I need are: [list the required deliverables]. The budget is [small, medium, or professional]. Create a complete art direction brief including: mood and feeling guidance, lighting style, color palette and props direction, talent or model direction if applicable, a prioritized shot list, and a section on what to avoid so the photographer knows the boundaries clearly.",
+    "categoryId": 5,
+    "subcategoryId": 41,
+    "tags": [
+      "photography",
+      "art-direction",
+      "creative"
+    ],
+    "authorUsername": "sasha_design",
+    "saveCount": 89,
+    "viewCount": 560
+  },
+  {
+    "title": "Design System Component Spec",
+    "description": "Write a precise component spec that eliminates design-development back-and-forth. Output: Component spec in text.",
+    "content": "I am building a design system for [describe your product]. The primary platform is [web, mobile, or both]. I need to define the specification for [name the component: button, card, form, modal, or navigation bar]. Write a complete component specification covering: all states including default, hover, active, disabled, loading, and error, accessibility requirements for contrast and screen readers, spacing and sizing variants, usage guidelines for when to use this vs alternatives, and the most common mistake designers make with this component. Format this for a handoff document.",
+    "categoryId": 5,
+    "subcategoryId": 42,
+    "tags": [
+      "design-system",
+      "components",
+      "ux"
+    ],
+    "authorUsername": "ada_prompts",
+    "saveCount": 113,
+    "viewCount": 710
+  },
+  {
+    "title": "User Interview Discussion Guide",
+    "description": "Run interviews that uncover what people actually think, not what they think you want to hear. Output: Discussion guide in text.",
+    "content": "I am conducting research on [topic or product area]. The core question I am trying to answer is: [one sentence]. My interview subjects are [describe who they are]. I have approximately [number] minutes per interview. Create a discussion guide that: opens with rapport-building questions, progresses to the core research territory naturally, includes probing follow-ups for the most important questions, avoids leading the participant, and closes with a question that often surfaces surprises. Include facilitator notes on what to listen for and when to dig deeper.",
+    "categoryId": 6,
+    "subcategoryId": 45,
+    "tags": [
+      "research",
+      "interviews",
+      "ux-research"
+    ],
+    "authorUsername": "dr_research",
+    "saveCount": 118,
+    "viewCount": 750
+  },
+  {
+    "title": "Trend Signal Report",
+    "description": "Distinguish real signals from noise to stay ahead of what matters. Output: Trend signal report in text.",
+    "content": "I want to identify emerging trends in [industry or topic area] that will matter over the next 2 to 3 years. My role is [describe your context: investor, strategist, product leader, or researcher]. Build a trend analysis covering: (1) 5 to 7 weak signals that are gaining momentum, (2) For each signal: the underlying driver, early evidence, and timeline to mainstream adoption, (3) How these signals might intersect or amplify each other, (4) Which signals represent the biggest opportunities vs. risks for [describe your organization]. Be clear about the difference between hype and durable structural change.",
+    "categoryId": 6,
+    "subcategoryId": 46,
+    "tags": [
+      "trends",
+      "research",
+      "strategy"
+    ],
+    "authorUsername": "kai_morgan",
+    "saveCount": 124,
+    "viewCount": 800
+  },
+  {
+    "title": "Research Proposal Writer",
+    "description": "Write a research proposal that earns attention and funding. Output: Research proposal in text.",
+    "content": "I am writing a research proposal for [audience: grant committee, academic supervisor, or company leadership] on the topic of [your research topic]. My central research question is: [one sentence]. My preliminary hypothesis is: [one sentence]. Write a complete proposal including: a compelling statement of the problem and why it matters now, a review of what is already known and the gap that remains, a proposed methodology with rationale, an expected timeline and resource requirements, and anticipated contributions to the field. Keep the language precise and accessible to a non-specialist reader.",
+    "categoryId": 6,
+    "subcategoryId": 47,
+    "tags": [
+      "research",
+      "academic",
+      "proposal"
+    ],
+    "authorUsername": "dr_research",
+    "saveCount": 78,
+    "viewCount": 490
+  },
+  {
+    "title": "Competitive Intelligence Brief",
+    "description": "Build a complete picture of any competitor from publicly available information. Output: Intelligence brief in text.",
+    "content": "I need to build a competitive intelligence picture on [company or product name]. My context is: [investor due diligence, strategic planning, product development, or sales preparation]. Structure a comprehensive brief covering: business model and revenue streams, product strengths and documented weaknesses, recent strategic moves and what they signal, talent and culture signals from public sources, customer sentiment themes, and where they are likely heading in the next 12 months. Flag what is knowable from public sources vs. what requires primary research. Conclude with the 3 things I should monitor on an ongoing basis.",
+    "categoryId": 6,
+    "subcategoryId": 44,
+    "tags": [
+      "competitive",
+      "intelligence",
+      "research"
+    ],
+    "authorUsername": "kai_morgan",
+    "saveCount": 109,
+    "viewCount": 695
+  },
+  {
+    "title": "Academic Argument Builder",
+    "description": "Sharpen your academic argument until it is precise, defensible, and compelling. Output: Argument structure in text.",
+    "content": "I am writing a paper on [your topic] for [course, journal, or conference]. My central argument is: [your thesis in one sentence]. The strongest counterargument against my position is: [describe it]. Help me: (1) Sharpen my thesis so it is specific and contestable, (2) Structure the argument into 4 to 5 logical steps, (3) Anticipate and address the top 3 objections, (4) Identify what evidence would most strengthen my case, (5) Write a concluding paragraph that synthesizes the argument without simply summarizing it. Point out any logical gaps or assumptions I am relying on.",
+    "categoryId": 6,
+    "subcategoryId": 43,
+    "tags": [
+      "academic",
+      "argument",
+      "writing"
+    ],
+    "authorUsername": "dr_research",
+    "saveCount": 92,
+    "viewCount": 580
+  },
+  {
+    "title": "One-Page Business Plan",
+    "description": "Distill any business idea into a one-pager that earns a real conversation. Output: One-page business plan in text.",
+    "content": "I want to create a one-page business plan for [describe your idea or company]. Structure it around these sections and fill in what you can from my context, flagging what I need to complete: (1) Problem — what pain exists and who feels it acutely, (2) Solution — what we offer and how it works, (3) Market — how large the opportunity is, (4) Business model — how we make money, (5) Traction — what we have proven so far, (6) Team — why we are the right people for this, (7) Ask — what we need and what we will do with it. Make it tight enough to fit one page and compelling enough to earn a follow-up meeting.",
+    "categoryId": 7,
+    "subcategoryId": 49,
+    "tags": [
+      "business",
+      "planning",
+      "startup"
+    ],
+    "authorUsername": "james_foster",
+    "saveCount": 198,
+    "viewCount": 1350
+  },
+  {
+    "title": "Investor Pitch Narrative",
+    "description": "Build the story behind your pitch — the part that makes investors lean forward. Output: Pitch narrative + 3 slide outlines in text.",
+    "content": "I am raising [amount] for [describe your company]. We have [describe traction: customers, revenue, or growth]. The problem we solve is: [one sentence]. Our solution is: [one sentence]. Write the narrative arc for my investor pitch that: opens with a memorable statement of the problem, builds the case for why now is the right moment, explains our insight or unfair advantage, shows our path to market leadership, and closes with a vision that makes investors want to be part of it. Also write the three slides investors remember most: problem, solution, and ask.",
+    "categoryId": 7,
+    "subcategoryId": 51,
+    "tags": [
+      "fundraising",
+      "pitch",
+      "investors"
+    ],
+    "authorUsername": "james_foster",
+    "saveCount": 231,
+    "viewCount": 1610
+  },
+  {
+    "title": "Performance Review Framework",
+    "description": "Run performance conversations that are honest, kind, and actually useful. Output: Review framework + example in text.",
+    "content": "I am a manager preparing reviews for my team of [number] people in [department]. I want reviews that are fair, specific, growth-oriented, and lead to real development conversations. Build a performance review framework that: covers the dimensions that matter most for our type of work, uses behavioral anchors rather than vague ratings, includes a structured format for the conversation itself, gives language for delivering both positive and difficult feedback, and ends with a 90-day development plan. Include an example review for a team member who is strong overall but needs to grow in one specific area.",
+    "categoryId": 7,
+    "subcategoryId": 52,
+    "tags": [
+      "management",
+      "reviews",
+      "team"
+    ],
+    "authorUsername": "james_foster",
+    "saveCount": 143,
+    "viewCount": 920
+  },
+  {
+    "title": "Sales Discovery Call Script",
+    "description": "Ask the questions that open up a real conversation — not a pitch. Output: Discovery call script in text.",
+    "content": "I am preparing for discovery calls with [describe your ideal customer]. Our product or service is [brief description] and it solves [the main problem]. Before a call, I typically know [what you know about the prospect]. Write a discovery call framework that: builds rapport naturally in the first two minutes, surfaces the real problem with layered questioning, uncovers budget and timeline without being transactional, handles the 3 most common objections for our type of product, and closes the call with a next step both parties are genuinely committed to. Include sample language for each stage.",
+    "categoryId": 7,
+    "subcategoryId": 53,
+    "tags": [
+      "sales",
+      "discovery",
+      "calls"
+    ],
+    "authorUsername": "james_foster",
+    "saveCount": 174,
+    "viewCount": 1120
+  },
+  {
+    "title": "Operational Efficiency Audit",
+    "description": "Find where your organization is leaking time and money — and fix it systematically. Output: Audit report in text.",
+    "content": "I run [describe your team or company] and want to identify where we are losing time, money, or quality in our operations. Our main operational activities are: [list 4 to 6 things your team does regularly]. Build an audit framework that: maps each activity against the value it creates, identifies the most common sources of waste or delay, flags which processes depend heavily on a single person, recommends the highest-impact areas to systematize or automate, and suggests a 90-day improvement roadmap. Structure this as a workshop I can run with my leadership team in two hours.",
+    "categoryId": 7,
+    "subcategoryId": 50,
+    "tags": [
+      "operations",
+      "efficiency",
+      "process"
+    ],
+    "authorUsername": "james_foster",
+    "saveCount": 118,
+    "viewCount": 750
+  },
+  {
+    "title": "Go-to-Market Strategy",
+    "description": "Choose your first market, your first channel, and your first message — with confidence. Output: Go-to-market plan in text.",
+    "content": "I am launching [product or service] in [market or geography]. My ideal first customer is [describe them precisely — role, company size, pain level]. My advantage in reaching them is [describe it honestly: channel access, relationships, or domain expertise]. Competitors they currently use include [list them]. Write a go-to-market strategy covering: the beachhead segment and why to start there, the primary channel and the first tactic to use in that channel, the messaging that will resonate at this stage, success metrics for the first 90 days, and the signal that tells us it is time to expand to the next segment.",
+    "categoryId": 7,
+    "subcategoryId": 54,
+    "tags": [
+      "gtm",
+      "launch",
+      "growth"
+    ],
+    "authorUsername": "ravi_tech",
+    "saveCount": 156,
+    "viewCount": 1010
+  },
+  {
+    "title": "Lesson Plan Builder",
+    "description": "Design a lesson with a clear arc, a real hook, and a meaningful closing. Output: Lesson plan in text.",
+    "content": "I am teaching [subject] to [age group or level] and want to create a lesson on [specific topic]. The learning objective is: by the end of this lesson, students will be able to [one clear, measurable outcome]. I have [time available] and the class size is [number of students]. Design a complete lesson plan that: opens with a hook that makes students curious, builds understanding progressively with a clear instructional sequence, includes at least one active learning activity, addresses different learning styles, and closes with a formative check. Include estimated timing for each segment and a materials list.",
+    "categoryId": 8,
+    "subcategoryId": 55,
+    "tags": [
+      "teaching",
+      "lesson",
+      "education"
+    ],
+    "authorUsername": "elena_voss",
+    "saveCount": 134,
+    "viewCount": 870
+  },
+  {
+    "title": "Student Feedback That Motivates Growth",
+    "description": "Write feedback that students actually read — and act on. Output: Student feedback in text.",
+    "content": "I am writing feedback on [describe the assignment: essay, project, or presentation] for a student who is [describe their level: struggling, developing, or high-achieving]. The main strength in their work is: [one sentence]. The area most in need of development is: [one sentence]. Write feedback that: opens by anchoring on specific evidence of what worked, identifies the growth area with precise and kind language, gives a concrete strategy they can apply next time, and ends with a statement that builds confidence and agency. Avoid vague praise. Make the student feel seen and capable.",
+    "categoryId": 8,
+    "subcategoryId": 56,
+    "tags": [
+      "feedback",
+      "teaching",
+      "students"
+    ],
+    "authorUsername": "dr_research",
+    "saveCount": 147,
+    "viewCount": 950
+  },
+  {
+    "title": "Course Learning Journey Map",
+    "description": "Map a course that takes learners somewhere real — not just through a syllabus. Output: Course learning map in text.",
+    "content": "I am designing a course on [topic] for [audience: college students, working professionals, or self-learners]. The course runs [duration]. The main transformation I want learners to experience is: [describe where they start and where they finish]. Design a learning journey map that: chunks the content into meaningful modules with clear objectives for each, sequences topics so confidence builds before complexity, identifies where learners typically struggle, suggests varied activity types across modules, and creates a capstone that demonstrates the full learning. Format this so I can share it with co-instructors or a curriculum committee.",
+    "categoryId": 8,
+    "subcategoryId": 57,
+    "tags": [
+      "curriculum",
+      "course-design",
+      "education"
+    ],
+    "authorUsername": "elena_voss",
+    "saveCount": 89,
+    "viewCount": 565
+  },
+  {
+    "title": "Parent Update That Gets Read",
+    "description": "Write parent communications that are clear, warm, and actually get read. Output: Parent letter in text.",
+    "content": "I need to write a communication to parents about [topic: student progress, upcoming event, classroom change, or behavioral concern]. The key information I need to convey is: [list your main points]. Write a parent communication that: gets to the point in the first two sentences, uses warm and direct language, makes any required action completely clear, anticipates the top concern a parent might have and addresses it proactively, and invites dialogue without creating unnecessary alarm. Keep it under 200 words. Also suggest a subject line that gets the email opened.",
+    "categoryId": 8,
+    "subcategoryId": 59,
+    "tags": [
+      "teaching",
+      "parents",
+      "communication"
+    ],
+    "authorUsername": "elena_voss",
+    "saveCount": 112,
+    "viewCount": 720
+  },
+  {
+    "title": "Socratic Discussion Facilitator",
+    "description": "Facilitate discussions where students do the thinking — not just the talking. Output: Discussion facilitation guide in text.",
+    "content": "I am facilitating a discussion on [topic or text] with [age group or level]. The central question I want to explore is: [your question]. Students often avoid or struggle with: [describe a common misconception or resistance pattern]. Design a Socratic discussion that: opens with a low-stakes question everyone can answer, progresses through questions that build complexity and surface genuine disagreement, includes facilitator moves for when discussion goes quiet or loses focus, and closes with a question that lingers after class ends. Include three follow-up probes for the most important questions in the sequence.",
+    "categoryId": 8,
+    "subcategoryId": 58,
+    "tags": [
+      "discussion",
+      "teaching",
+      "critical-thinking"
+    ],
+    "authorUsername": "dr_research",
+    "saveCount": 128,
+    "viewCount": 820
+  },
+  {
+    "title": "Teacher Coaching Conversation",
+    "description": "Have the coaching conversation that actually shifts practice. Output: Coaching conversation guide in text.",
+    "content": "I am a coach or department head preparing for a professional development conversation with a teacher who [describe the situation: is strong but plateauing, struggling with a specific challenge, or wants to develop a skill]. My goal for this conversation is: [one sentence]. Design a coaching structure that: opens in a way that builds trust and avoids defensiveness, uses inquiry rather than advice-giving, surfaces the teacher's own insight about what is happening, identifies one small experiment they can try before the next conversation, and ends with a clear commitment from both sides. Include sample language I can adapt to my voice.",
+    "categoryId": 8,
+    "subcategoryId": 60,
+    "tags": [
+      "coaching",
+      "professional-development",
+      "leadership"
+    ],
+    "authorUsername": "dr_research",
+    "saveCount": 96,
+    "viewCount": 615
+  },
+  {
+    "title": "3-Statement LBO Model Assumptions Audit",
+    "description": "Senior associate-level review of LBO model assumptions across all three statements. Output: Audit memo in text.",
+    "content": "You are a senior investment banking associate reviewing an LBO model. I will share the income statement, balance sheet, and cash flow statement assumptions. For each statement:\n1. Flag unrealistic revenue growth rates (benchmark against comparable transactions)\n2. Identify margin expansion assumptions that lack operational justification\n3. Check working capital assumptions against industry DSO/DIO/DPO norms\n4. Verify debt repayment schedule aligns with cash flow availability\n5. Test whether exit multiple assumptions are supported by current comp set\nOutput a structured memo with: (a) critical errors that would kill a deal, (b) aggressive assumptions requiring sensitivity, (c) suggested scenario ranges for each lever. Use the format: [CRITICAL / AGGRESSIVE / ACCEPTABLE] — Finding — Recommendation",
+    "categoryId": 9,
+    "subcategoryId": 4,
+    "tags": [],
+    "authorUsername": "acme_capital_research",
+    "saveCount": 187,
+    "viewCount": 1346
+  },
+  {
+    "title": "Monte Carlo Simulation Scenario Brief",
+    "description": "Structured brief for building a rigorous Monte Carlo simulation on any investment. Output: Simulation design brief in text.",
+    "content": "Structure a Monte Carlo simulation brief for the following investment scenario: [describe asset, horizon, and key variables]. For each variable, define:\n- Base case assumption and source\n- Distribution type (normal, log-normal, triangular, uniform) and justification\n- Min / Max / Standard deviation parameters\n- Correlation matrix relationships to other variables (if any)\nThen specify: number of iterations (justify), key output metrics (IRR, NPV, payback, VaR), and the percentile thresholds that would trigger a pass/fail investment decision. Output as a structured brief a quant analyst could hand directly to a modeler.",
+    "categoryId": 9,
+    "subcategoryId": 2,
+    "tags": [],
+    "authorUsername": "acme_capital_research",
+    "saveCount": 143,
+    "viewCount": 986
+  },
+  {
+    "title": "Debt Covenant Headroom Analysis",
+    "description": "Calculate covenant headroom, identify trip wires, and draft lender risk language. Output: Analysis memo in text.",
+    "content": "I have the following credit agreement covenants: [paste covenant list]. My current financial metrics are: [paste LTM financials]. Walk me through:\n1. Calculate current headroom on each financial covenant (leverage, coverage, liquidity)\n2. Identify which covenants tighten as EBITDA moves ±10% and ±25%\n3. Flag covenant definitions that differ from standard GAAP (addbacks, exclusions, cure rights)\n4. Identify the \"trip wire\" — the first covenant likely to be breached under a stress scenario\n5. Draft the key risk disclosure language a lender would require\nPresent as a covenant compliance matrix with current headroom, stress headroom, and the narrative risk summary.",
+    "categoryId": 9,
+    "subcategoryId": 4,
+    "tags": [],
+    "authorUsername": "horizons_tax",
+    "saveCount": 98,
+    "viewCount": 743
+  },
+  {
+    "title": "REIT FFO Bridge Analysis",
+    "description": "NAREIT-compliant FFO/AFFO reconciliation, bridge analysis, and peer benchmarking. Output: Reconciliation tables in text.",
+    "content": "I own or am analyzing a REIT. Given the following income statement: [paste]. Help me:\n1. Reconcile GAAP net income to FFO (add back depreciation, exclude gains/losses on asset sales per NAREIT definition)\n2. Calculate AFFO by further adjusting for recurring capex, straight-line rent normalization, and non-cash compensation\n3. Build a bridge from prior period FFO to current period FFO identifying each driver (organic NOI growth, acquisitions, dispositions, financing cost changes)\n4. Benchmark the FFO/share growth and AFFO payout ratio against sector peers\n5. Flag any non-standard addbacks management is using that a sophisticated analyst would challenge\nOutput: FFO bridge table, AFFO calculation, and a brief on any accounting red flags.",
+    "categoryId": 9,
+    "subcategoryId": 5,
+    "tags": [],
+    "authorUsername": "acme_capital_research",
+    "saveCount": 76,
+    "viewCount": 561
+  },
+  {
+    "title": "Wash-Sale Rule Exposure Checker",
+    "description": "Identify wash-sale violations in trading history and quantify disallowed loss exposure. Output: Compliance checklist in text.",
+    "content": "Review the following trading history: [paste trades with dates and tickers]. For each realized loss:\n1. Identify any substantially identical security purchased within the 61-day window (30 days before + 30 days after the sale)\n2. Flag ETFs or funds that may constitute substantially identical securities to individual holdings\n3. Calculate the disallowed loss amount and the adjusted cost basis of the replacement security\n4. Identify any year-end harvest trades that may inadvertently trigger wash-sale through automatic dividend reinvestment\n5. Recommend restructuring trades (e.g., switching to a correlated-but-not-substantially-identical ETF) to preserve tax losses\nOutput: a wash-sale exposure summary table and the estimated tax impact at [client's marginal rate].",
+    "categoryId": 9,
+    "subcategoryId": 3,
+    "tags": [],
+    "authorUsername": "horizons_tax",
+    "saveCount": 112,
+    "viewCount": 835
+  },
+  {
+    "title": "Options Greeks Sensitivity Deck",
+    "description": "Greeks analysis, sensitivity stress-tests, and hedge suggestions for an options book. Output: Analysis brief in text.",
+    "content": "I hold the following options positions: [paste positions with strike, expiry, underlying]. For each position and the overall book:\n1. Calculate current delta, gamma, theta, vega, and rho (or confirm from provided data)\n2. Explain in plain English what each Greek means for MY specific position (not generic)\n3. Show how the greeks shift if the underlying moves ±5% and ±15%\n4. Identify the \"danger zones\": price levels and time-decay points where the position is most vulnerable\n5. Suggest a hedge for the dominant risk (delta, gamma, or vega) using a position in the same underlying\nFormat as a position-level Greeks table followed by a plain-language risk narrative a non-quant portfolio manager could act on.",
+    "categoryId": 9,
+    "subcategoryId": 2,
+    "tags": [],
+    "authorUsername": "acme_capital_research",
+    "saveCount": 134,
+    "viewCount": 973
+  },
+  {
+    "title": "MAC Clause Negotiation Redline",
+    "description": "Red-line analysis of MAC clauses against Delaware precedent and current market standard. Output: Annotated redline in text.",
+    "content": "You are M&A counsel reviewing a Material Adverse Change clause in a public company acquisition agreement. Given the following MAC definition: [paste clause]. Perform a red-line analysis:\n1. Identify buyer-favorable language that over-broadens the MAC definition (e.g., vague \"prospects\" inclusion, broad industry carve-out exclusions)\n2. Identify seller-favorable language that may prevent the buyer from walking even in severe deterioration scenarios\n3. Flag any post-COVID litigation risk based on Delaware court precedent (AB Stable VIII, Akorn)\n4. Propose specific redline language for: (a) pandemic/epidemic carve-out scope, (b) disproportionate impact test, (c) buyer-knowledge carve-out\n5. Assess overall clause as buyer-friendly, seller-friendly, or balanced against current market standard\nOutput as: current language → proposed language → rationale, followed by an overall MAC risk rating.",
+    "categoryId": 10,
+    "subcategoryId": 7,
+    "tags": [],
+    "authorUsername": "meridian_legal",
+    "saveCount": 156,
+    "viewCount": 1124
+  },
+  {
+    "title": "IP Chain-of-Title Audit",
+    "description": "Trace IP ownership, identify chain-of-title gaps, and produce a remediation checklist. Output: Audit checklist in text.",
+    "content": "I am acquiring a company or licensing IP. Review the following documents: [paste employment agreements, consulting agreements, assignment agreements, patent assignments]. For each piece of IP:\n1. Trace chain of title from creator → employer/assignee → current owner\n2. Identify gaps: inventors not employed at time of invention, consultants without valid IP assignment clauses, joint ownership situations\n3. Flag jurisdictions where moral rights or shop rights may cloud title\n4. Identify any third-party licenses, encumbrances, or government funding (Bayh-Dole Act implications) that limit the IP's commercialization\n5. Draft a chain-of-title remediation checklist: what assignments, confirmations, or waivers are needed before closing\nOutput as an IP risk matrix: asset → risk level → remediation required → priority.",
+    "categoryId": 10,
+    "subcategoryId": 9,
+    "tags": [],
+    "authorUsername": "meridian_legal",
+    "saveCount": 134,
+    "viewCount": 978
+  },
+  {
+    "title": "GDPR Article 30 Record of Processing Activities",
+    "description": "Build a GDPR-compliant Article 30 ROPA with legal basis analysis and DPIA flags. Output: ROPA document in text.",
+    "content": "Help me build a compliant Article 30 ROPA for the following business unit: [describe business unit, data flows, systems used]. For each processing activity identified:\n1. Document: controller/processor name, DPO contact, purpose of processing, legal basis, categories of data subjects, categories of personal data, recipient categories, third-country transfers (with safeguard mechanism), retention period, and technical/organizational security measures\n2. Identify processing activities that lack a documented legal basis and recommend the most defensible basis (consent, legitimate interest, contract, legal obligation)\n3. Flag processing activities that likely require a DPIA (large-scale, systematic monitoring, sensitive data)\n4. Identify any third-country transfers lacking adequate safeguards post-Schrems II\nOutput as a structured ROPA table in Article 30 format, followed by a risk priority list.",
+    "categoryId": 10,
+    "subcategoryId": 11,
+    "tags": [],
+    "authorUsername": "open_counsel",
+    "saveCount": 121,
+    "viewCount": 876
+  },
+  {
+    "title": "Force Majeure Applicability Analysis",
+    "description": "Clause-by-clause force majeure applicability analysis with jurisdiction-specific case law. Output: Legal analysis memo in text.",
+    "content": "Given this force majeure clause: [paste clause] and this dispute: [describe event and performance failure], analyze:\n1. Does the triggering event fall within the clause's enumerated categories or general catch-all? Cite textual arguments for both sides.\n2. Assess the \"beyond reasonable control\" standard — what steps would a court expect the affected party to have taken?\n3. Evaluate the notice requirement: was notice given in the required form, to the right party, within the required timeframe?\n4. Analyze the mitigation obligation: what alternative performance was available and not pursued?\n5. Research applicable governing law (specify jurisdiction): how have courts in this jurisdiction interpreted similar clauses, particularly post-COVID?\n6. Provide a probability assessment: strong FM defense, weak FM defense, or borderline — with key swing factors.\nOutput as a structured legal memorandum.",
+    "categoryId": 10,
+    "subcategoryId": 7,
+    "tags": [],
+    "authorUsername": "open_counsel",
+    "saveCount": 89,
+    "viewCount": 643
+  },
+  {
+    "title": "Non-Solicitation Enforceability Opinion",
+    "description": "Enforceability opinion on non-solicitation agreements with jurisdiction-specific analysis. Output: Legal opinion in text.",
+    "content": "Review this non-solicitation agreement: [paste agreement]. Analyze enforceability under the following frameworks:\n1. Geographic and temporal scope: is the restriction reasonable in duration and geography given the employee's role and access to confidential information?\n2. Protectable interest: does the employer have a legitimate protectable interest (customer relationships, trade secrets, specialized training) that justifies the restriction?\n3. Blue-penciling: would a court in [specify jurisdiction] reform an overbroad clause or void it entirely?\n4. Consideration: was adequate consideration provided at signing (particularly for mid-employment agreements post-Fifield)?\n5. Recent legislative/regulatory changes: has the jurisdiction restricted or banned non-competes/non-solicits (FTC rule, state statutes)?\n6. Enforcement risk factors: what facts make enforcement more or less likely?\nOutput: enforceability opinion (strong/moderate/weak/unenforceable) with jurisdiction-specific reasoning.",
+    "categoryId": 10,
+    "subcategoryId": 8,
+    "tags": [],
+    "authorUsername": "meridian_legal",
+    "saveCount": 103,
+    "viewCount": 754
+  },
+  {
+    "title": "Deposition Outline and Impeachment Map",
+    "description": "Structured deposition outline with impeachment map, document authentication, and prior-statement traps. Output: Deposition outline in text.",
+    "content": "I am preparing for a deposition of [describe witness: role, relationship to case, expected testimony]. Given these case facts: [paste relevant facts and documents]. Build:\n1. Chronological outline of examination topics with specific open-ended questions designed to lock in the witness's story\n2. Document impeachment map: for each key document [list exhibits], draft the foundational questions to authenticate and the impeachment sequence if the witness denies or contradicts the document\n3. Prior statement inconsistency tracker: identify 3–5 statements from prior testimony, declarations, or emails that contradict the witness's likely testimony and draft the impeachment question sequence\n4. Adverse inference opportunities: flag areas where the witness may invoke privilege or claim lack of memory and how to build the adverse inference record\n5. \"Safe harbor\" questions: areas where you let the witness testify freely because it helps your case\nOutput as a structured deposition outline with tabs for direct, impeachment, and safe harbor.",
+    "categoryId": 10,
+    "subcategoryId": 12,
+    "tags": [],
+    "authorUsername": "meridian_legal",
+    "saveCount": 118,
+    "viewCount": 856
+  },
+  {
+    "title": "Blameless Post-Mortem Facilitator",
+    "description": "Structured blameless post-mortem with contributing factor analysis and actionable follow-ups. Output: Post-mortem document in text.",
+    "content": "We had an incident: [describe what failed, when, duration, customer impact]. Facilitate a blameless post-mortem:\n1. Build a precise timeline: from first alert or symptom through detection, diagnosis, mitigation, and resolution — include who did what and when\n2. Identify contributing factors at each layer (code, configuration, deployment process, monitoring, on-call process, communication) without attributing blame to individuals\n3. For each contributing factor, ask \"why did the system allow this?\" rather than \"who did this?\"\n4. Distinguish between: immediate cause, contributing causes, and root causes\n5. Generate action items using the format: [Prevent / Detect / Mitigate / Process] — specific action — owner — due date — success metric\n6. Draft the customer-facing incident summary (honest but measured, appropriate for status page and email)\nOutput: blameless post-mortem document ready to share with engineering leadership.",
+    "categoryId": 1,
+    "subcategoryId": 18,
+    "tags": [],
+    "authorUsername": "ravi_tech",
+    "saveCount": 198,
+    "viewCount": 1432
+  },
+  {
+    "title": "Architecture Decision Record (ADR)",
+    "description": "Complete ADR documenting a technical decision with alternatives, tradeoffs, and consequences. Output: ADR document in text.",
+    "content": "I need to document an architectural decision: [describe the decision to be made]. Write a complete Architecture Decision Record following this structure:\n**Status:** [Proposed / Accepted / Deprecated / Superseded]\n**Context:** What is the technical and business situation forcing this decision? What constraints exist (team size, timeline, existing systems, cost)?\n**Decision:** State the architectural choice clearly and unambiguously.\n**Considered Alternatives:** For each alternative (minimum 3), document: what it is, why it was considered, its key tradeoffs, and why it was rejected.\n**Consequences:** Document both positive consequences AND the debt/tradeoffs this decision creates. Be honest about what becomes harder.\n**Compliance:** What governance, security, or regulatory requirements does this address or create?\n**Review Date:** When should this decision be revisited?\nFormat as a Markdown document suitable for a Git repository.",
+    "categoryId": 1,
+    "subcategoryId": 14,
+    "tags": [],
+    "authorUsername": "ravi_tech",
+    "saveCount": 176,
+    "viewCount": 1287
+  },
+  {
+    "title": "STRIDE Threat Model",
+    "description": "STRIDE threat model with DFD mapping, risk scoring, and prioritized remediation backlog. Output: Threat model report in text.",
+    "content": "Perform a STRIDE threat model for the following system: [describe system architecture, data flows, trust boundaries, actors]. For each component and data flow:\n1. Map the system as a Data Flow Diagram: identify processes, data stores, external entities, and trust boundaries\n2. For each element, enumerate threats using STRIDE: Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege\n3. For each identified threat, assign: likelihood (High/Med/Low), impact (High/Med/Low), and DREAD-style risk score\n4. Map each threat to a mitigation control (existing or recommended) and categorize as: [Mitigated / Partially Mitigated / Accepted Risk / Open]\n5. Generate a prioritized remediation backlog sorted by risk score\n6. Identify the top 3 \"crown jewel\" attack paths an adversary would most likely target\nOutput as a structured threat model document with a risk registry table.",
+    "categoryId": 1,
+    "subcategoryId": 15,
+    "tags": [],
+    "authorUsername": "ravi_tech",
+    "saveCount": 154,
+    "viewCount": 1121
+  },
+  {
+    "title": "Product Requirements Document (PRD) One-Pager",
+    "description": "Tight, opinionated PRD one-pager that gives engineers everything they need and nothing they do not. Output: PRD document in text.",
+    "content": "Write a concise PRD one-pager for the following feature: [describe the feature idea and user problem]. Structure it as:\n**Problem Statement:** What specific user pain point does this solve? Cite data or research if available.\n**Who:** Primary persona (role, key motivation, current workaround)\n**Success Metrics:** 3–5 measurable outcomes that define success. Each must have a baseline, target, and timeline.\n**Scope:** What is explicitly IN scope for the first release. What is explicitly OUT of scope (and why).\n**User Stories:** 5–8 stories in \"As a [persona], I want to [action] so that [outcome]\" format, prioritized by impact\n**Open Questions:** Unresolved decisions that need input before engineering begins, with who owns each\n**Dependencies & Risks:** Technical, legal, or resourcing dependencies; top 2–3 risks with mitigation\nKeep the entire document under 500 words. Every sentence should help an engineer understand what to build.",
+    "categoryId": 1,
+    "subcategoryId": 17,
+    "tags": [],
+    "authorUsername": "ravi_tech",
+    "saveCount": 167,
+    "viewCount": 1203
+  },
+  {
+    "title": "LLM Evaluation Rubric Builder",
+    "description": "Task-specific LLM evaluation rubric with behavioral anchors, canary test set, and HITL thresholds. Output: Evaluation rubric in text.",
+    "content": "I am evaluating LLM outputs for the following use case: [describe the task, inputs, and what good output looks like]. Build a rigorous evaluation rubric:\n1. Define 5–8 evaluation dimensions specific to this task (e.g., factual accuracy, instruction following, format compliance, reasoning transparency, tone appropriateness, hallucination rate)\n2. For each dimension: write a precise definition, a 1–5 scoring scale with behavioral anchors at each level, and 1–2 example outputs at the low and high ends\n3. Design a \"canary set\": 10 test inputs that would stress-test each dimension — include edge cases, adversarial inputs, and ambiguous instructions\n4. Specify the aggregation method: should dimensions be equally weighted, or should some (e.g., factual accuracy) be gates that override the composite score?\n5. Define a human-in-the-loop review threshold: what composite score triggers mandatory human review before output is used?\nOutput as a complete evaluation rubric document ready to give to a rater team or plug into an auto-eval pipeline.",
+    "categoryId": 1,
+    "subcategoryId": 16,
+    "tags": [],
+    "authorUsername": "ravi_tech",
+    "saveCount": 143,
+    "viewCount": 1034
+  },
+  {
+    "title": "API Contract Design Review",
+    "description": "Scored API contract review covering naming, status codes, idempotency, versioning, and security. Output: Review report in text.",
+    "content": "Review this API design: [paste API specification or describe endpoints]. Evaluate against these criteria:\n1. **Naming consistency:** Are resources named with nouns (not verbs)? Are pluralization and casing consistent?\n2. **Status code correctness:** Are HTTP status codes semantically correct for each operation's success and error states?\n3. **Idempotency:** Are PUT and DELETE operations truly idempotent? Is there a safe retry strategy for POST?\n4. **Pagination:** Does the API paginate large collections? Is the pagination strategy (cursor vs. offset) appropriate for the data characteristics?\n5. **Versioning strategy:** How will breaking changes be introduced? Is the versioning mechanism (URL path, header, query param) consistent?\n6. **Error response schema:** Are errors structured consistently? Do they include a machine-readable code and a human-readable message?\n7. **Security:** Are authentication and authorization requirements documented per endpoint? Are sensitive fields excluded from responses?\nOutput: a scored API review (each criterion 1–5) plus a prioritized list of changes before the API goes to consumers.",
+    "categoryId": 1,
+    "subcategoryId": 14,
+    "tags": [],
+    "authorUsername": "ada_prompts",
+    "saveCount": 128,
+    "viewCount": 934
+  },
+  {
+    "title": "Long-Read Article Structural Outline",
+    "description": "Complete structural outline for a long-read article with lede variants, section architecture, and reporting gaps. Output: Article brief in text.",
+    "content": "I am writing a long-form piece (2,500–5,000 words) on: [topic]. Target publication: [outlet or audience]. Build a complete structural outline:\n1. **Lede:** Write 3 alternative ledes — anecdotal, scene-setting, and data-driven. Flag which is strongest and why.\n2. **Nut graf:** Draft the nut graf that tells readers why this story matters right now.\n3. **Section architecture:** Name each section (5–8), describe the primary argument or revelation in each, and identify the type of evidence needed (expert quote, data point, case study, document).\n4. **Narrative tension arc:** Map where the story builds, where it complicates, and where it resolves.\n5. **Kicker:** Draft 2 possible closing lines — one that echoes the lede, one that opens outward.\n6. **Reporting gap check:** What 3 questions must be answered before this piece can be published?\nOutput as a working outline a reporter could hand to an editor for green-light approval.",
+    "categoryId": 2,
+    "subcategoryId": 21,
+    "tags": [],
+    "authorUsername": "marcus_writes",
+    "saveCount": 189,
+    "viewCount": 1367
+  },
+  {
+    "title": "Op-Ed Argument Sharpener",
+    "description": "Argument stress-test for op-eds — steel-man, load-bearing claims, fresh angle, and thesis variants. Output: Op-ed structure in text.",
+    "content": "I want to write an op-ed arguing: [state your core thesis]. Target outlet: [publication]. Help me strengthen this argument:\n1. **Steel-man the opposition:** What is the single strongest counterargument to my thesis? How would a smart, good-faith opponent frame it?\n2. **Identify the load-bearing claims:** Which 2–3 claims must be true for my thesis to hold? Are these claims supported by evidence, or are they assumptions?\n3. **Find the fresh angle:** What do most people already believe about this topic, and how does my argument add something new rather than restating conventional wisdom?\n4. **Evidence audit:** For each major claim, classify the evidence as: (a) strong and citable, (b) directionally suggestive but not conclusive, or (c) assumption requiring acknowledgment\n5. **Concession strategy:** What can I concede to a reader who disagrees without undermining my core thesis? Concession makes argument more credible.\n6. **Draft the thesis sentence:** Write 3 versions — 25 words or fewer — that could open or close the piece.\nOutput as an argument memo I can use to draft the full piece.",
+    "categoryId": 2,
+    "subcategoryId": 19,
+    "tags": [],
+    "authorUsername": "marcus_writes",
+    "saveCount": 156,
+    "viewCount": 1124
+  },
+  {
+    "title": "Voice and Tone Audit",
+    "description": "Deep voice and tone audit with rewrite — fingerprints, consistency, audience calibration, and sentence-level fixes. Output: Style audit memo + rewrite in text.",
+    "content": "Audit the voice and tone of this writing sample: [paste 300–600 words]. Analyze:\n1. **Voice fingerprint:** Identify 5 specific voice characteristics (sentence length patterns, use of first/second/third person, verb strength, formality register, use of hedging language). Quote examples from the text.\n2. **Tone consistency:** Does the tone stay consistent throughout, or does it shift? Where does it drift and why?\n3. **Audience calibration:** Based on the vocabulary, reference set, and assumed knowledge, who is this written for? Does that match the stated audience?\n4. **Show vs. tell ratio:** Identify 3 places where the writer tells the reader something that could be shown more vividly.\n5. **Sentence-level issues:** Flag the 3 most common sentence-level problems (passive voice overuse, nominalization, throat-clearing openers, buried verbs).\n6. **Rewrite sample:** Choose the weakest paragraph and rewrite it in a stronger version of the same voice.\nOutput as a style audit memo followed by the rewritten paragraph.",
+    "categoryId": 2,
+    "subcategoryId": 23,
+    "tags": [],
+    "authorUsername": "elena_voss",
+    "saveCount": 134,
+    "viewCount": 967
+  },
+  {
+    "title": "Keynote Speech Arc Builder",
+    "description": "Complete keynote architecture — hook options, one-thing distillation, body structure, pivot, CTA, and closing callback. Output: Speech architecture brief in text.",
+    "content": "I am giving a keynote on [topic] to [audience: size, role, context] in [duration] minutes. Build the complete speech architecture:\n1. **Opening hook (60 seconds):** Write 3 options — a counterintuitive claim, a story that reframes the topic, and a question the audience has never been asked. Score each on memorability and relevance.\n2. **Core idea (the \"one thing\"):** Distill the speech to a single sentence a listener could repeat at dinner that night. Test it: is it specific? Is it surprising? Is it useful?\n3. **Three-part body structure:** For each section, define: the argument, the evidence type (data, story, analogy, demonstration), and the transition to the next section.\n4. **The pivot:** Identify the moment in the speech where the tone shifts — where you move from identifying a problem to offering a path forward.\n5. **Call to action:** What specific, doable action do you want every person to take in the next 48 hours?\n6. **Closing callback:** Draft a closing line that echoes the opening and gives the audience a feeling of completion.\nOutput as a speech architecture brief with timing estimates for each section.",
+    "categoryId": 2,
+    "subcategoryId": 24,
+    "tags": [],
+    "authorUsername": "marcus_writes",
+    "saveCount": 112,
+    "viewCount": 827
+  },
+  {
+    "title": "Academic Abstract Polisher",
+    "description": "Structured abstract polishing — gap check, precision audit, jargon calibration, active voice, and finding prominence. Output: Annotated feedback + clean abstract in text.",
+    "content": "Polish this academic abstract: [paste abstract]. Apply these criteria strictly:\n1. **Structure check:** Does the abstract include: background/context, research gap or question, methodology, key findings, and implications? Flag any missing element.\n2. **Precision audit:** Replace every vague word (\"significant,\" \"interesting,\" \"many,\" \"some\") with a precise term or quantified claim.\n3. **Jargon calibration:** Identify terms that would not be understood by a scholar in an adjacent field. Either simplify or define briefly.\n4. **Active voice conversion:** Rewrite any passive constructions that obscure agency (\"it was found that\" → \"we found\").\n5. **Finding prominence:** Is the most important finding in the first or second sentence? If not, restructure.\n6. **Word count discipline:** If over 250 words (or the journal's limit), identify what to cut without losing substance.\nOutput: annotated original with issues marked, then a clean polished version.",
+    "categoryId": 2,
+    "subcategoryId": 22,
+    "tags": [],
+    "authorUsername": "dr_research",
+    "saveCount": 98,
+    "viewCount": 712
+  },
+  {
+    "title": "ICP Hypothesis Stress-Test",
+    "description": "ICP hypothesis stress-test — specificity, falsifiability, beachhead vs. TAM, internal validation signals. Output: ICP definition doc in text.",
+    "content": "My Ideal Customer Profile is: [describe ICP: company size, industry, role, pain point, buying trigger]. Stress-test this hypothesis:\n1. **Specificity check:** Rate each ICP dimension (1–5) for specificity. \"Mid-market\" is not specific. \"Series B SaaS companies with 50–200 employees growing > 30% YoY\" is specific. Rewrite any vague dimensions.\n2. **Falsifiability test:** What would disprove this ICP? If you can't name 3 things that would cause you to revise it, the ICP is not testable.\n3. **Beachhead vs. TAM:** Is this ICP a beachhead (narrow, winnable, expandable) or an aspiration (too broad to own)? Suggest how to narrow if needed.\n4. **Internal validation:** What data from your CRM, product analytics, or sales calls would confirm or deny this ICP? List 5 specific signals.\n5. **Counter-profile:** Define the anti-ICP — the company type that looks similar but consistently churns or never closes. This is as important as the ICP itself.\n6. **Adjacent ICP:** Identify one adjacent ICP that shares the same underlying pain point and could be expanded into after the beachhead is won.\nOutput as an ICP validation memo with a revised ICP statement.",
+    "categoryId": 3,
+    "subcategoryId": 25,
+    "tags": [],
+    "authorUsername": "james_foster",
+    "saveCount": 167,
+    "viewCount": 1213
+  },
+  {
+    "title": "NPS Verbatim Theme Coder",
+    "description": "Systematic NPS verbatim analysis — theme coding, driver vs. dissatisfier, priority matrix, and competitive signals. Output: Analysis report in text.",
+    "content": "I have the following NPS verbatim responses: [paste 20–50 open-text responses with scores]. Analyze them systematically:\n1. **Sentiment-score alignment check:** Identify promoters (9–10) with negative verbatims and detractors (0–6) with positive verbatims — these mixed signals are your highest-signal data.\n2. **Theme extraction:** Group all verbatims into 5–8 themes. For each theme: name it precisely, quote 2–3 representative verbatims, and calculate what % of responses mention it.\n3. **Driver vs. dissatisfier classification:** Classify each theme as a satisfaction driver (present = good, absent = neutral) or a dissatisfier (present = bad, absent = neutral). These require different responses.\n4. **Priority matrix:** Map themes by frequency and sentiment impact. Which themes appear often AND drive score negatively? These are your product/service priorities.\n5. **Competitive signal scan:** Flag any verbatims that mention a competitor by name or by implication (\"before we used X\" or \"unlike our last vendor\").\n6. **Recommended actions:** For the top 3 priority themes, draft a specific product, ops, or communication action.\nOutput as a theme analysis table followed by an executive summary with 3 recommended actions.",
+    "categoryId": 3,
+    "subcategoryId": 30,
+    "tags": [],
+    "authorUsername": "james_foster",
+    "saveCount": 143,
+    "viewCount": 1043
+  },
+  {
+    "title": "Email Subject Line Optimization Suite",
+    "description": "Subject line scoring, rewrite, preview text pairing, and A/B test design for email campaigns. Output: Subject line variants + test plan in text.",
+    "content": "I need to optimize email subject lines for this campaign: [describe campaign goal, audience, and 3–5 draft subject lines]. For each draft subject line:\n1. **Curiosity gap analysis:** Does the subject line create a gap between what the reader knows and what they want to know? Rate 1–5.\n2. **Specificity score:** Vague (\"You might like this\") performs worse than specific (\"3 ways to cut your report time in half\"). Score and rewrite any vague subjects.\n3. **Personalization opportunity:** Where can a merge field (name, company, behavior trigger) increase relevance without feeling creepy?\n4. **Preview text optimization:** Write a complementary preview text (40–90 chars) for each subject line that extends rather than repeats the hook.\n5. **Mobile rendering check:** At 40 characters, what does each subject line look like? Rewrite any that get cut off at a bad point.\n6. **A/B test design:** Select the 2 strongest candidates and design a statistically valid A/B test: recommended sample size per variant, primary metric, secondary metrics, and minimum detectable effect.\nOutput: scored subject line table, rewritten versions, preview text pairs, and A/B test spec.",
+    "categoryId": 3,
+    "subcategoryId": 27,
+    "tags": [],
+    "authorUsername": "james_foster",
+    "saveCount": 128,
+    "viewCount": 934
+  },
+  {
+    "title": "Paid Search Quality Score Audit",
+    "description": "Paid search QS audit — keyword-ad alignment, match type strategy, negative keywords, and landing page fixes. Output: Audit report in text.",
+    "content": "Audit the following paid search campaign structure: [paste ad groups, keywords, ad copy, and landing page URL or description]. Evaluate:\n1. **Keyword-to-ad relevance:** For each ad group, does the keyword theme appear in the headline, description, and display URL? Flag mismatches that would depress Quality Score.\n2. **Match type strategy:** Are broad match keywords creating irrelevant impressions? Are exact match keywords so narrow they limit volume? Recommend the right match type mix.\n3. **Negative keyword gaps:** Based on the keyword list, what are 10 obvious negative keywords that are probably driving wasted spend?\n4. **Ad copy differentiation:** Does each ad variant test a meaningfully different value proposition, or are variants just word-swaps? Rewrite 2 headlines that test a genuinely different angle.\n5. **Landing page alignment:** Does the landing page headline match the ad's promise? Identify 3 landing page changes that would improve conversion rate and Quality Score simultaneously.\n6. **Bidding strategy fit:** Given the campaign goal (traffic / leads / ROAS), is the current bidding strategy (manual CPC, tCPA, tROAS, Maximize Clicks) the right fit?\nOutput as a Quality Score audit checklist with priority fixes ranked by estimated impact.",
+    "categoryId": 3,
+    "subcategoryId": 28,
+    "tags": [],
+    "authorUsername": "marcus_writes",
+    "saveCount": 112,
+    "viewCount": 821
+  },
+  {
+    "title": "Content Cluster Authority Map",
+    "description": "Content cluster strategy — pillar definition, cluster mapping, internal linking architecture, and 90-day roadmap. Output: Content strategy map in text.",
+    "content": "Build a content cluster strategy for the topic: [describe topic area and target audience]. My domain currently ranks for: [list any known keywords or rankings]. Structure the plan:\n1. **Pillar page:** Define the single pillar page topic (broad enough to link to 10–15 clusters, specific enough to have a clear audience). Draft the H1 and meta description.\n2. **Cluster identification:** Identify 10–15 cluster topics that: (a) support the pillar, (b) target longer-tail queries with transactional or informational intent, (c) are not already well-served by existing content\n3. **Internal linking architecture:** Specify the exact anchor text and linking direction (cluster → pillar, pillar → cluster, cluster → cluster) for maximum PageRank flow.\n4. **Intent mapping:** For each cluster, label the search intent (informational, navigational, commercial, transactional) and the content format that best serves it (how-to, comparison, list, tool).\n5. **Quick-win prioritization:** Which 3 cluster topics have the best ratio of search volume to competition for your domain authority level?\n6. **Content gap vs. update:** Which existing pages should be consolidated into or updated to serve this cluster, rather than creating new pages?\nOutput as a content cluster map table with a 90-day publishing roadmap.",
+    "categoryId": 3,
+    "subcategoryId": 29,
+    "tags": [],
+    "authorUsername": "marcus_writes",
+    "saveCount": 134,
+    "viewCount": 978
+  },
+  {
+    "title": "Cohort Retention Waterfall Analysis",
+    "description": "Cohort retention waterfall — curve analysis, cohort-over-cohort improvement, inflection points, LTV implication. Output: Retention analysis in text.",
+    "content": "I have the following cohort retention data: [paste cohort table: rows = cohort month, columns = months since acquisition, values = % retained]. Analyze it systematically:\n1. **Baseline retention curve:** What does the average curve look like? Where does retention \"flatten\" (if it does)? A flattening curve suggests product-market fit; continued decline suggests a leaky bucket.\n2. **Cohort-over-cohort improvement:** Are newer cohorts retaining better than older ones at the same age? Calculate the improvement rate and identify when/if it accelerated.\n3. **Inflection point analysis:** For each cohort, identify the month with the steepest drop. Is the drop consistent across cohorts (suggests a structural product issue) or variable (suggests external factors or cohort quality differences)?\n4. **LTV implication:** Using the retention curve, estimate the long-run LTV multiple (cumulative retention × ARPU) and identify what a 5-point improvement in month-3 retention would be worth annually.\n5. **Segmentation hypothesis:** Based on these patterns, which 2–3 user segments are most worth isolating and analyzing separately (e.g., by acquisition channel, activation behavior, company size)?\nOutput as a retention analysis memo with a recommendation for the highest-leverage intervention.",
+    "categoryId": 4,
+    "subcategoryId": 34,
+    "tags": [],
+    "authorUsername": "kai_morgan",
+    "saveCount": 198,
+    "viewCount": 1432
+  },
+  {
+    "title": "North Star Metric Workshop",
+    "description": "North Star Metric definition workshop — value exchange, candidate evaluation, leading indicator tree, guardrails. Output: Metric definition doc in text.",
+    "content": "Help me define the North Star Metric for this product: [describe product, users, and what value it delivers]. Run the full workshop:\n1. **Value exchange map:** What specific action or outcome represents the moment a user receives the core value of the product? Be precise — not \"engages\" but \"completes their first X.\"\n2. **North Star candidates:** Generate 3–5 candidate North Star Metrics. For each, evaluate: (a) does it measure value delivered (not activity)? (b) can it be influenced by the team? (c) does growth in this metric predict long-run revenue growth?\n3. **Leading indicator tree:** For the recommended North Star, identify 4–6 leading indicators (L1 metrics) that drive it. These are the levers teams can pull week-to-week.\n4. **Counter-metrics:** What are 2 guardrail metrics that should NOT decline even as you optimize for the North Star? (e.g., optimizing sessions could harm retention if you're adding friction)\n5. **Instrumentation check:** Is the recommended North Star currently measurable with existing data infrastructure? If not, what instrumentation is needed?\nOutput: a one-page North Star definition with metric formula, leading indicator tree, and counter-metrics.",
+    "categoryId": 4,
+    "subcategoryId": 36,
+    "tags": [],
+    "authorUsername": "kai_morgan",
+    "saveCount": 176,
+    "viewCount": 1287
+  },
+  {
+    "title": "Survey Question Bias Audit",
+    "description": "Systematic survey bias audit — leading questions, double-barrel, loaded assumptions, scale design, order effects. Output: Annotated survey audit in text.",
+    "content": "Audit the following survey instrument: [paste survey questions]. For each question, identify and fix:\n1. **Leading questions:** Does the question imply a \"correct\" answer through word choice or framing? Rewrite neutrally.\n2. **Double-barreled questions:** Does a single question ask about two different things? Split appropriately.\n3. **Loaded assumptions:** Does the question assume something that may not be true for all respondents (e.g., \"How often do you use our app?\" assumes they use it at all)?\n4. **Scale design flaws:** For Likert/rating questions: is the scale symmetric? Is the midpoint labeled? Is there a \"not applicable\" option when needed? Is the scale the right length (5 vs. 7 vs. 10)?\n5. **Question order effects:** Does the sequence of questions create priming effects where an early question biases responses to later ones?\n6. **Acquiescence bias:** How many questions are phrased so that \"agree\" or \"yes\" represents a positive view of the company? Balance positive and negative framings.\nOutput: annotated survey with issues flagged inline, then a clean revised version.",
+    "categoryId": 4,
+    "subcategoryId": 33,
+    "tags": [],
+    "authorUsername": "kai_morgan",
+    "saveCount": 143,
+    "viewCount": 1043
+  },
+  {
+    "title": "Data Story Structure and Narrative",
+    "description": "Data story structure — so-what-first narrative, chart selection rationale, annotation strategy, confidence language. Output: Story structure brief in text.",
+    "content": "I need to present this data finding to [audience: executives / board / cross-functional team]: [describe the finding and the underlying data]. Help me build a compelling data narrative:\n1. **The \"So What\" first:** Lead with the business implication, not the methodology. Write the opening sentence a non-analyst executive would actually care about.\n2. **The tension:** Every good data story has a tension — something that was expected vs. what actually happened, or a decision that needs to be made. Identify and name the tension explicitly.\n3. **Chart selection:** For each key data point, recommend the right chart type and explain why. Flag any default chart choices (pie charts for composition > 5 categories, 3D effects, dual-axis confusion) that obscure rather than illuminate.\n4. **Annotation strategy:** What are the 3 most important data points to annotate directly on the chart, rather than leaving readers to find them?\n5. **The narrative arc:** Structure the presentation as: Situation → Complication → Resolution. Map which slides/sections serve each function.\n6. **Confidence language:** Where is the evidence strong enough to say \"this causes X\" vs. \"this is associated with X\"? Use precise epistemic language.\nOutput: a data narrative outline with chart specs and the opening executive summary paragraph.",
+    "categoryId": 4,
+    "subcategoryId": 35,
+    "tags": [],
+    "authorUsername": "kai_morgan",
+    "saveCount": 128,
+    "viewCount": 934
+  },
+  {
+    "title": "A/B Test Design and Power Analysis",
+    "description": "Rigorous A/B test design — hypothesis, power analysis, randomization unit, novelty effect, stopping rules. Output: Test design doc in text.",
+    "content": "I want to run an A/B test for: [describe the change being tested, e.g., a new onboarding flow, pricing page, email subject line]. Design the test rigorously:\n1. **Hypothesis formulation:** Write the null and alternative hypothesis in precise statistical terms. Define the primary metric and the minimum detectable effect (MDE) — what improvement is small enough to be meaningless even if real?\n2. **Sample size and power:** Given the baseline conversion rate, MDE, desired statistical power (typically 80%), and significance level (α = 0.05), calculate the required sample size per variant. Flag if current traffic levels mean the test will take > 8 weeks — that is usually too long.\n3. **Randomization unit:** Should randomization be at the user, session, device, or account level? Mismatched randomization units are the #1 cause of invalid A/B tests.\n4. **Novelty effect mitigation:** How long should the test run before the novelty effect wears off and you're seeing steady-state behavior?\n5. **Guardrail metrics:** Which secondary metrics must be monitored to ensure the variant doesn't win on the primary metric by harming something else?\n6. **Stopping rules:** Define when it is acceptable to stop early (only if pre-registered) and under what conditions the test should be called inconclusive.\nOutput: a complete test design document ready to hand to an engineer.",
+    "categoryId": 4,
+    "subcategoryId": 31,
+    "tags": [],
+    "authorUsername": "kai_morgan",
+    "saveCount": 156,
+    "viewCount": 1134
+  },
+  {
+    "title": "WCAG 2.2 AA Accessibility Audit",
+    "description": "WCAG 2.2 AA audit covering all four principles with WCAG 2.2-specific criteria and priority matrix. Output: Accessibility audit report in text.",
+    "content": "Audit this interface for WCAG 2.2 Level AA compliance: [describe or share the UI — screens, components, flows]. Evaluate each principle:\n1. **Perceivable:** Check color contrast ratios for all text (minimum 4.5:1 for normal text, 3:1 for large text and UI components). Flag any information conveyed by color alone. Evaluate image alt text quality.\n2. **Operable:** Can all interactive elements be reached and activated by keyboard alone? Is the focus order logical? Are touch targets at least 24×24px (WCAG 2.2 2.5.8)?\n3. **Understandable:** Is form error messaging specific and actionable? Does autocomplete use correct ARIA attributes? Is the reading level appropriate for the audience?\n4. **Robust:** Are custom components (modals, dropdowns, tooltips) using correct ARIA roles, states, and properties? Would a screen reader announce them correctly?\n5. **WCAG 2.2 new criteria:** Check specifically for: dragging alternatives (2.5.7), focus appearance (2.4.11), redundant entry (3.3.7), accessible authentication (3.3.8).\n6. **Priority matrix:** Classify issues as: Critical (barrier for disabled users), Serious (significant difficulty), Moderate (some difficulty), Minor (best practice). List top 5 fixes by user impact.\nOutput: WCAG audit report with criterion, issue, severity, affected users, and recommended fix.",
+    "categoryId": 5,
+    "subcategoryId": 42,
+    "tags": [],
+    "authorUsername": "sasha_design",
+    "saveCount": 176,
+    "viewCount": 1276
+  },
+  {
+    "title": "Jobs-to-be-Done Customer Interview Script",
+    "description": "JTBD interview script — timeline reconstruction, push/pull forces, progress-centric questions, follow-up probes. Output: Interview script in text.",
+    "content": "I am researching the job-to-be-done for [product or feature area]. Build a JTBD interview script:\n1. **Recruitment screener:** Write 3–5 screener questions that identify people who have recently \"hired\" a solution to solve this problem (not just people who use your product).\n2. **Timeline reconstruction questions:** The goal is to reconstruct the exact moment the person decided to make a change. Write questions that walk them backward in time: \"What was happening in your life when you first started thinking about this?\" \"What was the first thing you did?\" These should be open-ended and non-leading.\n3. **Push and pull forces:** Write questions that surface: (a) the push away from the old solution, (b) the pull toward the new solution, (c) the anxieties that almost stopped them, (d) the habits they had to break.\n4. **Progress narrative questions:** \"What were you trying to accomplish?\" not \"What features did you want?\" Rewrite any product-centric questions in progress-centric language.\n5. **The \"first thought\" question:** Identify the best version of \"What was the moment you knew you needed something different?\"\n6. **Follow-up probes:** For each section, write 2 follow-up probes for when a respondent gives a short or superficial answer.\nOutput: a complete interview guide with sections, questions, probes, and expected insights per section.",
+    "categoryId": 5,
+    "subcategoryId": 38,
+    "tags": [],
+    "authorUsername": "sasha_design",
+    "saveCount": 154,
+    "viewCount": 1121
+  },
+  {
+    "title": "Heuristic Evaluation Walkthrough",
+    "description": "Nielsen 10-heuristic evaluation with severity ratings, user impact analysis, and specific fix recommendations. Output: Heuristic evaluation in text.",
+    "content": "Conduct a Nielsen Norman 10-heuristic evaluation of this interface: [describe the product, key flows, or paste a description of screens]. For each heuristic:\n1. **Violation identification:** Find specific violations in the product. Quote the interface element and explain why it violates the heuristic.\n2. **Severity rating:** Rate each violation 0–4 (0 = not a usability problem, 4 = usability catastrophe that prevents task completion) following Nielsen's severity rating scale.\n3. **User impact:** Who is most affected — new users, expert users, or all users? Is the violation in a high-traffic or low-traffic flow?\nThe 10 heuristics: Visibility of system status, Match between system and real world, User control and freedom, Consistency and standards, Error prevention, Recognition rather than recall, Flexibility and efficiency, Aesthetic and minimalist design, Help users recognize/diagnose/recover from errors, Help and documentation.\n4. **Fix recommendation:** For each severity 3–4 violation, write a specific design recommendation (not \"improve this\" but \"add a persistent breadcrumb at the top of the screen showing...\").\n5. **Positive patterns:** Identify 2–3 places where the design does something well that should be preserved.\nOutput: heuristic evaluation report sorted by severity (highest first).",
+    "categoryId": 5,
+    "subcategoryId": 38,
+    "tags": [],
+    "authorUsername": "ada_prompts",
+    "saveCount": 132,
+    "viewCount": 967
+  },
+  {
+    "title": "Design System Token Audit",
+    "description": "Design token audit — naming conventions, semantic layers, hard-coded values, dark mode readiness, documentation gaps. Output: Token audit in text.",
+    "content": "Audit this design system / token set: [paste token names and values, or describe the system]. Evaluate:\n1. **Naming convention consistency:** Are tokens named by role (e.g., color-action-primary) rather than value (e.g., blue-500)? Role-based names survive theme changes; value-based names do not.\n2. **Scale completeness:** Is there a complete, predictable scale for spacing, type, and color? Identify gaps — are there one-off values that should be systematized?\n3. **Semantic layer:** Is there a semantic layer between primitive tokens (blue-500) and component tokens (button-background-primary)? Without this layer, theme changes require touching every component.\n4. **Hard-coded values:** Identify any hard-coded values (hex colors, px values) in component specs that bypass the token system — these are design debt.\n5. **Dark mode readiness:** If the system needs to support dark mode, are tokens defined by semantic role rather than by lightness? Flag any tokens that would break in a dark context.\n6. **Documentation gaps:** Which tokens lack usage guidance? Undocumented tokens get used inconsistently by engineers.\nOutput: token audit report with specific fixes and a recommended refactor priority list.",
+    "categoryId": 5,
+    "subcategoryId": 42,
+    "tags": [],
+    "authorUsername": "sasha_design",
+    "saveCount": 121,
+    "viewCount": 887
+  },
+  {
+    "title": "Brand Visual Identity Brief",
+    "description": "Visual identity brief — positioning map, personality-to-visual translation, logo brief, color and type direction. Output: Visual identity brief in text.",
+    "content": "Build a comprehensive visual identity brief for: [describe the brand — who they are, who they serve, what they stand for]. The brief should guide a designer to create a complete identity system:\n1. **Positioning in visual space:** Identify 3 direct competitors and map their visual identities on two axes (e.g., formal ↔ playful, minimal ↔ expressive). Define where this brand should sit — and why that position is ownable.\n2. **Personality to visual translation:** List 5 brand personality traits and, for each, specify the visual language implications: typeface mood, color emotion, illustration style, photography direction.\n3. **Logo brief:** Describe the desired logo characteristics (wordmark / lettermark / symbol / combination mark), the feeling it should communicate, and 3 references (not for copying but for direction) with specific notes on what to borrow.\n4. **Color system:** Define primary, secondary, and functional palette needs. Specify the emotional job each color should do.\n5. **Typography brief:** Specify: primary typeface role (headlines vs. body), personality (geometric / humanist / transitional), and pairing rationale.\n6. **Do-not-do list:** 5 specific things the identity must avoid (style, reference, or feeling) to differentiate from competitors.\nOutput: a brief that a visual designer could use to begin concepting without a briefing meeting.",
+    "categoryId": 5,
+    "subcategoryId": 37,
+    "tags": [],
+    "authorUsername": "sasha_design",
+    "saveCount": 143,
+    "viewCount": 1043
+  },
+  {
+    "title": "Systematic Review PRISMA Protocol",
+    "description": "PRISMA-compliant systematic review protocol — PICO, search strings, inclusion criteria, screening, and RoB assessment. Output: Review protocol in text.",
+    "content": "I am conducting a systematic review on: [research question]. Build a PRISMA-compliant protocol:\n1. **PICO framework:** Define Population, Intervention, Comparison, and Outcome precisely. Ambiguous PICO elements cause downstream inconsistency.\n2. **Search strategy:** For each of the following databases (PubMed, Scopus, Web of Science, Cochrane, discipline-specific databases), write the Boolean search string using MeSH terms (for PubMed) and free-text synonyms. Include truncation operators and proximity operators where relevant.\n3. **Inclusion/exclusion criteria:** Define criteria across: study design (RCT, observational, qualitative), language, date range, population, intervention specificity, and outcome measurement method. Criteria must be operationalizable — another researcher should reach the same screening decision.\n4. **Screening protocol:** Describe the two-stage screening process (title/abstract → full text), inter-rater reliability threshold (Cohen's kappa ≥ 0.7 recommended), and conflict resolution process.\n5. **Data extraction form:** Design a standardized extraction form with fields for: study characteristics, population, intervention, outcome measures, effect sizes, risk of bias indicators.\n6. **Risk of bias assessment:** Specify the tool (RoB 2 for RCTs, ROBINS-I for observational, CASP for qualitative) and which domains you will assess.\nOutput: a complete systematic review protocol ready for pre-registration on PROSPERO.",
+    "categoryId": 6,
+    "subcategoryId": 48,
+    "tags": [],
+    "authorUsername": "dr_research",
+    "saveCount": 198,
+    "viewCount": 1432
+  },
+  {
+    "title": "Delphi Method Facilitation Guide",
+    "description": "Delphi method facilitation guide — panel design, questionnaire rounds, consensus definition, and stability criteria. Output: Facilitation guide in text.",
+    "content": "I need to build expert consensus on: [describe the topic, decision, or forecast]. Design and facilitate a Delphi process:\n1. **Expert panel design:** How many experts are needed (typically 10–18)? What mix of expertise, perspective, and geography is needed? How will you recruit and what criteria constitute \"expert\"?\n2. **Round 1 questionnaire:** Design the open-ended Round 1 instrument that generates the initial range of expert opinion without priming toward a particular view. Include demographic/expertise questions to allow subgroup analysis.\n3. **Round 1 analysis protocol:** How will you code qualitative responses into themes? How will you calculate central tendency and dispersion for quantitative items?\n4. **Round 2 feedback design:** How will you present Round 1 results back to experts (anonymized, with their own prior response highlighted)? Write the framing text that invites reconsideration without pressuring conformity.\n5. **Consensus definition:** Define your consensus threshold quantitatively (e.g., ≥ 70% agreement within a 2-point range on a 9-point scale). When is \"disagreement\" itself a valid finding?\n6. **Round 3 (if needed):** Under what conditions do you run a third round, and what does stability look like?\nOutput: a complete Delphi facilitation guide including all instrument templates.",
+    "categoryId": 6,
+    "subcategoryId": 47,
+    "tags": [],
+    "authorUsername": "dr_research",
+    "saveCount": 156,
+    "viewCount": 1125
+  },
+  {
+    "title": "Citation and Publication Bias Audit",
+    "description": "Literature bias audit — publication bias, citation quality, conflict of interest, p-hacking signals, and HARKing. Output: Bias audit in text.",
+    "content": "I am reviewing the literature on: [topic]. I have assembled [N] studies. Audit for bias:\n1. **Publication bias assessment:** Use a funnel plot mental model — do you have small-sample studies with large effects? These may represent the visible tip of a null-result iceberg. Describe how you would run an Egger's test or Begg's test if you had the data.\n2. **Citation bias scan:** Are the most-cited studies also the most methodologically rigorous? Identify the top 5 cited studies and rate their methodological quality (sample size, control conditions, replication status).\n3. **Language bias:** Are non-English studies systematically excluded? If so, flag this as a limitation.\n4. **Recency vs. classic balance:** Is the literature review over-weighting recent studies at the expense of foundational work, or vice versa?\n5. **Conflict of interest flags:** For the 10 most influential studies, identify any industry funding or author conflicts of interest that should be disclosed in your review.\n6. **p-hacking and HARKing check:** Do any studies show suspiciously clean p-values just below 0.05? Are hypotheses stated as if they were pre-registered when they were likely post-hoc?\nOutput: a bias audit memo suitable for inclusion in the limitations section of a systematic review.",
+    "categoryId": 6,
+    "subcategoryId": 43,
+    "tags": [],
+    "authorUsername": "dr_research",
+    "saveCount": 134,
+    "viewCount": 978
+  },
+  {
+    "title": "Competitive Intelligence Briefing",
+    "description": "Strategic competitive intelligence briefing — business model, strategic moves, vulnerabilities, counter-positioning. Output: Intelligence briefing in text.",
+    "content": "Build a competitive intelligence briefing on: [competitor name or market]. I need to understand their strategic position, not just their product features. Structure the brief:\n1. **Business model reconstruction:** Based on public information (annual reports, job postings, pricing pages, conference talks, partnerships), reconstruct how they make money and where they are investing.\n2. **Strategic moves timeline:** Build a timeline of the last 18 months of significant moves: product launches, pricing changes, partnerships, executive hires, and funding events. What pattern do they reveal?\n3. **Revealed priorities:** What can you infer about their strategic priorities from: (a) where they are hiring most aggressively, (b) what they talk about at conferences vs. avoid, (c) which customer segments they feature in case studies?\n4. **Vulnerability map:** Where are they structurally weak — segments underserved, technical debt visible in reviews, churn signals in review sites, legal/regulatory exposure?\n5. **Counter-positioning opportunity:** Where does their strength in one market create a constraint that makes them structurally unable to compete in an adjacent space?\n6. **Watch list:** Define 5 specific signals (job posts, partnerships, product releases, pricing changes) that would indicate a strategic shift requiring a response.\nOutput: a competitive intelligence brief with an executive summary and the watch list.",
+    "categoryId": 6,
+    "subcategoryId": 44,
+    "tags": [],
+    "authorUsername": "kai_morgan",
+    "saveCount": 143,
+    "viewCount": 1034
+  },
+  {
+    "title": "User Interview Codebook Builder",
+    "description": "Grounded theory codebook — open coding, axial coding, selective coding, negative cases, inter-rater reliability. Output: Codebook in text.",
+    "content": "I have conducted [N] user interviews on the topic of: [research question]. I have the following raw notes or transcripts: [paste or describe]. Build a rigorous codebook:\n1. **First-pass open coding:** Read through the material and generate initial codes — short labels that capture what each chunk of data is about. These should be descriptive, not interpretive, at this stage.\n2. **Axial coding:** Group related open codes into categories. For each category: name it, write a precise definition (what counts in, what counts out), and list 2 example quotations.\n3. **Selective coding:** Identify the core category — the central theme that most other categories relate to. Build a narrative that connects the categories through the core.\n4. **Negative case analysis:** Identify data that does not fit the emerging themes. This is not noise — it is either a limitation of your framework or evidence of an important minority experience.\n5. **Theoretical saturation check:** After how many interviews do the new codes stop adding new categories? This is your saturation point.\n6. **Inter-rater reliability:** Design a mini-reliability check: select 3 ambiguous passages and write coding instructions clear enough that a second coder would make the same decision.\nOutput: a complete codebook with definitions, examples, and a theoretical saturation note.",
+    "categoryId": 6,
+    "subcategoryId": 45,
+    "tags": [],
+    "authorUsername": "dr_research",
+    "saveCount": 121,
+    "viewCount": 876
+  },
+  {
+    "title": "Board Meeting Agenda and Minutes",
+    "description": "Complete board meeting package — agenda structure, CEO metrics, financial dashboard, discussion items, minutes template. Output: Board package template in text.",
+    "content": "Prepare a complete board meeting package for: [describe company stage, board composition, and this meeting's focus areas]. Build:\n1. **Pre-read agenda:** Structure the agenda with: consent calendar items (routine approvals), information items (no vote needed), discussion items (input sought), and action items (vote required). Assign time allocations — most boards run 2–3 hours maximum.\n2. **CEO update framework:** What are the 5–7 metrics the board should see every meeting? For each, show: actual vs. plan, trend (last 3 periods), and narrative (one sentence on why it's above/below plan).\n3. **Financial dashboard:** Structure the financial section as: P&L summary (vs. budget), cash position and runway, key unit economics, and any covenant or cap table updates.\n4. **Discussion item facilitation:** For each major discussion item, write: the question for the board to answer, background context (2–3 sentences), options considered by management, management's recommendation, and what input is sought.\n5. **Minutes template:** Write a minutes template that captures: who was present, decisions made (with vote counts), action items (with owner and due date), and any dissenting views that should be on record.\n6. **Follow-up tracker:** Design a standing \"action item review\" table that opens every meeting to close prior action items.\nOutput: a complete board package template ready to populate.",
+    "categoryId": 7,
+    "subcategoryId": 49,
+    "tags": [],
+    "authorUsername": "james_foster",
+    "saveCount": 176,
+    "viewCount": 1277
+  },
+  {
+    "title": "Unit Economics Deep Dive",
+    "description": "Full unit economics analysis — fully-loaded CAC, gross margin, LTV, payback period, LTV:CAC, Magic Number. Output: Unit economics model in text.",
+    "content": "Calculate and interpret the unit economics for my business: [describe business model, pricing, key cost drivers, and customer acquisition channels]. Walk through:\n1. **CAC calculation:** Break CAC into fully-loaded components (sales salaries + commissions + marketing spend + tooling + overhead allocation) divided by new customers acquired. Calculate blended CAC and CAC by channel.\n2. **Gross margin at the unit level:** For one unit of sale (one customer, one transaction, or one subscription period), calculate gross margin including all direct costs of serving that unit (COGS, hosting, support, payment processing, account management where directly variable).\n3. **LTV calculation:** Using retention data, calculate LTV as: average gross margin per period × customer lifetime (or use the formula: GM / churn rate for steady-state). Show the sensitivity of LTV to ±10% changes in retention and ARPU.\n4. **CAC payback period:** How many months of gross margin does it take to recover CAC? Under 12 months is typically strong for SaaS; under 18 months is acceptable.\n5. **LTV:CAC ratio:** Calculate the ratio and benchmark against the industry standard (> 3x is typically healthy). What would need to change to improve it from the current level?\n6. **Magic Number:** (Net new ARR × gross margin) / prior quarter S&M spend. A magic number > 0.75 suggests it is efficient to invest more in go-to-market.\nOutput: unit economics summary table with interpretation and the 3 highest-leverage improvement levers.",
+    "categoryId": 7,
+    "subcategoryId": 53,
+    "tags": [],
+    "authorUsername": "james_foster",
+    "saveCount": 198,
+    "viewCount": 1432
+  },
+  {
+    "title": "OKR Cascade and Alignment Audit",
+    "description": "OKR cascade audit — company-team alignment, output vs. outcome, ambition calibration, measurability, dependencies. Output: OKR audit in text.",
+    "content": "Audit and improve the OKR alignment for: [describe the company or team, and paste current OKRs]. Evaluate:\n1. **Company → team cascade check:** For each team-level KR, identify which company-level objective it supports. Flag any team KRs that do not connect to a company objective — these are either misaligned or the company OKRs are incomplete.\n2. **Output vs. outcome test:** Are KRs measuring outcomes (impact on customers or business) or outputs (things the team shipped)? \"Launch the feature\" is an output. \"Increase feature adoption to 30% of MAU\" is an outcome. Rewrite the output-based KRs.\n3. **Ambition calibration:** Are KRs set at 70% stretch (you expect to achieve 70% of them fully)? Flag KRs that are either safe bets (90%+ likely) or moonshots (< 30% likely).\n4. **Measurability:** Does each KR have a specific numeric target, a defined measurement method, and a baseline? Rewrite any KRs that are not measurable as stated.\n5. **Interdependency map:** Identify KRs that depend on another team's delivery. Are these dependencies surfaced and agreed upon?\n6. **Missing objectives:** Based on the company's stated strategy, are there strategic priorities not covered by any current OKR?\nOutput: annotated OKR audit with specific rewrites and an alignment gap summary.",
+    "categoryId": 7,
+    "subcategoryId": 49,
+    "tags": [],
+    "authorUsername": "james_foster",
+    "saveCount": 156,
+    "viewCount": 1134
+  },
+  {
+    "title": "Vendor Due Diligence Scorecard",
+    "description": "Vendor due diligence scorecard — weighted criteria, evidence requirements, red flags, reference questions, TCO model. Output: Scorecard in text.",
+    "content": "I am evaluating vendors for: [describe the category — software, service, supplier]. Build a rigorous due diligence scorecard:\n1. **Scoring dimensions:** Define 8–12 evaluation dimensions appropriate for this category. Group them into: (a) must-have requirements (pass/fail gates), (b) weighted scoring criteria. Example dimension groups: financial stability, security posture, contract terms, product fit, support quality, customer references, roadmap alignment, pricing structure.\n2. **Weighting methodology:** Assign weights to scoring dimensions based on strategic importance. Weights must sum to 100%. Explain the rationale for the top 3 weights.\n3. **Evidence requirements:** For each dimension, specify what evidence is required (SOC 2 report, customer references, pen test results, financial statements, SLA documentation) and how to verify it.\n4. **Red flags list:** Define 5–10 automatic disqualifiers — conditions where any score on other dimensions is irrelevant.\n5. **Reference check questions:** Write 8 specific reference check questions that go beyond the vendor-provided reference list. Include: \"What would have made you not renew?\" and \"What did the vendor underdeliver on that they promised?\"\n6. **Total cost of ownership:** Beyond licensing, what are the full TCO components (implementation, training, integration, ongoing admin, switching cost)?\nOutput: a vendor scorecard template ready to deploy across competing vendors.",
+    "categoryId": 7,
+    "subcategoryId": 50,
+    "tags": [],
+    "authorUsername": "james_foster",
+    "saveCount": 134,
+    "viewCount": 978
+  },
+  {
+    "title": "Term Sheet Red-Flag Scanner",
+    "description": "Term sheet red-flag scan — liquidation preference, anti-dilution, pro-rata, board rights, protective provisions. Output: Annotated flag list in text.",
+    "content": "Review this term sheet: [paste term sheet]. Scan for investor-favorable terms that founders often miss:\n1. **Liquidation preference:** What is the multiple (1x, 2x, 3x)? Is it participating or non-participating? Participating preferred is particularly dilutive in downside scenarios — model the impact at 1x, 2x, and 3x acquisition multiples.\n2. **Anti-dilution protection:** Is it broad-based weighted average (standard and acceptable), narrow-based weighted average (more aggressive), or full ratchet (very aggressive)? Explain the real-world dilution impact of each.\n3. **Pro-rata rights:** Does the investor have pro-rata rights in future rounds? Super pro-rata rights? These affect your ability to bring in new investors.\n4. **Board composition:** What is the proposed board structure? Do investors get blocking rights on key decisions even without board majority?\n5. **Protective provisions:** List the decisions that require investor consent. Flag any that go beyond standard (e.g., approval required for new product lines, executive hires below a certain level, customer contract size).\n6. **Information rights:** What reporting obligations does this create? Monthly financials? Board observer rights? These have real management cost.\n7. **Drag-along rights:** Under what conditions can investors force a sale? Is the drag-along threshold high enough to protect founder interests?\nOutput: a red-flag memo with each provision rated Founder-Friendly / Market Standard / Investor-Aggressive, with recommended pushback language.",
+    "categoryId": 7,
+    "subcategoryId": 51,
+    "tags": [],
+    "authorUsername": "james_foster",
+    "saveCount": 167,
+    "viewCount": 1213
+  },
+  {
+    "title": "Bloom's Taxonomy Assessment Builder",
+    "description": "Bloom's Taxonomy-aligned assessment across all six cognitive levels with rubrics and misconception notes. Output: Assessment items + rubric in text.",
+    "content": "Build a complete assessment aligned to Bloom's Taxonomy for this learning objective: [describe what students should know or be able to do]. Create assessment items at all six cognitive levels:\n1. **Remember:** 3 recall questions (multiple choice or short answer) that test whether students can retrieve basic facts or definitions.\n2. **Understand:** 2 questions that require students to explain concepts in their own words, classify examples, or summarize. Include a rubric for what a full vs. partial understanding looks like.\n3. **Apply:** 1–2 tasks where students use the concept to solve a novel problem or complete a procedure in a new context.\n4. **Analyze:** 1 task requiring students to break down a complex situation, identify relationships between parts, or distinguish relevant from irrelevant information.\n5. **Evaluate:** 1 task requiring students to make a judgment with justification — critique an argument, assess a solution, or defend a position.\n6. **Create:** 1 culminating task where students produce something new — a plan, design, argument, or artifact — that demonstrates integrated understanding.\nFor each level, include: the item, the expected response criteria, and common misconceptions to watch for.\nOutput: a complete assessment package with an answer guide.",
+    "categoryId": 8,
+    "subcategoryId": 56,
+    "tags": [],
+    "authorUsername": "dr_research",
+    "saveCount": 198,
+    "viewCount": 1432
+  },
+  {
+    "title": "Differentiated Instruction Planner",
+    "description": "Differentiated instruction plan — three learner profiles, content/process/product differentiation, flexible grouping. Output: Instruction plan in text.",
+    "content": "Design a differentiated instruction plan for this lesson: [describe topic, grade level, and learning objective]. Account for three learner profiles:\n1. **Learner profile mapping:** Identify the 3 learner profiles you're differentiating for: (a) students who have not yet mastered prerequisite knowledge, (b) students at grade level, (c) students who have already mastered the objective. For each, describe what they already know and what they need.\n2. **Content differentiation:** How does the content (what students learn) change for each profile? This might mean different reading levels, different background scaffolding, or different entry points — not different standards.\n3. **Process differentiation:** How does the learning activity (how students engage) differ? Provide a specific activity variant for each profile.\n4. **Product differentiation:** How can students demonstrate mastery in different ways that are equally rigorous but allow different strengths to shine?\n5. **Flexible grouping plan:** When in the lesson will students work in homogeneous vs. heterogeneous groups, and why? What is the teacher doing during each grouping configuration?\n6. **Assessment checkpoints:** What informal formative check (exit ticket, observation, quick task) will tell you whether each learner profile needs more support or is ready to move forward?\nOutput: a one-page differentiated lesson plan with three parallel tracks.",
+    "categoryId": 8,
+    "subcategoryId": 55,
+    "tags": [],
+    "authorUsername": "elena_voss",
+    "saveCount": 176,
+    "viewCount": 1276
+  },
+  {
+    "title": "Socratic Seminar Discussion Guide",
+    "description": "Socratic Seminar guide — essential question, annotation protocol, core questions, participation scaffolds, rubric. Output: Seminar guide in text.",
+    "content": "Design a Socratic Seminar for this text or topic: [describe the text, article, primary source, or topic]. Build a complete facilitation guide:\n1. **Essential question:** Write the central open-ended question the seminar will explore. A good Socratic question has no single correct answer, requires evidence and reasoning, and connects the text to broader human experience.\n2. **Pre-seminar preparation:** What do students need to do before arriving (annotation task, written response, vocabulary work)? Design a structured annotation protocol specific to this text.\n3. **Opening question:** Write 2–3 opening questions that are accessible enough for everyone to engage but rich enough to generate genuine disagreement.\n4. **Core questions:** Write 5–7 core questions that probe deeper: questions that push for evidence (\"What in the text makes you say that?\"), questions that press on assumptions, and questions that surface contradictions.\n5. **Closing question:** Write a synthesis question that asks students to connect the seminar discussion to their own lives or a broader context.\n6. **Participation scaffold for reluctant speakers:** Write 3 sentence stems that students can use to enter the conversation without having to originate a new idea.\n7. **Assessment rubric:** Create a discussion rubric with 4 criteria (e.g., use of evidence, building on others' ideas, question-asking, perspective-taking) each scored 1–4.\nOutput: a complete facilitation guide ready for classroom use.",
+    "categoryId": 8,
+    "subcategoryId": 58,
+    "tags": [],
+    "authorUsername": "dr_research",
+    "saveCount": 156,
+    "viewCount": 1124
+  },
+  {
+    "title": "IEP Goal Progress Report",
+    "description": "IEP goal progress report — objective data, progress rates, instructional adjustments, parent-friendly summaries. Output: Progress report in text.",
+    "content": "Write a progress report on IEP goal attainment for a student with the following profile: [describe student, grade, disability category, and current IEP goals with baselines and annual targets]. For each IEP goal:\n1. **Current performance data:** Present the most recent data point and the trend over the reporting period (improving, plateau, declining). Data must be objective — specify the measurement method.\n2. **Progress toward annual target:** Calculate the percentage of the annual goal achieved and whether the student is on track to meet it by the IEP end date at the current rate of progress.\n3. **Instructional response:** If progress is insufficient, what specific instructional adjustment will be made? If progress is ahead of schedule, how will the goal be extended?\n4. **Parent-friendly narrative:** Write a 2–3 sentence plain-language summary for each goal that a parent without special education expertise can understand. Avoid jargon.\n5. **Present Levels statement update:** Draft an updated Present Levels statement incorporating the current data for use in the upcoming IEP meeting.\n6. **Goal revision recommendations:** If any goal is no longer appropriate (too easy, too hard, wrong focus), write a revised goal using SMART criteria (Specific, Measurable, Achievable, Relevant, Time-bound) with the baseline, criterion, and evaluation method.\nOutput: a complete IEP progress report ready for parent signature.",
+    "categoryId": 8,
+    "subcategoryId": 56,
+    "tags": [],
+    "authorUsername": "elena_voss",
+    "saveCount": 134,
+    "viewCount": 978
+  },
+  {
+    "title": "Backward Design Unit Planner",
+    "description": "Understanding by Design unit plan — Stage 1 desired results, Stage 2 assessment, Stage 3 WHERETO learning plan. Output: Unit plan in text.",
+    "content": "Design a complete backward design unit for: [describe subject, grade level, and unit topic — approximately [N] weeks]. Follow Understanding by Design (UbD) Stage 1–2–3:\n**Stage 1 — Desired Results:**\n1. **Established goals:** Which standards (list specific standards) does this unit address?\n2. **Transfer goals:** What will students be able to do in new contexts long after this unit is over? Write 1–2 transfer goals in \"Students will be able to independently use their learning to...\" format.\n3. **Enduring understandings:** What are the 2–3 big ideas students should understand (not just know)? Write as complete sentences (\"Students will understand that...\").\n4. **Essential questions:** Write 3–5 open-ended questions that will drive the unit and remain genuinely worth exploring.\n5. **Knowledge and skills:** List what students will know (declarative knowledge) and be able to do (procedural skills) by the end.\n**Stage 2 — Assessment Evidence:**\n6. **Performance task:** Design a culminating performance task where students apply their understanding to an authentic situation. Use the GRASPS framework (Goal, Role, Audience, Situation, Product, Standards).\n7. **Other evidence:** Design 2–3 formative assessments (quiz, exit ticket, observation checklist) that check for understanding at key points.\n**Stage 3 — Learning Plan:**\n8. **WHERETO framework:** Sketch the learning sequence using W (where/why), H (hook), E (equip/experience), R (rethink/revise), E (evaluate), T (tailored), O (organized).\nOutput: a complete UbD unit plan template.",
+    "categoryId": 8,
+    "subcategoryId": 57,
+    "tags": [],
+    "authorUsername": "elena_voss",
+    "saveCount": 121,
+    "viewCount": 888
+  },
+  {
+    "title": "Positioning Against a Category Leader",
+    "description": "Map the competitive space and find the credible position that doesn't put you head-to-head with the market leader. Output: Positioning strategy memo in text.",
+    "content": "I am trying to position [your company/product] in a market where [category leader] dominates. Our core differentiator is [describe what makes you different]. Our target customer is [describe them specifically].\n\nAnalyze:\n1. Where [category leader] is genuinely strong and cannot be credibly attacked\n2. The segments or use cases where they are weakest or have left customers underserved\n3. Three credible positioning territories for us, each with a one-sentence positioning statement\n4. Which positioning territory has the least competition and the most defensible long-term advantage\n5. The proof points and stories we need to build credibility in that territory\n\nOutput as a positioning strategy memo with a clear recommendation at the top.",
+    "categoryId": 3,
+    "subcategoryId": 25,
+    "tags": [],
+    "authorUsername": "marcus_writes",
+    "saveCount": 0,
+    "viewCount": 4
+  },
+  {
+    "title": "Three-Tier Messaging Architecture",
+    "description": "Build a company narrative, product benefits, and proof point library — three tiers that keep every channel consistent. Output: Messaging framework in text.",
+    "content": "I am building the messaging architecture for [company/product] targeting [audience]. We are entering/competing in [market context]. Our core value proposition is [one sentence].\n\nBuild a three-tier messaging architecture:\n1. Company narrative — the big story: why we exist, what we believe, what we are building\n2. Product-level messages — three core benefit statements, each supported by a feature proof point and a customer result\n3. Proof point library — five to seven specific, quantified claims that sales and marketing can pull from\n\nFor each tier, write the actual language, not just the framework. Flag where we still have gaps in our proof points. Include a do/don't tone guide of five items so every writer stays in voice.",
+    "categoryId": 3,
+    "subcategoryId": 25,
+    "tags": [],
+    "authorUsername": "kai_morgan",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "SaaS Welcome Sequence",
+    "description": "A 5-email onboarding sequence that moves new trial users from sign-up to their first aha moment. Output: 5-email sequence with subject lines in text.",
+    "content": "Write a 5-email onboarding sequence for [product name], a [one-sentence description]. New users sign up because [primary motivation]. They typically fail to activate because [main friction or confusion]. The most important action we want them to take in their first week is [specific action].\n\nEmail 1 (immediate, on sign-up): Welcome + the one thing they should do right now\nEmail 2 (Day 2): The quick win — one feature that gives instant value\nEmail 3 (Day 4): Social proof — how someone like them succeeded\nEmail 4 (Day 7): Addressing the biggest objection or point of hesitation\nEmail 5 (Day 10): The nudge — if they have not activated, re-anchor to their original motivation\n\nWrite each email with subject line, preview text, and body. Keep each email under 150 words. No exclamation points. No fake urgency.",
+    "categoryId": 3,
+    "subcategoryId": 27,
+    "tags": [],
+    "authorUsername": "james_foster",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "Re-engagement Campaign",
+    "description": "Win back lapsed subscribers with a 3-email sequence that acknowledges the silence and gives them a real reason to return. Output: 3-email sequence in text.",
+    "content": "Write a 3-email re-engagement campaign for [product/list] subscribers who have been inactive for [timeframe]. The primary reason people go dark is [best hypothesis]. We want to either win them back or get clean permission to remove them.\n\nEmail 1 (subject that earns an open without clickbait): Acknowledge the silence, remind them of the original value, one clear call to action\nEmail 2 (3 days later): Different angle — what they have missed, a new reason to come back\nEmail 3 (3 days after that): The breakup email — honest, no pressure, one last ask\n\nRules: No guilt. No fake urgency. No \"we miss you.\" Write like a person, not a marketing department. Each email under 120 words.\n\nOutput all three emails with subject lines and preview text.",
+    "categoryId": 3,
+    "subcategoryId": 27,
+    "tags": [],
+    "authorUsername": "marcus_writes",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "LinkedIn Thought Leadership Post",
+    "description": "A scroll-stopping LinkedIn post that teaches something real and earns shares from peers — without sounding like a press release. Output: 2 post variants in text.",
+    "content": "Write a LinkedIn post on [topic or insight from your work]. My audience is [professional description of who I want to reach]. My goal is [awareness / followers / leads / conversation].\n\nThe post should:\n- Open with a line that stops the scroll — a counterintuitive claim, a specific number, or a scene-setting line. Not a question.\n- Teach one thing that a practitioner in [field] would share with a peer\n- Be structured for LinkedIn — short paragraphs, white space, scannable\n- End with a hook that earns comments without begging for engagement\n- Run 150 to 250 words\n\nWrite 2 versions: one that opens with a bold claim, one that opens with a specific story. Flag which you think will perform better and why. Include a suggested posting time and 3 hashtag options for each.",
+    "categoryId": 3,
+    "subcategoryId": 26,
+    "tags": [],
+    "authorUsername": "kai_morgan",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "X / Twitter Thread Builder",
+    "description": "Turn one insight into a 10-tweet thread that teaches something real, earns retweets, and closes with a clear CTA. Output: 10-tweet thread in text.",
+    "content": "Write a 10-tweet thread on [topic] for an audience of [who follows you]. The goal is to [teach something / build audience / drive traffic to X].\n\nConstraints:\n- Tweet 1 must make a specific, surprising claim that earns the click to expand — not a teaser, not \"a thread:\"\n- Each tweet should stand alone AND connect to what comes before and after\n- At least 2 tweets must contain a specific example, data point, or mini-story\n- Tweet 9 should summarize the key takeaway in one to two sentences\n- Tweet 10 should have a soft CTA (follow, reply, or link) — not desperate, not fake\n- No tweet over 280 characters\n\nFormat each tweet as: [number/10] [text]. Flag any tweets over the character limit with the actual count.",
+    "categoryId": 3,
+    "subcategoryId": 26,
+    "tags": [],
+    "authorUsername": "elena_voss",
+    "saveCount": 0,
+    "viewCount": 3
+  },
+  {
+    "title": "Pillar Page Editorial Brief",
+    "description": "A complete content brief for a pillar page that ranks for a broad keyword, covers all searcher intents, and funnels to your product. Output: Editorial brief in text.",
+    "content": "Build a complete editorial brief for a pillar page targeting the keyword [target keyword] for [product/company]. Our audience is [persona description]. We solve [their core problem].\n\nThe brief should cover:\n1. Search intent analysis — what the searcher actually wants, broken into informational vs. commercial intent layers\n2. Pillar page structure — all sections with H2s and H3s, prioritized by search volume and conversion proximity\n3. Cluster topics — 8 to 12 supporting articles that link back to this pillar, each with a target keyword and angle\n4. Competitor gap analysis — 3 things the top-ranking pages do well that we must match, and 2 things they miss that we can own\n5. Internal linking strategy — which existing pages should link to this pillar, and which product pages it should link to\n6. Content standards — word count target, media types, data/stats sourcing guidance\n\nOutput as a complete editorial brief a writer can execute without follow-up questions.",
+    "categoryId": 3,
+    "subcategoryId": 29,
+    "tags": [],
+    "authorUsername": "marcus_writes",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "FAQ Schema & PAA Optimizer",
+    "description": "Generate FAQ schema markup and People Also Ask targeting from any page — ready to paste into a script tag. Output: JSON-LD schema + editorial recommendations in text.",
+    "content": "Generate FAQ schema markup for [page URL or paste page content]. The page is about [topic]. Our target audience searches for [describe search intent].\n\nProcess:\n1. Extract or generate 6 to 8 questions that best match actual search queries about this topic — specific, answerable, non-salesy, matching the People Also Ask pattern\n2. Write concise answers for each — 40 to 60 words, plain language, factual\n3. Format as valid JSON-LD schema using the FAQPage + Question + acceptedAnswer schema\n4. Flag any questions likely to trigger a featured snippet and explain why\n5. List 3 questions to add to the page content itself (not just schema) to capture additional PAA positions\n\nOutput the JSON-LD block ready to paste into a script tag, followed by the editorial recommendations.",
+    "categoryId": 3,
+    "subcategoryId": 29,
+    "tags": [],
+    "authorUsername": "james_foster",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "Meta Ad Creative Testing Matrix",
+    "description": "A 3x3x2 creative testing matrix for Meta ads — angles, hooks, and formats — with budget split guidance and copy written for every variant. Output: Testing matrix + copy in text.",
+    "content": "Design a creative testing matrix for Meta (Facebook/Instagram) ads promoting [product/offer]. Our target audience is [describe demographics and interests]. Our goal is [awareness / consideration / conversion]. Our current best-performing ad: [describe it or say \"none yet\"].\n\nBuild a 3x3x2 testing matrix:\n- 3 creative angles (core message: problem-first, social proof, transformation)\n- 3 hook styles (how it opens: bold claim, pattern interrupt, testimonial pull quote)\n- 2 formats (static image vs. short video/carousel)\n\nFor each of the 9 angle-hook combinations write: the hook line (first 3 seconds or headline), body copy under 125 characters, and call-to-action text.\n\nNote which combinations to prioritize based on audience and goal. Include budget split guidance across variants and a week-two decision rule for cutting underperformers.",
+    "categoryId": 3,
+    "subcategoryId": 28,
+    "tags": [],
+    "authorUsername": "james_foster",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "Google Search Campaign Keyword Clusters",
+    "description": "Group your keyword list into tight ad groups with match type strategy, ad copy, negative keywords, and bid logic for each cluster. Output: Campaign structure in text.",
+    "content": "I need to restructure my Google Search campaigns for [product/service] targeting [describe audience and intent]. My current keyword list or themes: [paste keywords or describe the themes]. My monthly budget is approximately [amount].\n\nBuild a keyword clustering strategy that:\n1. Groups keywords into tight, single-theme ad groups — no more than 15 keywords each\n2. Recommends match type for each group with rationale\n3. Writes one headline set and one description for each ad group that speaks directly to that cluster's intent\n4. Identifies cross-group negative keywords to prevent cannibalization\n5. Prioritizes ad groups by estimated conversion intent — bottom-funnel first\n6. Flags any keywords that should be excluded from Search entirely and tested on Performance Max instead\n\nOutput as an ad group table followed by the cross-campaign negative keyword list.",
+    "categoryId": 3,
+    "subcategoryId": 28,
+    "tags": [],
+    "authorUsername": "kai_morgan",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "Feature Announcement Copy Suite",
+    "description": "Coordinated copy for a feature launch — announcement email, in-app contextual prompt, changelog entry, and social posts — all in one brief. Output: Full copy suite in text.",
+    "content": "I need to announce [feature name] for [product]. The feature does [one sentence]. The user who benefits most is [persona] who previously had to [describe the painful workaround]. The core benefit is [quantified if possible].\n\nWrite coordinated copy for:\n1. Announcement email — subject line, preview text, 150-word body, one CTA\n2. In-app contextual prompt shown on first encounter — title: 6 words max, body: 25 words max, CTA button text\n3. Changelog entry — 2 to 3 sentences, factual, developer-friendly\n4. LinkedIn post — outcome-first, under 200 words\n5. X/Twitter post — under 280 characters\n\nRules: Lead with the user outcome, not the feature name. Do not use the words \"excited\" or \"proud.\" No exclamation points in the email. Each piece should feel like it was written by the same person but optimized for its format.",
+    "categoryId": 3,
+    "subcategoryId": 30,
+    "tags": [],
+    "authorUsername": "elena_voss",
+    "saveCount": 0,
+    "viewCount": 2
+  },
+  {
+    "title": "Competitive Battle Card",
+    "description": "A battle card your sales team can scan in 60 seconds before any competitive deal — strengths, weaknesses, counter-moves, and proof points. Output: Battle card in text.",
+    "content": "Build a competitive battle card for [competitor name] to help our sales team win deals where they come up. Our product: [one sentence]. Their product: [one sentence]. We most often compete for [describe customer type and deal size].\n\nThe battle card should include:\n1. Their genuine strengths — what they do well that we cannot dismiss or undercut cheaply\n2. Their genuine weaknesses — where customers complain, where their product lags, where their pricing hurts them\n3. The questions they ask about us — and our honest, confident answers\n4. The questions we should ask that expose their weaknesses without sounding desperate\n5. The deal scenarios where we win and where we lose — pattern-match rules for when to compete and when to qualify out\n6. Three proof points — customer quotes, case studies, or data — that counter their best claims specifically\n\nFormat for fast scanning: bold headers, short sentences, no paragraphs longer than 2 lines.",
+    "categoryId": 3,
+    "subcategoryId": 30,
+    "tags": [],
+    "authorUsername": "marcus_writes",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "Investment Memo Generator",
+    "description": "Generate a structured investment memo for any asset, deal, or company.",
+    "content": "You are a senior investment analyst. Write a concise, professional investment memo for the following opportunity:\n\nAsset / Company: {asset_name}\nAsset Class: {asset_class}\nProposed Investment: {investment_size}\n\nInclude:\n1. Executive Summary (2–3 sentences)\n2. Investment Thesis (3 bullet points)\n3. Key Risks & Mitigants\n4. Comparable Transactions or Benchmarks\n5. Recommended Next Steps\n\nUse precise financial language. Be objective — highlight both upside and downside clearly.",
+    "categoryId": 9,
+    "subcategoryId": null,
+    "tags": [
+      "finance",
+      "investing",
+      "memo",
+      "due-diligence"
+    ],
+    "authorUsername": "promptly",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "Portfolio Risk Assessment",
+    "description": "Analyze concentration risk, volatility exposure, and diversification gaps in a portfolio.",
+    "content": "You are a portfolio risk manager. Analyze the following portfolio for risk:\n\nPortfolio Holdings: {holdings_list}\nTotal Portfolio Value: {portfolio_value}\nInvestment Horizon: {horizon}\nRisk Tolerance: {risk_tolerance}\n\nProvide:\n1. Concentration Analysis — identify overweight positions or sectors\n2. Correlation Risk — flag assets that move together\n3. Tail Risk Scenarios — 3 macro scenarios and their estimated impact\n4. Diversification Recommendations — specific actions to improve the risk profile\n\nBe direct and quantitative where possible.",
+    "categoryId": 9,
+    "subcategoryId": null,
+    "tags": [
+      "finance",
+      "risk",
+      "portfolio",
+      "investing"
+    ],
+    "authorUsername": "promptly",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "Earnings Call Key Takeaways",
+    "description": "Extract the most important insights from any earnings call transcript.",
+    "content": "You are an equity analyst. Read the following earnings call transcript and extract the most important information:\n\nTranscript: {transcript}\n\nOutput:\n1. Headline Numbers — Revenue, EPS, and key segment results vs. estimates\n2. Management Tone — Bullish, neutral, or cautious? Quote supporting phrases.\n3. Guidance Changes — Any raised, lowered, or withdrawn guidance\n4. Key Risks Mentioned — Explicitly or between the lines\n5. Analyst Q&A Themes — What were analysts most focused on?\n6. Your 3-Sentence Take — Would you Buy, Hold, or Sell after this call and why?\n\nBias toward actionable insights. Be concise.",
+    "categoryId": 9,
+    "subcategoryId": null,
+    "tags": [
+      "finance",
+      "equity",
+      "earnings",
+      "analysis"
+    ],
+    "authorUsername": "promptly",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "Financial Model Stress Test",
+    "description": "Stress-test the key assumptions in any financial model with bear, base, and bull scenarios.",
+    "content": "You are a financial modeling expert. Review the following model assumptions and run a structured stress test:\n\nModel Purpose: {model_purpose}\nKey Assumptions: {assumptions_list}\nBase Case Revenue / EBITDA: {base_case}\n\nDeliver:\n1. Assumption Sensitivity Table — rank assumptions by impact on the bottom line\n2. Bear Case — what breaks first and at what threshold?\n3. Bull Case — what needs to go right simultaneously?\n4. Red Flags — any circular logic, aggressive growth rates, or missing line items?\n5. Top 3 Changes — the most important revisions to make the model more defensible\n\nPoint out the exact line items that carry the most risk.",
+    "categoryId": 9,
+    "subcategoryId": null,
+    "tags": [
+      "finance",
+      "modeling",
+      "stress-test",
+      "valuation"
+    ],
+    "authorUsername": "promptly",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "M&A Due Diligence Checklist",
+    "description": "Generate a tailored due diligence checklist for any M&A transaction.",
+    "content": "You are an M&A advisor. Generate a comprehensive due diligence checklist for the following transaction:\n\nTarget Company: {target_company}\nIndustry: {industry}\nDeal Type: {deal_type} (e.g., acquisition, merger, asset purchase)\nBuyer Type: {buyer_type} (e.g., strategic, private equity)\n\nOrganize the checklist into sections:\n1. Financial Due Diligence\n2. Legal & Regulatory\n3. Commercial / Market\n4. Operational\n5. Technology & IP\n6. HR & Culture\n7. Tax\n8. Environmental / ESG\n\nFor each section, list 5–8 specific document requests or questions. Flag industry-specific risks unique to {industry}.",
+    "categoryId": 9,
+    "subcategoryId": null,
+    "tags": [
+      "finance",
+      "M&A",
+      "due-diligence",
+      "acquisition"
+    ],
+    "authorUsername": "promptly",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "Contract Risk Review",
+    "description": "Identify unfavorable clauses, missing provisions, and key risks in any contract.",
+    "content": "You are a senior commercial attorney. Review the following contract and flag every material risk:\n\nContract: {contract_text}\nYour Client's Role: {client_role} (e.g., buyer, seller, licensor, service provider)\nJurisdiction: {jurisdiction}\n\nDeliver:\n1. Executive Summary — 3-sentence risk verdict\n2. Unfavorable Clauses — quote each clause and explain the risk\n3. Missing Protections — standard provisions that are absent\n4. Liability Exposure — cap, indemnification, and warranty analysis\n5. Negotiation Priorities — top 5 clauses to push back on, with suggested language\n\nDo not soften your analysis. Flag anything that would give pause to a careful transactional attorney.",
+    "categoryId": 10,
+    "subcategoryId": null,
+    "tags": [
+      "law",
+      "contracts",
+      "review",
+      "risk"
+    ],
+    "authorUsername": "promptly",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "Legal Research Memo",
+    "description": "Produce a structured legal research memo on any issue or jurisdiction.",
+    "content": "You are an associate at a top law firm. Draft a concise legal research memo on the following:\n\nLegal Issue: {legal_issue}\nJurisdiction: {jurisdiction}\nClient Situation: {client_situation}\n\nMemo Format:\n1. Issue Presented\n2. Short Answer\n3. Applicable Law — statutes, regulations, and key cases (cite specifically)\n4. Analysis — apply the law to the client's facts\n5. Counterarguments — strongest opposing position\n6. Conclusion and Recommendation\n\nCite real cases and statutes where possible. Flag if the law is unsettled or varies by circuit/state. Include a disclaimer that this is preliminary research, not legal advice.",
+    "categoryId": 10,
+    "subcategoryId": null,
+    "tags": [
+      "law",
+      "research",
+      "memo",
+      "litigation"
+    ],
+    "authorUsername": "promptly",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "NDA Term Analysis",
+    "description": "Analyze an NDA and flag one-sided or unusual terms before signing.",
+    "content": "You are a commercial attorney specializing in technology and IP transactions. Analyze the following NDA:\n\nNDA Text: {nda_text}\nSigning Party: {signing_party} (disclosing or receiving party)\nContext: {context} (e.g., vendor evaluation, M&A, partnership discussion)\n\nReview:\n1. Definition of Confidential Information — is it too broad or too narrow?\n2. Exclusions — are standard carve-outs present (publicly known, independently developed, etc.)?\n3. Permitted Disclosures — can you share with employees, advisors, affiliates?\n4. Obligations on Receiving Party — are they reasonable?\n5. Term and Survival — how long do obligations last after termination?\n6. Remedies — injunctive relief clause? Liquidated damages?\n7. Mutual vs. One-Sided — is this balanced?\n8. Red Flags — any clause you should refuse to sign as written\n\nProvide suggested redline language for the top 3 concerns.",
+    "categoryId": 10,
+    "subcategoryId": null,
+    "tags": [
+      "law",
+      "NDA",
+      "contracts",
+      "IP"
+    ],
+    "authorUsername": "promptly",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "Regulatory Compliance Gap Analysis",
+    "description": "Identify compliance gaps and regulatory risks for any business or industry.",
+    "content": "You are a regulatory compliance attorney. Conduct a gap analysis for the following business:\n\nBusiness Description: {business_description}\nIndustry / Sector: {industry}\nJurisdictions of Operation: {jurisdictions}\nCurrent Compliance Measures: {current_measures}\n\nAnalyze:\n1. Applicable Regulations — key federal, state, and (if relevant) international rules\n2. Identified Gaps — specific areas where current measures fall short\n3. High-Priority Risks — rank gaps by likelihood and severity of enforcement action\n4. Remediation Steps — concrete actions to close each gap\n5. Monitoring Cadence — what to review quarterly vs. annually\n\nBe specific about agency names (SEC, FTC, CFPB, etc.) and rule citations. Flag areas where recent regulatory changes are creating new exposure.",
+    "categoryId": 10,
+    "subcategoryId": null,
+    "tags": [
+      "law",
+      "compliance",
+      "regulatory",
+      "risk"
+    ],
+    "authorUsername": "promptly",
+    "saveCount": 0,
+    "viewCount": 0
+  },
+  {
+    "title": "Dispute Resolution Strategy",
+    "description": "Develop a litigation or arbitration strategy for any commercial dispute.",
+    "content": "You are a senior litigation attorney. Develop a dispute resolution strategy for the following matter:\n\nDispute Summary: {dispute_summary}\nClient's Position: {client_position}\nOpposing Party: {opposing_party}\nForum: {forum} (e.g., federal court, AAA arbitration, state court)\nDesired Outcome: {desired_outcome}\n\nProvide:\n1. Threshold Assessment — likelihood of success on the merits (be honest)\n2. Key Legal Theories — strongest claims or defenses, with supporting authority\n3. Discovery Strategy — what evidence to seek and how\n4. Opposing Strategy — anticipate their strongest arguments and how to rebut\n5. Settlement Considerations — realistic range and timing to explore settlement\n6. Cost-Benefit Analysis — estimated fees vs. likely recovery\n7. Recommended Path Forward — litigate, settle, or alternative resolution?",
+    "categoryId": 10,
+    "subcategoryId": null,
+    "tags": [
+      "law",
+      "litigation",
+      "dispute",
+      "strategy"
+    ],
+    "authorUsername": "promptly",
+    "saveCount": 0,
+    "viewCount": 0
+  }
+]

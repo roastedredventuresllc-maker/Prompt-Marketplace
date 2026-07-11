@@ -1,0 +1,422 @@
+[
+  {
+    "id": 1,
+    "categoryId": 9,
+    "name": "Personal Finance",
+    "slug": "personal-finance",
+    "description": "Budgeting, savings, and everyday financial planning"
+  },
+  {
+    "id": 2,
+    "categoryId": 9,
+    "name": "Investing & Markets",
+    "slug": "investing-markets",
+    "description": "Stock analysis, portfolio strategy, and market research"
+  },
+  {
+    "id": 3,
+    "categoryId": 9,
+    "name": "Tax & Accounting",
+    "slug": "tax-accounting",
+    "description": "Tax planning, deductions, and accounting workflows"
+  },
+  {
+    "id": 4,
+    "categoryId": 9,
+    "name": "Corporate Finance",
+    "slug": "corporate-finance",
+    "description": "M&A analysis, valuation, and capital structure"
+  },
+  {
+    "id": 5,
+    "categoryId": 9,
+    "name": "Real Estate Finance",
+    "slug": "real-estate-finance",
+    "description": "Property investment analysis and due diligence"
+  },
+  {
+    "id": 6,
+    "categoryId": 9,
+    "name": "Crypto & Web3",
+    "slug": "crypto-web3",
+    "description": "DeFi, tokenomics, and blockchain analysis"
+  },
+  {
+    "id": 7,
+    "categoryId": 10,
+    "name": "Business & Contracts",
+    "slug": "business-contracts",
+    "description": "Contract drafting, review, and commercial agreements"
+  },
+  {
+    "id": 8,
+    "categoryId": 10,
+    "name": "Employment Law",
+    "slug": "employment-law",
+    "description": "HR policies, workplace disputes, and labor compliance"
+  },
+  {
+    "id": 9,
+    "categoryId": 10,
+    "name": "Intellectual Property",
+    "slug": "intellectual-property",
+    "description": "Patents, trademarks, copyright, and licensing"
+  },
+  {
+    "id": 10,
+    "categoryId": 10,
+    "name": "Real Estate Law",
+    "slug": "real-estate-law",
+    "description": "Property transactions, leases, and title issues"
+  },
+  {
+    "id": 11,
+    "categoryId": 10,
+    "name": "Privacy & Data",
+    "slug": "privacy-data",
+    "description": "GDPR, CCPA, and data protection compliance"
+  },
+  {
+    "id": 12,
+    "categoryId": 10,
+    "name": "Litigation & Disputes",
+    "slug": "litigation-disputes",
+    "description": "Legal research, briefs, and dispute strategy"
+  },
+  {
+    "id": 13,
+    "categoryId": 1,
+    "name": "App Development",
+    "slug": "app-development",
+    "description": "Concept validation, scoping, and planning for new applications"
+  },
+  {
+    "id": 14,
+    "categoryId": 1,
+    "name": "System Design",
+    "slug": "system-design",
+    "description": "Architecture, scalability, and technical planning"
+  },
+  {
+    "id": 15,
+    "categoryId": 1,
+    "name": "Security & Privacy",
+    "slug": "security-privacy",
+    "description": "Vulnerability review, compliance, and data protection"
+  },
+  {
+    "id": 16,
+    "categoryId": 1,
+    "name": "AI & Automation",
+    "slug": "ai-automation",
+    "description": "Intelligent workflows, agents, and process automation"
+  },
+  {
+    "id": 17,
+    "categoryId": 1,
+    "name": "Product Management",
+    "slug": "product-management",
+    "description": "Roadmaps, feature specs, and prioritization frameworks"
+  },
+  {
+    "id": 18,
+    "categoryId": 1,
+    "name": "DevOps & Reliability",
+    "slug": "devops-reliability",
+    "description": "Deployment, monitoring, and infrastructure planning"
+  },
+  {
+    "id": 19,
+    "categoryId": 2,
+    "name": "Professional Writing",
+    "slug": "professional-writing",
+    "description": "Cover letters, business communications, and executive prose"
+  },
+  {
+    "id": 20,
+    "categoryId": 2,
+    "name": "Creative Writing",
+    "slug": "creative-writing",
+    "description": "Fiction, narrative, and imaginative storytelling"
+  },
+  {
+    "id": 21,
+    "categoryId": 2,
+    "name": "Content Strategy",
+    "slug": "content-strategy",
+    "description": "Editorial planning, tone of voice, and audience strategy"
+  },
+  {
+    "id": 22,
+    "categoryId": 2,
+    "name": "Academic Writing",
+    "slug": "academic-writing",
+    "description": "Essays, research papers, and scholarly prose"
+  },
+  {
+    "id": 23,
+    "categoryId": 2,
+    "name": "Editing & Revision",
+    "slug": "editing-revision",
+    "description": "Rewriting, tightening, and polishing existing drafts"
+  },
+  {
+    "id": 24,
+    "categoryId": 2,
+    "name": "Speechwriting",
+    "slug": "speechwriting",
+    "description": "Presentations, toasts, commencement addresses, and keynotes"
+  },
+  {
+    "id": 25,
+    "categoryId": 3,
+    "name": "Brand Strategy",
+    "slug": "brand-strategy",
+    "description": "Positioning, messaging, and competitive differentiation"
+  },
+  {
+    "id": 26,
+    "categoryId": 3,
+    "name": "Social Media",
+    "slug": "social-media",
+    "description": "Platform-specific content, captions, and community building"
+  },
+  {
+    "id": 27,
+    "categoryId": 3,
+    "name": "Email Marketing",
+    "slug": "email-marketing",
+    "description": "Newsletters, drip campaigns, and cold outreach"
+  },
+  {
+    "id": 28,
+    "categoryId": 3,
+    "name": "Paid Advertising",
+    "slug": "paid-advertising",
+    "description": "Ad copy, audience targeting, and campaign briefs"
+  },
+  {
+    "id": 29,
+    "categoryId": 3,
+    "name": "SEO & Content",
+    "slug": "seo-content",
+    "description": "Search-optimized articles, meta descriptions, and keyword strategy"
+  },
+  {
+    "id": 30,
+    "categoryId": 3,
+    "name": "Product Marketing",
+    "slug": "product-marketing",
+    "description": "Launch campaigns, positioning, and feature announcements"
+  },
+  {
+    "id": 31,
+    "categoryId": 4,
+    "name": "Business Intelligence",
+    "slug": "business-intelligence",
+    "description": "Dashboards, KPIs, and executive reporting"
+  },
+  {
+    "id": 32,
+    "categoryId": 4,
+    "name": "Market Research",
+    "slug": "market-research",
+    "description": "Competitive analysis, sizing, and industry landscape"
+  },
+  {
+    "id": 33,
+    "categoryId": 4,
+    "name": "Survey Design",
+    "slug": "survey-design",
+    "description": "Question writing, bias avoidance, and response analysis"
+  },
+  {
+    "id": 34,
+    "categoryId": 4,
+    "name": "Customer Analytics",
+    "slug": "customer-analytics",
+    "description": "Segmentation, churn analysis, and lifetime value"
+  },
+  {
+    "id": 35,
+    "categoryId": 4,
+    "name": "Data Storytelling",
+    "slug": "data-storytelling",
+    "description": "Translating findings into compelling narratives"
+  },
+  {
+    "id": 36,
+    "categoryId": 4,
+    "name": "Performance Metrics",
+    "slug": "performance-metrics",
+    "description": "Goal-setting frameworks and measurement systems"
+  },
+  {
+    "id": 37,
+    "categoryId": 5,
+    "name": "Brand Identity",
+    "slug": "brand-identity",
+    "description": "Visual systems, logo direction, and design language"
+  },
+  {
+    "id": 38,
+    "categoryId": 5,
+    "name": "UX & Product Design",
+    "slug": "ux-product-design",
+    "description": "User flows, wireframes, and experience principles"
+  },
+  {
+    "id": 39,
+    "categoryId": 5,
+    "name": "Visual Design",
+    "slug": "visual-design",
+    "description": "Typography, color, composition, and hierarchy"
+  },
+  {
+    "id": 40,
+    "categoryId": 5,
+    "name": "Presentation Design",
+    "slug": "presentation-design",
+    "description": "Slides, decks, and visual storytelling"
+  },
+  {
+    "id": 41,
+    "categoryId": 5,
+    "name": "Photography & Video",
+    "slug": "photography-video",
+    "description": "Art direction, shot lists, and visual briefs"
+  },
+  {
+    "id": 42,
+    "categoryId": 5,
+    "name": "Design Systems",
+    "slug": "design-systems",
+    "description": "Component libraries, tokens, and style guides"
+  },
+  {
+    "id": 43,
+    "categoryId": 6,
+    "name": "Academic Research",
+    "slug": "academic-research",
+    "description": "Literature reviews, citations, and scholarly synthesis"
+  },
+  {
+    "id": 44,
+    "categoryId": 6,
+    "name": "Market Intelligence",
+    "slug": "market-intelligence",
+    "description": "Competitor research, trends, and industry analysis"
+  },
+  {
+    "id": 45,
+    "categoryId": 6,
+    "name": "Interview Research",
+    "slug": "interview-research",
+    "description": "Discussion guides, user interviews, and qualitative methods"
+  },
+  {
+    "id": 46,
+    "categoryId": 6,
+    "name": "Trend Analysis",
+    "slug": "trend-analysis",
+    "description": "Emerging patterns, signals, and future forecasting"
+  },
+  {
+    "id": 47,
+    "categoryId": 6,
+    "name": "Primary Research",
+    "slug": "primary-research",
+    "description": "Study design, hypothesis, and field research planning"
+  },
+  {
+    "id": 48,
+    "categoryId": 6,
+    "name": "Literature Review",
+    "slug": "literature-review",
+    "description": "Synthesizing existing knowledge across sources"
+  },
+  {
+    "id": 49,
+    "categoryId": 7,
+    "name": "Strategy & Planning",
+    "slug": "strategy-planning",
+    "description": "Business models, growth plans, and competitive positioning"
+  },
+  {
+    "id": 50,
+    "categoryId": 7,
+    "name": "Operations",
+    "slug": "operations",
+    "description": "Process design, efficiency, and workflow optimization"
+  },
+  {
+    "id": 51,
+    "categoryId": 7,
+    "name": "Fundraising",
+    "slug": "fundraising",
+    "description": "Investor pitches, decks, and capital strategy"
+  },
+  {
+    "id": 52,
+    "categoryId": 7,
+    "name": "Team & Culture",
+    "slug": "team-culture",
+    "description": "Hiring, performance, and organizational design"
+  },
+  {
+    "id": 53,
+    "categoryId": 7,
+    "name": "Sales & Revenue",
+    "slug": "sales-revenue",
+    "description": "Pipeline, outreach, and negotiation frameworks"
+  },
+  {
+    "id": 54,
+    "categoryId": 7,
+    "name": "Product & Innovation",
+    "slug": "product-innovation",
+    "description": "Ideation, validation, and go-to-market strategy"
+  },
+  {
+    "id": 55,
+    "categoryId": 8,
+    "name": "Lesson Planning",
+    "slug": "lesson-planning",
+    "description": "Structured learning experiences for any subject or age"
+  },
+  {
+    "id": 56,
+    "categoryId": 8,
+    "name": "Student Assessment",
+    "slug": "student-assessment",
+    "description": "Rubrics, quizzes, and meaningful evaluation design"
+  },
+  {
+    "id": 57,
+    "categoryId": 8,
+    "name": "Curriculum Design",
+    "slug": "curriculum-design",
+    "description": "Course architecture, learning pathways, and outcomes"
+  },
+  {
+    "id": 58,
+    "categoryId": 8,
+    "name": "Learning Science",
+    "slug": "learning-science",
+    "description": "Evidence-based teaching strategies and cognitive principles"
+  },
+  {
+    "id": 59,
+    "categoryId": 8,
+    "name": "Parent Communication",
+    "slug": "parent-communication",
+    "description": "Clear, empathetic updates and family engagement"
+  },
+  {
+    "id": 60,
+    "categoryId": 8,
+    "name": "Professional Development",
+    "slug": "professional-development",
+    "description": "Teacher growth, coaching, and leadership pathways"
+  }
+]

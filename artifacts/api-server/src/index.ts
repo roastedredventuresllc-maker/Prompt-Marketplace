@@ -1,6 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 import { seedCategories } from "./lib/seedCategories";
+import { seedSubcategories } from "./lib/seedSubcategories";
 import { seedPrompts } from "./lib/seedPrompts";
 
 const rawPort = process.env["PORT"];
@@ -20,6 +21,10 @@ if (Number.isNaN(port) || port <= 0) {
 seedCategories()
   .then(() => {
     logger.info("Categories seeded");
+    return seedSubcategories();
+  })
+  .then(() => {
+    logger.info("Subcategories seeded");
     return seedPrompts();
   })
   .then(() => {

@@ -1,0 +1,141 @@
+THE PROMPT LIBRARY FOR EVERYONE
+
+Get more from AI.
+Expert prompts for finance, law, writing, research, and everyday life.
+
+Search
+All prompts
+Finance
+Law
+Technology
+Writing
+Marketing
+Data & Analytics
+Design
+Research
+Business
+Education
+FINANCE
+All
+Personal Finance
+Investing & Markets
+Tax & Accounting
+Corporate Finance
+Real Estate Finance
+Crypto & Web3
+Finance
+Browse all
+FINANCE
+0
+M&A Due Diligence Checklist
+Generate a tailored due diligence checklist for any M&A transaction.
+
+P
+Promptly
+Buy
+FINANCE
+0
+Financial Model Stress Test
+Stress-test the key assumptions in any financial model with bear, base, and bull scenarios.
+
+P
+Promptly
+Buy
+FINANCE
+0
+Earnings Call Key Takeaways
+Extract the most important insights from any earnings call transcript.
+
+P
+Promptly
+Buy
+FINANCE
+0
+Portfolio Risk Assessment
+Analyze concentration risk, volatility exposure, and diversification gaps in a portfolio.
+
+P
+Promptly
+Buy
+FINANCE
+0
+Investment Memo Generator
+Generate a structured investment memo for any asset, deal, or company.
+
+P
+Promptly
+Buy
+TAX & ACCOUNTING
+112
+Wash-Sale Rule Exposure Checker
+Identify wash-sale violations in trading history and quantify disallowed loss exposure. Output: Compliance checklist in text.
+
+Horizons Tax
+FIRM
+Buy
+INVESTING & MARKETS
+143
+Monte Carlo Simulation Scenario Brief
+Structured brief for building a rigorous Monte Carlo simulation on any investment. Output: Simulation design brief in text.
+
+Acme Capital
+FIRM
+Buy
+CORPORATE FINANCE
+187
+3-Statement LBO Model Assumptions Audit
+Senior associate-level review of LBO model assumptions across all three statements. Output: Audit memo in text.
+
+Acme Capital
+FIRM
+Buy
+INVESTING & MARKETS
+134
+Options Greeks Sensitivity Deck
+Greeks analysis, sensitivity stress-tests, and hedge suggestions for an options book. Output: Analysis brief in text.
+
+Acme Capital
+FIRM
+Buy
+CORPORATE FINANCE
+98
+Debt Covenant Headroom Analysis
+Calculate covenant headroom, identify trip wires, and draft lender risk language. Output: Analysis memo in text.
+
+Horizons Tax
+FIRM
+Buy
+REAL ESTATE FINANCE
+76
+REIT FFO Bridge Analysis
+NAREIT-compliant FFO/AFFO reconciliation, bridge analysis, and peer benchmarking. Output: Reconciliation tables in text.
+
+Acme Capital
+FIRM
+Buy
+REAL ESTATE FINANCE
+71
+Rental Property ROI Analyzer
+Quick ROI model for any rental property. Output: ROI calculation in text.
+
+Acme Capital
+FIRM
+Buy
+PROFESSIONAL ORGANIZATIONS
+A
+Acme Capital
+FIRM
+@acme_capital_research
+Investing & Markets
+Corporate Finance
+Real Estate Finance
++1
+Browse →
+H
+Horizons Tax
+FIRM
+@horizons_tax
+Tax & Accounting
+Corporate Finance
+Personal Finance
+Browse →
