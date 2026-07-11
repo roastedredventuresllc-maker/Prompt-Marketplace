@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Layout } from "@/components/layout";
 import { useUser } from "@clerk/react";
 import { ArrowLeft, Save, DollarSign, Loader2, CheckCircle, AlertCircle } from "lucide-react";
@@ -24,8 +24,10 @@ function parseDollarsToInts(val: string): number | null {
 
 export default function Settings() {
   const { isSignedIn, isLoaded } = useUser();
+  const [, setLocation] = useLocation();
   const [pricing, setPricing] = useState<Pricing | null>(null);
   const [loading, setLoading] = useState(true);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "success" | "error">("idle");
 
@@ -35,8 +37,18 @@ export default function Settings() {
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
     fetch(`${basePath}/api/settings/pricing`, { credentials: "include" })
-      .then((r) => r.json())
+      .then((r) => {
+        // A signed-in user without a local profile yet (hasn't finished
+        // onboarding) can't have pricing — send them to set up their
+        // profile instead of showing a confusing save error later.
+        if (r.status === 404) {
+          setNeedsOnboarding(true);
+          return null;
+        }
+        return r.json();
+      })
       .then((data) => {
+        if (!data) return;
         setPricing(data);
         setPromptPrice(centsToDisplay(data.promptPriceCents ?? 500));
         setCollectionPrice(centsToDisplay(data.collectionPriceCents ?? 10000));
@@ -44,6 +56,13 @@ export default function Settings() {
       .catch(() => setPricing(null))
       .finally(() => setLoading(false));
   }, [isLoaded, isSignedIn]);
+
+  useEffect(() => {
+    if (needsOnboarding) {
+      sessionStorage.setItem("onboardingReturnTo", "/settings");
+      setLocation("/onboarding");
+    }
+  }, [needsOnboarding, setLocation]);
 
   const handleSave = async () => {
     const promptPriceCents = parseDollarsToInts(promptPrice);
@@ -77,7 +96,7 @@ export default function Settings() {
     }
   };
 
-  if (!isLoaded || loading) {
+  if (!isLoaded || loading || needsOnboarding) {
     return (
       <Layout>
         <div className="max-w-2xl mx-auto px-6 py-16">

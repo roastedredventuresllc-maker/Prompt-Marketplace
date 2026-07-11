@@ -201,7 +201,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       <footer className="border-t border-black/[0.06] py-10 mt-auto">
         <div className="container mx-auto max-w-6xl px-6 flex flex-col sm:flex-row items-center justify-between gap-6 text-[13px] text-foreground/40">
-          <span>Copyright &copy; 2025 Promptly. All rights reserved.</span>
+          <span>Copyright &copy; {new Date().getFullYear()} Promptly. All rights reserved.</span>
           <div className="flex items-center gap-6">
             <Link href="/explore" className="hover:text-foreground/70 transition-colors">Explore</Link>
             <Link href="/sign-up" className="hover:text-foreground/70 transition-colors">Join</Link>

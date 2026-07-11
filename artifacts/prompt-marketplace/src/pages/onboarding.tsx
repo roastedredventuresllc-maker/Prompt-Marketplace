@@ -70,7 +70,14 @@ export default function Onboarding() {
     };
 
     createUser.mutate({ data: payload }, {
-      onSuccess: (user) => setLocation(`/profile/${user.username}`),
+      onSuccess: (user) => {
+        // If onboarding was triggered while trying to do something else (e.g.
+        // create a prompt), send the user back there instead of stranding
+        // them on their brand-new profile page.
+        const returnTo = sessionStorage.getItem("onboardingReturnTo");
+        sessionStorage.removeItem("onboardingReturnTo");
+        setLocation(returnTo || `/profile/${user.username}`);
+      },
       onError: () => setError("Failed to create profile. Username might already be taken."),
     });
   };

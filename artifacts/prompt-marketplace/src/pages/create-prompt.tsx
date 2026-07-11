@@ -64,9 +64,12 @@ export default function CreatePrompt() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null);
   const [newCollectionName, setNewCollectionName] = useState("");
 
-  // Redirect to onboarding if signed in but no profile yet
+  // Redirect to onboarding if signed in but no profile yet.
+  // Remember where the user was trying to go so onboarding can send them back
+  // here afterwards instead of stranding them on their new profile page.
   useEffect(() => {
     if (isLoaded && isSignedIn && !profileLoading && !profile) {
+      sessionStorage.setItem("onboardingReturnTo", "/create");
       setLocation("/onboarding");
     }
   }, [isLoaded, isSignedIn, profileLoading, profile, setLocation]);

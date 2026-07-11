@@ -13,7 +13,7 @@ import {
   Heart, Calendar, User, BookOpen, Copy, Check, Pencil, Plus,
   Users, X, UserPlus, Save, Building2, Trash2, BookmarkPlus,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AddToLibraryMenu } from "@/components/add-to-library-menu";
@@ -307,10 +307,19 @@ export default function Profile() {
   const queryClient = useQueryClient();
 
   const { data: myInfo } = useMyInfo();
-  const { userId } = useAuth();
+  const { userId, isSignedIn, isLoaded } = useAuth();
+
+  // "/profile/me" is a placeholder used before the caller's own username has
+  // loaded (e.g. the header avatar link). There's no user literally named
+  // "me", so redirect to the real username as soon as it's known.
+  useEffect(() => {
+    if (safeUsername === "me" && myInfo?.username) {
+      setLocation(`/profile/${myInfo.username}`, { replace: true });
+    }
+  }, [safeUsername, myInfo?.username, setLocation]);
 
   const { data: profile, isLoading: profileLoading, isError } = useGetUserProfile(safeUsername, {
-    query: { enabled: !!safeUsername, queryKey: getGetUserProfileQueryKey(safeUsername) },
+    query: { enabled: !!safeUsername && safeUsername !== "me", queryKey: getGetUserProfileQueryKey(safeUsername) },
   });
 
   const listPromptsParams = { username: safeUsername, limit: 48 };
@@ -390,7 +399,8 @@ export default function Profile() {
     }
   }
 
-  if (profileLoading) {
+  const waitingForOwnUsername = safeUsername === "me" && (!isLoaded || isSignedIn);
+  if (profileLoading || waitingForOwnUsername) {
     return (
       <Layout>
         <div className="bg-[#F5F5F7] min-h-full">

@@ -7,3 +7,4 @@
 - [Collection buy flow](collection-buy-flow.md) — GET /access/library/:id checks author/admin bypass first; library.priceCents overrides author default; POST /checkout/library/:id creates Whop config; duplicate settings routes in access.ts removed (settings.ts owns them).
 - [Firm profile patterns](firm-profile-patterns.md) — Profile page owns firm inline edit + Team tab; firms.tsx is for create/delete only; adminClerkUserIds + pricing returned by GET /users/:username.
 - [Dev/prod data parity via startup seed](dev-prod-seed-parity.md) — prod DB only gets schema via publish diff, never row data; demo content (firms, prompts, subcategories) must ship as idempotent startup seeders reading dev-exported JSON.
+- [Onboarding flow quirks](onboarding-flow-quirks.md) — preserve return-to path before redirecting into /onboarding; "/profile/me" is a placeholder, not a real username, must redirect once resolved.

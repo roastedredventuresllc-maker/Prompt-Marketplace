@@ -314,7 +314,16 @@ export default function Firms() {
     });
     if (!res.ok) {
       const j = await res.json().catch(() => ({}));
-      setApiError((j as any).error ?? "Failed to create firm");
+      const rawError = (j as any).error ?? "Failed to create firm";
+      // A 401 here means Clerk's session cookie wasn't valid for this
+      // request (e.g. the session expired) — the raw "Unauthorized" text
+      // is confusing since the page just showed the form. Point the user
+      // at re-authenticating instead.
+      setApiError(
+        res.status === 401
+          ? "Your session has expired. Please sign in again and retry."
+          : rawError,
+      );
     } else {
       await queryClient.invalidateQueries({ queryKey: ["firms", "mine"] });
       setCreating(false);
