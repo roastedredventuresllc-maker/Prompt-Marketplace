@@ -1,6 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 import { seedCategories } from "./lib/seedCategories";
+import { seedPrompts } from "./lib/seedPrompts";
 
 const rawPort = process.env["PORT"];
 
@@ -19,9 +20,13 @@ if (Number.isNaN(port) || port <= 0) {
 seedCategories()
   .then(() => {
     logger.info("Categories seeded");
+    return seedPrompts();
+  })
+  .then(() => {
+    logger.info("Prompts seeded");
   })
   .catch((err) => {
-    logger.warn({ err }, "Category seed failed (non-fatal)");
+    logger.warn({ err }, "Seed failed (non-fatal)");
   });
 
 app.listen(port, (err) => {

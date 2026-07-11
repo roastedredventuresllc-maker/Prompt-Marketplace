@@ -9,6 +9,9 @@ import {
   useListPrompts,
   useListCategories,
   useGetFeaturedCreators,
+  useGetMyProfile,
+  useGetUserLibraries,
+  getGetUserLibrariesQueryKey,
   type Prompt,
   type User as ApiUser,
 } from "@workspace/api-client-react";
@@ -185,6 +188,25 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState<{ id: number; slug: string } | null>(null);
   const [activeSubcategoryId, setActiveSubcategoryId] = useState<number | null>(null);
 
+  const { isSignedIn } = useAuth();
+  const { data: myProfile } = useGetMyProfile({
+    query: { enabled: !!isSignedIn },
+  });
+  const { data: myLibraries } = useGetUserLibraries(myProfile?.username ?? "", {
+    query: {
+      enabled: !!isSignedIn && !!myProfile?.username,
+      queryKey: [...getGetUserLibrariesQueryKey(myProfile?.username ?? ""), "home-suggestions"],
+    },
+  });
+
+  // Suggestions derived from titles of prompts the user has saved
+  const searchSuggestions = useMemo(() => {
+    if (!myLibraries) return [];
+    const saved = myLibraries.filter((l: any) => l.kind === "saved");
+    const titles = saved.flatMap((l: any) => l.previewTitles ?? []);
+    return [...new Set(titles)].slice(0, 4) as string[];
+  }, [myLibraries]);
+
   const { data: categories, isLoading: catsLoading } = useListCategories();
   const { data: promptsData, isLoading: promptsLoading } = useListPrompts({
     ...(activeCategory ? { categoryId: activeCategory.id } : {}),
@@ -258,15 +280,17 @@ export default function Home() {
               Search
             </button>
           </form>
-          <div className="flex items-center justify-center gap-2 mt-5 flex-wrap">
-            {["Portfolio analysis", "Contract review", "Explain like I am 5", "Summarize article"].map(q => (
-              <button key={q}
-                onClick={() => setLocation(`/explore?search=${encodeURIComponent(q)}`)}
-                className="text-[13px] px-3.5 py-1.5 rounded-full bg-black/[0.04] text-foreground/50 hover:bg-black/[0.07] hover:text-foreground transition-colors">
-                {q}
-              </button>
-            ))}
-          </div>
+          {isSignedIn && searchSuggestions.length > 0 && (
+            <div className="flex items-center justify-center gap-2 mt-5 flex-wrap">
+              {searchSuggestions.map(q => (
+                <button key={q}
+                  onClick={() => setLocation(`/explore?search=${encodeURIComponent(q)}`)}
+                  className="text-[13px] px-3.5 py-1.5 rounded-full bg-black/[0.04] text-foreground/50 hover:bg-black/[0.07] hover:text-foreground transition-colors max-w-[220px] truncate">
+                  {q}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
