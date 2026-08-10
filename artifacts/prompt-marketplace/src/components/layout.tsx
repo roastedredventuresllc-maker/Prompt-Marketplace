@@ -114,6 +114,14 @@ function UserMenu() {
             New prompt
           </Link>
           <Link
+            href="/analytics"
+            onClick={() => setOpen(false)}
+            className="block px-4 py-2 text-[13px] text-foreground/70 hover:bg-black/[0.04] hover:text-foreground transition-colors"
+            data-testid="menu-analytics"
+          >
+            Analytics
+          </Link>
+          <Link
             href="/settings"
             onClick={() => setOpen(false)}
             className="block px-4 py-2 text-[13px] text-foreground/70 hover:bg-black/[0.04] hover:text-foreground transition-colors"

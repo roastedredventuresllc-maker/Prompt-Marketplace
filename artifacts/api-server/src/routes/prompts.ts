@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { getAuth } from "@clerk/express";
 import { db, promptsTable, categoriesTable, subcategoriesTable, usersTable, savesTable, purchasesTable, libraryPromptsTable } from "@workspace/db";
-import { eq, sql, desc, ilike, and, inArray } from "drizzle-orm";
+import { eq, sql, desc, and, inArray, isNull } from "drizzle-orm";
 import {
   ListPromptsQueryParams,
   ListPromptsResponse,
@@ -32,30 +32,23 @@ function truncateContent(content: string): string {
 async function checkPromptAccess(clerkUserId: string | null, promptId: number): Promise<boolean> {
   if (!clerkUserId) return false;
 
-  // Author always has access (direct account or firm owner)
-  const [promptRow] = await db.select().from(promptsTable).where(eq(promptsTable.id, promptId));
+  const [promptRow] = await db.select().from(promptsTable)
+    .where(and(eq(promptsTable.id, promptId), isNull(promptsTable.deletedAt)));
   if (promptRow) {
     const [author] = await db.select().from(usersTable).where(eq(usersTable.username, promptRow.authorUsername));
     if (author && (author.clerkUserId === clerkUserId || author.ownerClerkUserId === clerkUserId)) return true;
   }
 
-  // Direct purchase (paid or free)
-  const [direct] = await db
-    .select()
-    .from(purchasesTable)
+  const [direct] = await db.select().from(purchasesTable)
     .where(and(eq(purchasesTable.clerkUserId, clerkUserId), eq(purchasesTable.itemType, "prompt"), eq(purchasesTable.itemId, promptId)));
   if (direct) return true;
 
-  // Library purchase covering this prompt
-  const libRows = await db
-    .select({ libraryId: libraryPromptsTable.libraryId })
+  const libRows = await db.select({ libraryId: libraryPromptsTable.libraryId })
     .from(libraryPromptsTable)
     .where(eq(libraryPromptsTable.promptId, promptId));
   if (libRows.length > 0) {
-    const [libPurchase] = await db
-      .select()
-      .from(purchasesTable)
-      .where(and(eq(purchasesTable.clerkUserId, clerkUserId), eq(purchasesTable.itemType, "library"), inArray(purchasesTable.itemId, libRows.map((l) => l.libraryId))));
+    const [libPurchase] = await db.select().from(purchasesTable)
+      .where(and(eq(purchasesTable.clerkUserId, clerkUserId), eq(purchasesTable.itemType, "library"), inArray(purchasesTable.itemId, libRows.map(l => l.libraryId))));
     if (libPurchase) return true;
   }
 
@@ -63,22 +56,12 @@ async function checkPromptAccess(clerkUserId: string | null, promptId: number): 
 }
 
 async function buildPromptResponse(prompt: typeof promptsTable.$inferSelect) {
-  const [category] = await db
-    .select()
-    .from(categoriesTable)
-    .where(eq(categoriesTable.id, prompt.categoryId));
-
-  const [author] = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.username, prompt.authorUsername));
+  const [category] = await db.select().from(categoriesTable).where(eq(categoriesTable.id, prompt.categoryId));
+  const [author] = await db.select().from(usersTable).where(eq(usersTable.username, prompt.authorUsername));
 
   let subcategoryName: string | null = null;
   if (prompt.subcategoryId) {
-    const [sub] = await db
-      .select()
-      .from(subcategoriesTable)
-      .where(eq(subcategoriesTable.id, prompt.subcategoryId));
+    const [sub] = await db.select().from(subcategoriesTable).where(eq(subcategoriesTable.id, prompt.subcategoryId));
     subcategoryName = sub?.name ?? null;
   }
 
@@ -99,6 +82,8 @@ async function buildPromptResponse(prompt: typeof promptsTable.$inferSelect) {
     authorOrgName: author?.orgName ?? null,
     saveCount: prompt.saveCount,
     viewCount: prompt.viewCount,
+    avgRating: parseFloat(prompt.avgRating as any) || 0,
+    ratingCount: prompt.ratingCount,
     isPublic: prompt.isPublic,
     createdAt: prompt.createdAt.toISOString(),
     updatedAt: prompt.updatedAt.toISOString(),
@@ -109,10 +94,8 @@ router.get("/prompts/trending", async (req, res): Promise<void> => {
   const qp = GetTrendingPromptsQueryParams.safeParse(req.query);
   const limit = qp.success ? (qp.data.limit ?? 10) : 10;
 
-  const prompts = await db
-    .select()
-    .from(promptsTable)
-    .where(eq(promptsTable.isPublic, true))
+  const prompts = await db.select().from(promptsTable)
+    .where(and(eq(promptsTable.isPublic, true), isNull(promptsTable.deletedAt)))
     .orderBy(desc(promptsTable.saveCount), desc(promptsTable.viewCount))
     .limit(limit);
 
@@ -131,10 +114,13 @@ router.get("/prompts", async (req, res): Promise<void> => {
   const limit = params.limit ?? 20;
   const offset = params.offset ?? 0;
 
-  const conditions = [eq(promptsTable.isPublic, true)];
+  const conditions: any[] = [eq(promptsTable.isPublic, true), isNull(promptsTable.deletedAt)];
   if (params.categoryId != null) conditions.push(eq(promptsTable.categoryId, params.categoryId));
   if ((params as any).subcategoryId != null) conditions.push(eq(promptsTable.subcategoryId, (params as any).subcategoryId));
-  if (params.search) conditions.push(ilike(promptsTable.title, `%${params.search}%`));
+  if (params.search) {
+    // Full-text search using GIN-indexed tsvector column
+    conditions.push(sql`search_vector @@ plainto_tsquery('english', ${params.search})`);
+  }
   if (params.username) conditions.push(eq(promptsTable.authorUsername, params.username));
 
   let orderBy = desc(promptsTable.createdAt);
@@ -146,9 +132,7 @@ router.get("/prompts", async (req, res): Promise<void> => {
     .from(promptsTable)
     .where(and(...conditions));
 
-  const prompts = await db
-    .select()
-    .from(promptsTable)
+  const prompts = await db.select().from(promptsTable)
     .where(and(...conditions))
     .orderBy(orderBy)
     .limit(limit)
@@ -160,24 +144,18 @@ router.get("/prompts", async (req, res): Promise<void> => {
 
 router.post("/prompts", async (req, res): Promise<void> => {
   const parsed = CreatePromptBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
-  const [prompt] = await db
-    .insert(promptsTable)
-    .values({
-      title: parsed.data.title,
-      content: parsed.data.content,
-      description: parsed.data.description ?? null,
-      categoryId: parsed.data.categoryId,
-      subcategoryId: (parsed.data as any).subcategoryId ?? null,
-      tags: parsed.data.tags ?? [],
-      authorUsername: parsed.data.authorUsername,
-      isPublic: parsed.data.isPublic ?? true,
-    })
-    .returning();
+  const [prompt] = await db.insert(promptsTable).values({
+    title: parsed.data.title,
+    content: parsed.data.content,
+    description: parsed.data.description ?? null,
+    categoryId: parsed.data.categoryId,
+    subcategoryId: (parsed.data as any).subcategoryId ?? null,
+    tags: parsed.data.tags ?? [],
+    authorUsername: parsed.data.authorUsername,
+    isPublic: parsed.data.isPublic ?? true,
+  }).returning();
 
   const result = await buildPromptResponse(prompt);
   res.status(201).json(CreatePromptResponse.parse(result));
@@ -188,16 +166,13 @@ router.get("/prompts/:id", async (req, res): Promise<void> => {
   const params = GetPromptParams.safeParse({ id: parseInt(rawId, 10) });
   if (!params.success) { res.status(400).json({ error: "Invalid ID" }); return; }
 
-  const [prompt] = await db
-    .select()
-    .from(promptsTable)
-    .where(and(eq(promptsTable.id, params.data.id), eq(promptsTable.isPublic, true)));
+  const [prompt] = await db.select().from(promptsTable)
+    .where(and(eq(promptsTable.id, params.data.id), eq(promptsTable.isPublic, true), isNull(promptsTable.deletedAt)));
 
   if (!prompt) { res.status(404).json({ error: "Prompt not found" }); return; }
 
   await db.update(promptsTable).set({ viewCount: prompt.viewCount + 1 }).where(eq(promptsTable.id, prompt.id));
 
-  // Server-side content gating: only serve full content to users with a recorded purchase
   const { userId: clerkUserId } = getAuth(req);
   const hasAccess = await checkPromptAccess(clerkUserId ?? null, prompt.id);
   const displayPrompt = { ...prompt, viewCount: prompt.viewCount + 1 };
@@ -215,9 +190,10 @@ router.patch("/prompts/:id", async (req, res): Promise<void> => {
   const params = UpdatePromptParams.safeParse({ id: parseInt(rawId, 10) });
   if (!params.success) { res.status(400).json({ error: "Invalid ID" }); return; }
 
-  // Ownership check: caller must own the author account (or be the firm owner)
-  const [existingPrompt] = await db.select().from(promptsTable).where(eq(promptsTable.id, params.data.id));
+  const [existingPrompt] = await db.select().from(promptsTable)
+    .where(and(eq(promptsTable.id, params.data.id), isNull(promptsTable.deletedAt)));
   if (!existingPrompt) { res.status(404).json({ error: "Prompt not found" }); return; }
+
   const [author] = await db.select().from(usersTable).where(eq(usersTable.username, existingPrompt.authorUsername));
   const isFirmAdmin = author?.ownerClerkUserId && (author.adminClerkUserIds ?? []).includes(clerkUserId);
   if (!author || (author.clerkUserId !== clerkUserId && author.ownerClerkUserId !== clerkUserId && !isFirmAdmin)) {
@@ -235,7 +211,9 @@ router.patch("/prompts/:id", async (req, res): Promise<void> => {
   if (parsed.data.tags !== undefined) updates.tags = parsed.data.tags;
   if (parsed.data.isPublic !== undefined) updates.isPublic = parsed.data.isPublic;
 
-  const [prompt] = await db.update(promptsTable).set(updates).where(eq(promptsTable.id, params.data.id)).returning();
+  const [prompt] = await db.update(promptsTable).set(updates)
+    .where(and(eq(promptsTable.id, params.data.id), isNull(promptsTable.deletedAt)))
+    .returning();
   if (!prompt) { res.status(404).json({ error: "Prompt not found" }); return; }
 
   const result = await buildPromptResponse(prompt);
@@ -250,18 +228,22 @@ router.delete("/prompts/:id", async (req, res): Promise<void> => {
   const params = DeletePromptParams.safeParse({ id: parseInt(rawId, 10) });
   if (!params.success) { res.status(400).json({ error: "Invalid ID" }); return; }
 
-  const [existingPrompt] = await db.select().from(promptsTable).where(eq(promptsTable.id, params.data.id));
+  const [existingPrompt] = await db.select().from(promptsTable)
+    .where(and(eq(promptsTable.id, params.data.id), isNull(promptsTable.deletedAt)));
   if (!existingPrompt) { res.status(404).json({ error: "Prompt not found" }); return; }
+
   const [author] = await db.select().from(usersTable).where(eq(usersTable.username, existingPrompt.authorUsername));
   const isFirmAdmin = author?.ownerClerkUserId && (author.adminClerkUserIds ?? []).includes(clerkUserId);
   if (!author || (author.clerkUserId !== clerkUserId && author.ownerClerkUserId !== clerkUserId && !isFirmAdmin)) {
     res.status(403).json({ error: "Forbidden" }); return;
   }
 
-  // Remove from libraries first
-  await db.delete(libraryPromptsTable).where(eq(libraryPromptsTable.promptId, params.data.id));
-  await db.delete(promptsTable).where(eq(promptsTable.id, params.data.id));
-  res.status(204).send();
+  // Soft delete — preserve the row, ratings, purchases, library memberships
+  await db.update(promptsTable)
+    .set({ deletedAt: new Date() })
+    .where(eq(promptsTable.id, params.data.id));
+
+  res.json({ ok: true });
 });
 
 router.post("/prompts/:id/save", async (req, res): Promise<void> => {
@@ -272,12 +254,11 @@ router.post("/prompts/:id/save", async (req, res): Promise<void> => {
   const parsed = ToggleSavePromptBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
-  const [existing] = await db
-    .select()
-    .from(savesTable)
+  const [existing] = await db.select().from(savesTable)
     .where(and(eq(savesTable.username, parsed.data.username), eq(savesTable.promptId, params.data.id)));
 
-  const [prompt] = await db.select().from(promptsTable).where(eq(promptsTable.id, params.data.id));
+  const [prompt] = await db.select().from(promptsTable)
+    .where(and(eq(promptsTable.id, params.data.id), isNull(promptsTable.deletedAt)));
   if (!prompt) { res.status(404).json({ error: "Prompt not found" }); return; }
 
   let saved: boolean;

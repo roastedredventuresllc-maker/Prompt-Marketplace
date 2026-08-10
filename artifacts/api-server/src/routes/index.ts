@@ -12,6 +12,8 @@ import storageRouter from "./storage";
 import settingsRouter from "./settings";
 import agentRouter from "./agent";
 import mcpRouter from "./mcp";
+import ratingsRouter from "./ratings";
+import analyticsRouter from "./analytics";
 
 const router: IRouter = Router();
 
@@ -28,5 +30,7 @@ router.use(storageRouter);
 router.use(settingsRouter);
 router.use(agentRouter);
 router.use(mcpRouter);
+router.use(ratingsRouter);
+router.use(analyticsRouter);
 
 export default router;

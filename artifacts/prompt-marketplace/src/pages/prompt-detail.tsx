@@ -35,6 +35,193 @@ function useMyUsername() {
   });
 }
 
+/* ── Star helpers ────────────────────────────────────────────── */
+function StarDisplay({ rating, size = "sm" }: { rating: number; size?: "sm" | "lg" }) {
+  const sz = size === "lg" ? "text-xl" : "text-sm";
+  return (
+    <span className={"flex items-center gap-0.5 " + sz}>
+      {[1, 2, 3, 4, 5].map(s => (
+        <span key={s} style={{ color: s <= Math.round(rating) ? "var(--orange)" : "rgba(0,0,0,0.15)" }}>★</span>
+      ))}
+    </span>
+  );
+}
+
+function StarPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+  const [hovered, setHovered] = useState(0);
+  return (
+    <span className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map(s => (
+        <button
+          key={s}
+          type="button"
+          onMouseEnter={() => setHovered(s)}
+          onMouseLeave={() => setHovered(0)}
+          onClick={() => onChange(s)}
+          className="text-2xl leading-none transition-transform hover:scale-110"
+          style={{ color: s <= (hovered || value) ? "var(--orange)" : "rgba(0,0,0,0.15)" }}
+        >★</button>
+      ))}
+    </span>
+  );
+}
+
+type RatingEntry = { id: number; rating: number; review: string | null; createdAt: string; isOwn: boolean };
+type RatingsData = { ratings: RatingEntry[]; avg: number; count: number; userRating: number | null };
+
+function useRatings(promptId: number) {
+  return useQuery<RatingsData>({
+    queryKey: ["ratings", promptId],
+    queryFn: async () => {
+      const r = await fetch(`${basePath}/api/prompts/${promptId}/ratings`, { credentials: "include" });
+      if (!r.ok) return { ratings: [], avg: 0, count: 0, userRating: null };
+      return r.json();
+    },
+    enabled: !!promptId,
+  });
+}
+
+/* ── Ratings sidebar card ────────────────────────────────────── */
+function RatingsCard({
+  promptId,
+  isAuthor,
+  isSignedIn,
+}: {
+  promptId: number;
+  isAuthor: boolean;
+  isSignedIn: boolean;
+}) {
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useRatings(promptId);
+  const [draftRating, setDraftRating] = useState(0);
+  const [draftReview, setDraftReview] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  // Pre-fill if user already rated
+  useEffect(() => {
+    if (data?.userRating) setDraftRating(data.userRating);
+  }, [data?.userRating]);
+
+  async function handleSubmit() {
+    if (!draftRating) return;
+    setSubmitting(true);
+    try {
+      await fetch(`${basePath}/api/prompts/${promptId}/rate`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rating: draftRating, review: draftReview || undefined }),
+      });
+      await queryClient.invalidateQueries({ queryKey: ["ratings", promptId] });
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 3000);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (isLoading) return <Skeleton className="h-36 w-full rounded-2xl" />;
+
+  const avg = data?.avg ?? 0;
+  const count = data?.count ?? 0;
+  const alreadyRated = (data?.userRating ?? 0) > 0;
+
+  return (
+    <div className="bg-white rounded-2xl p-6 shadow-[0_2px_16px_rgba(0,0,0,0.07)] border border-black/[0.05]">
+      <p className="text-[11px] font-bold uppercase tracking-widest text-foreground/30 mb-4">Ratings</p>
+
+      {/* Summary */}
+      <div className="flex items-center gap-3 mb-5">
+        {count > 0 ? (
+          <>
+            <span className="text-3xl font-bold tracking-tight">{avg.toFixed(1)}</span>
+            <div>
+              <StarDisplay rating={avg} size="sm" />
+              <p className="text-[12px] text-foreground/40 mt-0.5">{count} {count === 1 ? "rating" : "ratings"}</p>
+            </div>
+          </>
+        ) : (
+          <p className="text-[13px] text-foreground/40">No ratings yet</p>
+        )}
+      </div>
+
+      {/* Rating form */}
+      {!isSignedIn && (
+        <p className="text-[12px] text-foreground/40">
+          <Link href="/sign-in" style={{ color: "var(--orange)" }}>Sign in</Link> to leave a rating.
+        </p>
+      )}
+
+      {isSignedIn && isAuthor && (
+        <p className="text-[12px] text-foreground/40">You can't rate your own prompt.</p>
+      )}
+
+      {isSignedIn && !isAuthor && (
+        <div className="space-y-3">
+          <div>
+            <p className="text-[12px] text-foreground/50 mb-2">
+              {alreadyRated ? "Update your rating" : "Rate this prompt"}
+            </p>
+            <StarPicker value={draftRating} onChange={setDraftRating} />
+          </div>
+          <textarea
+            value={draftReview}
+            onChange={e => setDraftReview(e.target.value)}
+            placeholder="Optional review…"
+            rows={2}
+            className="w-full text-[13px] bg-[#f5f5f7] rounded-xl px-3 py-2 resize-none border-0 focus:outline-none focus:ring-2"
+            style={{ "--tw-ring-color": "var(--orange)30" } as any}
+          />
+          <button
+            onClick={handleSubmit}
+            disabled={!draftRating || submitting}
+            className="w-full py-2 rounded-xl text-[13px] font-medium text-white transition-opacity disabled:opacity-40"
+            style={{ background: "var(--orange)" }}
+          >
+            {submitting ? "Saving…" : submitted ? "✓ Saved!" : alreadyRated ? "Update rating" : "Submit rating"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Reviews list ────────────────────────────────────────────── */
+function ReviewsList({ promptId }: { promptId: number }) {
+  const { data } = useRatings(promptId);
+  const reviews = (data?.ratings ?? []).filter(r => r.review);
+
+  if (!data || data.count === 0) return null;
+
+  return (
+    <div className="mt-6 bg-white rounded-2xl p-6 shadow-[0_2px_16px_rgba(0,0,0,0.07)] border border-black/[0.05]">
+      <h3 className="text-[15px] font-semibold mb-4">
+        Reviews <span className="text-foreground/30 font-normal text-[13px]">({data.count})</span>
+      </h3>
+
+      {reviews.length === 0 ? (
+        <p className="text-[13px] text-foreground/40">No written reviews yet. Be the first!</p>
+      ) : (
+        <div className="space-y-4">
+          {reviews.slice(0, 5).map(r => (
+            <div key={r.id} className="pb-4 border-b border-black/[0.05] last:border-0 last:pb-0">
+              <div className="flex items-center gap-2 mb-1.5">
+                <StarDisplay rating={r.rating} size="sm" />
+                <span className="text-[11px] text-foreground/30">
+                  {new Date(r.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                </span>
+                {r.isOwn && <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--orange-subtle)] text-[var(--orange)] font-medium">You</span>}
+              </div>
+              <p className="text-[13px] text-foreground/70 leading-relaxed">{r.review}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Compact horizontal scroll card ─────────────────────────────── */
 function RelatedCard({ prompt }: { prompt: any }) {
   const isFirm = prompt.authorOrgType === "firm";
@@ -47,7 +234,6 @@ function RelatedCard({ prompt }: { prompt: any }) {
       className="group shrink-0 w-[270px] block bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.06)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.10)] transition-all duration-300 border border-black/[0.05] flex flex-col gap-3"
       data-testid={`related-prompt-${prompt.id}`}
     >
-      {/* Category + saves */}
       <div className="flex items-center justify-between gap-2">
         <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full" style={{ background: "var(--orange-subtle)", color: "var(--orange)" }}>
           {prompt.subcategoryName ?? prompt.categoryName}
@@ -58,7 +244,6 @@ function RelatedCard({ prompt }: { prompt: any }) {
         </span>
       </div>
 
-      {/* Title + description */}
       <div className="flex-1">
         <h4 className="font-semibold text-[14px] leading-snug text-foreground group-hover:text-foreground/70 transition-colors line-clamp-2 mb-1.5">
           {prompt.title}
@@ -70,7 +255,6 @@ function RelatedCard({ prompt }: { prompt: any }) {
         )}
       </div>
 
-      {/* Footer: author + price */}
       <div className="flex items-center justify-between pt-2.5 border-t border-black/[0.05]">
         <div className="flex items-center gap-1.5 min-w-0">
           <div className="w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-bold shrink-0"
@@ -102,6 +286,7 @@ export default function PromptDetail() {
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const { data: myUsername } = useMyUsername();
+  const { isSignedIn } = useAuth();
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" }); }, [promptId]);
 
@@ -109,7 +294,6 @@ export default function PromptDetail() {
     query: { enabled: !!promptId, queryKey: getGetPromptQueryKey(promptId) },
   });
 
-  // Related: same category, different prompt
   const { data: relatedData } = useListPrompts(
     { categoryId: prompt?.categoryId, limit: 10 } as any,
     { query: { enabled: !!prompt?.categoryId, queryKey: getListPromptsQueryKey({ categoryId: prompt?.categoryId, limit: 10 } as any) } }
@@ -180,6 +364,8 @@ export default function PromptDetail() {
   const isFirm = prompt.authorOrgType === "firm";
   const isAuthor = !!myUsername && myUsername === prompt.authorUsername;
   const authorName = isFirm ? (prompt.authorOrgName ?? prompt.authorDisplayName) : prompt.authorDisplayName;
+  const avgRating = (prompt as any).avgRating ?? 0;
+  const ratingCount = (prompt as any).ratingCount ?? 0;
 
   return (
     <Layout>
@@ -206,6 +392,13 @@ export default function PromptDetail() {
                   <span className="text-[11px] font-semibold px-3 py-1 rounded-full uppercase tracking-wide" style={{ background: `${accentColor}12`, color: accentColor }}>
                     {prompt.subcategoryName ?? prompt.categoryName}
                   </span>
+                  {ratingCount > 0 && (
+                    <span className="flex items-center gap-1 text-[12px] text-foreground/40">
+                      <StarDisplay rating={avgRating} />
+                      <span className="tabular-nums">{avgRating.toFixed(1)}</span>
+                      <span>({ratingCount})</span>
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-start justify-between gap-3 mb-3">
@@ -269,7 +462,6 @@ export default function PromptDetail() {
                     {shared ? "Copied link!" : "Share"}
                   </button>
 
-                  {/* Add to library */}
                   <div className="relative" style={{ zIndex: 10 }}>
                     <AddToLibraryMenu promptId={promptId} variant="pill" />
                   </div>
@@ -283,6 +475,9 @@ export default function PromptDetail() {
                   </div>
                 )}
               </div>
+
+              {/* Reviews list */}
+              <ReviewsList promptId={promptId} />
             </div>
 
             {/* ── Sidebar ── */}
@@ -310,6 +505,13 @@ export default function PromptDetail() {
                   View profile
                 </Link>
               </div>
+
+              {/* Ratings card */}
+              <RatingsCard
+                promptId={promptId}
+                isAuthor={isAuthor}
+                isSignedIn={!!isSignedIn}
+              />
 
             </div>
           </div>

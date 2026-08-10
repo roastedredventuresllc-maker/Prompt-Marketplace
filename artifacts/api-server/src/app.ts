@@ -11,6 +11,7 @@ import {
 import { bearerAuthMiddleware } from "./middlewares/bearerAuthMiddleware";
 import router from "./routes";
 import discoveryRouter from "./routes/discovery";
+import sitemapRouter from "./routes/sitemap";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
@@ -41,8 +42,9 @@ app.use(cors({ credentials: true, origin: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Discovery routes — served at root, before /api, no auth needed
+// Discovery + sitemap routes — served at root, before /api, no auth needed
 app.use(discoveryRouter);
+app.use(sitemapRouter);
 
 app.use(
   clerkMiddleware((req) => ({

@@ -8,3 +8,4 @@
 - [Firm profile patterns](firm-profile-patterns.md) — Profile page owns firm inline edit + Team tab; firms.tsx is for create/delete only; adminClerkUserIds + pricing returned by GET /users/:username.
 - [Dev/prod data parity via startup seed](dev-prod-seed-parity.md) — prod DB only gets schema via publish diff, never row data; demo content (firms, prompts, subcategories) must ship as idempotent startup seeders reading dev-exported JSON.
 - [Onboarding flow quirks](onboarding-flow-quirks.md) — preserve return-to path before redirecting into /onboarding; "/profile/me" is a placeholder, not a real username, must redirect once resolved.
+- [Soft delete, ratings, FTS, analytics, sitemap](soft-delete-and-ratings.md) — all prompts queries need isNull(deletedAt); ratings upserted via raw SQL ON CONFLICT; FTS uses trigger-maintained tsvector (generated column failed—array_to_string not immutable).

@@ -24,7 +24,7 @@
 
 import { Router } from "express";
 import { db, promptsTable, categoriesTable, usersTable, purchasesTable, apiKeysTable, libraryPromptsTable } from "@workspace/db";
-import { eq, and, ilike, or, desc, sql } from "drizzle-orm";
+import { eq, and, ilike, or, desc, sql, isNull } from "drizzle-orm";
 import { createHash, randomBytes } from "node:crypto";
 
 const router: Router = Router();
@@ -131,7 +131,6 @@ const TOOLS = [
 
 async function searchPrompts(args: Record<string, any>) {
   const limit = Math.min(Math.max(parseInt(args.limit ?? "20"), 1), 50);
-  // Fetch more than needed so JS-side filtering still returns enough results
   const fetchLimit = args.query ? Math.min(limit * 5, 200) : limit;
 
   const rows = await db
@@ -146,7 +145,7 @@ async function searchPrompts(args: Record<string, any>) {
       categoryId: promptsTable.categoryId,
     })
     .from(promptsTable)
-    .where(eq(promptsTable.isPublic, true))
+    .where(and(eq(promptsTable.isPublic, true), isNull(promptsTable.deletedAt)))
     .orderBy(desc(promptsTable.saveCount))
     .limit(fetchLimit);
 
@@ -195,7 +194,7 @@ async function searchPrompts(args: Record<string, any>) {
 
 async function getPrompt(args: Record<string, any>) {
   const id = parseInt(args.id, 10);
-  const [prompt] = await db.select().from(promptsTable).where(eq(promptsTable.id, id));
+  const [prompt] = await db.select().from(promptsTable).where(and(eq(promptsTable.id, id), isNull(promptsTable.deletedAt)));
   if (!prompt) throw new Error(`Prompt ${id} not found`);
 
   const [author] = await db.select().from(usersTable).where(eq(usersTable.username, prompt.authorUsername));
@@ -383,8 +382,8 @@ async function deletePrompt(args: Record<string, any>, apiKey: typeof apiKeysTab
   const isOwner = author && (author.clerkUserId === apiKey.ownerClerkUserId || author.ownerClerkUserId === apiKey.ownerClerkUserId);
   if (!isOwner) throw new Error("Forbidden — you do not own this prompt");
 
-  await db.delete(libraryPromptsTable).where(eq(libraryPromptsTable.promptId, id));
-  await db.delete(promptsTable).where(eq(promptsTable.id, id));
+  // Soft delete — preserves ratings, purchases, library memberships
+  await db.update(promptsTable).set({ deletedAt: new Date() }).where(eq(promptsTable.id, id));
 
   return { success: true, deleted: { id, title: existing.title } };
 }

@@ -52,13 +52,20 @@ function PromptCard({ prompt }: { prompt: Prompt }) {
           >
             {prompt.subcategoryName ?? prompt.categoryName}
           </span>
-          <span
-            className="flex items-center gap-1 text-[11px] tabular-nums font-medium"
-            style={{ color: "var(--orange)" }}
-          >
-            <Heart className="h-3 w-3" fill={prompt.saveCount > 0 ? "currentColor" : "none"} strokeWidth={prompt.saveCount > 0 ? 0 : 1.5} />
-            {prompt.saveCount}
-          </span>
+          <div className="flex items-center gap-2 shrink-0">
+            {(prompt as any).avgRating > 0 && (
+              <span className="flex items-center gap-0.5 text-[11px] tabular-nums font-medium" style={{ color: "var(--orange)" }}>
+                ★ {((prompt as any).avgRating as number).toFixed(1)}
+              </span>
+            )}
+            <span
+              className="flex items-center gap-1 text-[11px] tabular-nums font-medium"
+              style={{ color: "var(--orange)" }}
+            >
+              <Heart className="h-3 w-3" fill={prompt.saveCount > 0 ? "currentColor" : "none"} strokeWidth={prompt.saveCount > 0 ? 0 : 1.5} />
+              {prompt.saveCount}
+            </span>
+          </div>
         </div>
 
         <div className="flex-1">
