@@ -23,7 +23,7 @@
  */
 
 import { Router } from "express";
-import { db, promptsTable, categoriesTable, usersTable, purchasesTable, apiKeysTable } from "@workspace/db";
+import { db, promptsTable, categoriesTable, usersTable, purchasesTable, apiKeysTable, libraryPromptsTable } from "@workspace/db";
 import { eq, and, ilike, or, desc, sql } from "drizzle-orm";
 import { createHash, randomBytes } from "node:crypto";
 
@@ -79,6 +79,50 @@ const TOOLS = [
       properties: {
         limit: { type: "number", description: "Max results (1–100, default 50)" },
       },
+    },
+  },
+  {
+    name: "create_prompt",
+    description: "Publish a new prompt to the Promptly marketplace under your account. Returns the created prompt ID and metadata.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        title: { type: "string", description: "Prompt title (max 200 chars)" },
+        content: { type: "string", description: "The full prompt text" },
+        description: { type: "string", description: "Short description shown on listing cards (optional)" },
+        categoryId: { type: "number", description: "Category ID — use search_prompts to see categories, or omit to use category 1" },
+        tags: { type: "array", items: { type: "string" }, description: "Optional list of tags" },
+        isPublic: { type: "boolean", description: "Whether the prompt is publicly listed (default true)" },
+      },
+      required: ["title", "content"],
+    },
+  },
+  {
+    name: "update_prompt",
+    description: "Update a prompt you own. Only fields you include are changed.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: { type: "number", description: "Prompt ID to update" },
+        title: { type: "string", description: "New title" },
+        content: { type: "string", description: "New prompt text" },
+        description: { type: "string", description: "New description" },
+        categoryId: { type: "number", description: "New category ID" },
+        tags: { type: "array", items: { type: "string" }, description: "New tags (replaces existing)" },
+        isPublic: { type: "boolean", description: "Set visibility" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "delete_prompt",
+    description: "Permanently delete a prompt you own. This cannot be undone.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: { type: "number", description: "Prompt ID to delete" },
+      },
+      required: ["id"],
     },
   },
 ];
@@ -249,6 +293,102 @@ async function listPurchased(args: Record<string, any>, apiKey: typeof apiKeysTa
   return rows.map((r) => ({ id: r.itemId, title: byId[r.itemId] ?? "Unknown", priceCents: r.priceCents, purchasedAt: r.purchasedAt }));
 }
 
+async function createPrompt(args: Record<string, any>, apiKey: typeof apiKeysTable.$inferSelect) {
+  // Resolve author account from the API key owner
+  const [author] = await db.select().from(usersTable).where(eq(usersTable.clerkUserId, apiKey.ownerClerkUserId));
+  if (!author) throw new Error("No Promptly profile found for this API key. Complete onboarding at https://promptly.app/onboarding first.");
+
+  const title = String(args.title ?? "").trim();
+  const content = String(args.content ?? "").trim();
+  if (!title) throw new Error("title is required");
+  if (!content) throw new Error("content is required");
+
+  const categoryId = args.categoryId ? parseInt(args.categoryId, 10) : 1;
+  const tags: string[] = Array.isArray(args.tags) ? args.tags.map(String) : [];
+  const isPublic: boolean = args.isPublic !== undefined ? Boolean(args.isPublic) : true;
+
+  const [prompt] = await db
+    .insert(promptsTable)
+    .values({
+      title,
+      content,
+      description: args.description ? String(args.description) : null,
+      categoryId,
+      tags,
+      authorUsername: author.username,
+      isPublic,
+    })
+    .returning();
+
+  return {
+    success: true,
+    prompt: {
+      id: prompt.id,
+      title: prompt.title,
+      description: prompt.description,
+      categoryId: prompt.categoryId,
+      tags: prompt.tags,
+      isPublic: prompt.isPublic,
+      author: prompt.authorUsername,
+      createdAt: prompt.createdAt,
+    },
+  };
+}
+
+async function updatePrompt(args: Record<string, any>, apiKey: typeof apiKeysTable.$inferSelect) {
+  const id = parseInt(args.id, 10);
+  if (isNaN(id)) throw new Error("id must be a number");
+
+  const [existing] = await db.select().from(promptsTable).where(eq(promptsTable.id, id));
+  if (!existing) throw new Error(`Prompt ${id} not found`);
+
+  // Ownership check
+  const [author] = await db.select().from(usersTable).where(eq(usersTable.username, existing.authorUsername));
+  const isOwner = author && (author.clerkUserId === apiKey.ownerClerkUserId || author.ownerClerkUserId === apiKey.ownerClerkUserId);
+  if (!isOwner) throw new Error("Forbidden — you do not own this prompt");
+
+  const updates: Partial<typeof promptsTable.$inferInsert> = { updatedAt: new Date() };
+  if (args.title !== undefined) updates.title = String(args.title).trim();
+  if (args.content !== undefined) updates.content = String(args.content);
+  if (args.description !== undefined) updates.description = String(args.description);
+  if (args.categoryId !== undefined) updates.categoryId = parseInt(args.categoryId, 10);
+  if (args.tags !== undefined) updates.tags = Array.isArray(args.tags) ? args.tags.map(String) : [];
+  if (args.isPublic !== undefined) updates.isPublic = Boolean(args.isPublic);
+
+  const [prompt] = await db.update(promptsTable).set(updates).where(eq(promptsTable.id, id)).returning();
+
+  return {
+    success: true,
+    prompt: {
+      id: prompt.id,
+      title: prompt.title,
+      description: prompt.description,
+      categoryId: prompt.categoryId,
+      tags: prompt.tags,
+      isPublic: prompt.isPublic,
+      updatedAt: prompt.updatedAt,
+    },
+  };
+}
+
+async function deletePrompt(args: Record<string, any>, apiKey: typeof apiKeysTable.$inferSelect) {
+  const id = parseInt(args.id, 10);
+  if (isNaN(id)) throw new Error("id must be a number");
+
+  const [existing] = await db.select().from(promptsTable).where(eq(promptsTable.id, id));
+  if (!existing) throw new Error(`Prompt ${id} not found`);
+
+  // Ownership check
+  const [author] = await db.select().from(usersTable).where(eq(usersTable.username, existing.authorUsername));
+  const isOwner = author && (author.clerkUserId === apiKey.ownerClerkUserId || author.ownerClerkUserId === apiKey.ownerClerkUserId);
+  if (!isOwner) throw new Error("Forbidden — you do not own this prompt");
+
+  await db.delete(libraryPromptsTable).where(eq(libraryPromptsTable.promptId, id));
+  await db.delete(promptsTable).where(eq(promptsTable.id, id));
+
+  return { success: true, deleted: { id, title: existing.title } };
+}
+
 // ── JSON-RPC dispatcher ───────────────────────────────────────────────────
 
 function jsonrpcError(id: any, code: number, message: string) {
@@ -293,7 +433,7 @@ router.post("/mcp", async (req, res): Promise<void> => {
       if (!name) { res.json(jsonrpcError(id, -32602, "Missing tool name")); return; }
 
       // Tools that need auth
-      const authRequired = ["get_balance", "purchase_prompt", "list_purchased"];
+      const authRequired = ["get_balance", "purchase_prompt", "list_purchased", "create_prompt", "update_prompt", "delete_prompt"];
       if (authRequired.includes(name) && !apiKey) {
         res.json(jsonrpcError(id, -32001, "This tool requires authentication. Include an Authorization: Bearer sk_... header."));
         return;
@@ -305,6 +445,9 @@ router.post("/mcp", async (req, res): Promise<void> => {
       else if (name === "get_balance") result = await getBalance(apiKey!);
       else if (name === "purchase_prompt") result = await purchasePrompt(args, apiKey!);
       else if (name === "list_purchased") result = await listPurchased(args, apiKey!);
+      else if (name === "create_prompt") result = await createPrompt(args, apiKey!);
+      else if (name === "update_prompt") result = await updatePrompt(args, apiKey!);
+      else if (name === "delete_prompt") result = await deletePrompt(args, apiKey!);
       else { res.json(jsonrpcError(id, -32601, `Unknown tool: ${name}`)); return; }
 
       res.json(jsonrpcOk(id, { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] }));
