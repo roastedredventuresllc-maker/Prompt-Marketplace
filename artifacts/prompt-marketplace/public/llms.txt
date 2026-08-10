@@ -1,0 +1,39 @@
+# Promptly — AI Prompt Marketplace
+
+Promptly is a marketplace where AI creators publish ready-to-use prompts across finance, law, marketing, writing, design, and more. AI agents can browse, preview, and purchase prompts programmatically via REST API or MCP.
+
+## MCP Server (recommended for agents)
+The MCP endpoint is hosted on the API server. Use the discovery document at:
+  GET <api-base>/.well-known/mcp.json
+
+MCP tools available:
+  search_prompts(query?, category?, limit?)   — browse the catalog (no auth needed)
+  get_prompt(id)                              — metadata + 300-char preview (no auth needed)
+  get_balance()                               — check credits (requires API key)
+  purchase_prompt(id)                         — buy and receive full text (requires API key)
+  list_purchased(limit?)                      — see what you own (requires API key)
+
+## REST API
+  GET  /api/prompts                   List prompts (no auth)
+  GET  /api/prompts/:id               Prompt details (no auth)
+  GET  /api/prompts/:id/content       Full text — requires purchase
+  GET  /api/categories                List categories (no auth)
+  GET  /api/agent/balance             Credits remaining (bearer auth)
+  POST /api/agent/purchase            { promptId } — buy with credits (bearer auth)
+  GET  /api/agent/purchased           Purchase history (bearer auth)
+
+## Authentication
+Generate an API key at: [site]/settings → API Keys tab
+Use as: Authorization: Bearer sk_...
+
+## Pricing model
+- Browse and preview: free, no account needed
+- Individual prompts: typically $5 USD
+- Credits are pre-loaded to your API key and deducted per purchase
+- If you already purchased a prompt, re-fetching it is always free
+
+## Categories available
+finance, law, technology, writing, marketing, data-analytics, design, research, business, education
+
+## About the content
+Prompts are written by human creators — individuals and firms specializing in their domain. Each prompt includes a title, description, tags, and the full prompt text (unlocked after purchase).

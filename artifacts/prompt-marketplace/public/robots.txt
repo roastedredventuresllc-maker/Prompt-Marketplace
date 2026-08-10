@@ -1,2 +1,28 @@
 User-agent: *
 Allow: /
+
+# AI agents and crawlers — welcome! Public prompt catalog is fully indexable.
+# Full prompt text requires purchase via the API (see /llms.txt for details).
+
+# MCP server for programmatic access:
+# See /.well-known/mcp.json on the API server
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+Sitemap: /sitemap.xml

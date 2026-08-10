@@ -10,6 +10,8 @@ import accessRouter from "./access";
 import firmsRouter from "./firms";
 import storageRouter from "./storage";
 import settingsRouter from "./settings";
+import agentRouter from "./agent";
+import mcpRouter from "./mcp";
 
 const router: IRouter = Router();
 
@@ -24,5 +26,7 @@ router.use(accessRouter);
 router.use(firmsRouter);
 router.use(storageRouter);
 router.use(settingsRouter);
+router.use(agentRouter);
+router.use(mcpRouter);
 
 export default router;

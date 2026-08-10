@@ -8,7 +8,9 @@ import {
   clerkProxyMiddleware,
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
+import { bearerAuthMiddleware } from "./middlewares/bearerAuthMiddleware";
 import router from "./routes";
+import discoveryRouter from "./routes/discovery";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
@@ -39,6 +41,9 @@ app.use(cors({ credentials: true, origin: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Discovery routes — served at root, before /api, no auth needed
+app.use(discoveryRouter);
+
 app.use(
   clerkMiddleware((req) => ({
     publishableKey: publishableKeyFromHost(
@@ -47,6 +52,9 @@ app.use(
     ),
   })),
 );
+
+// Resolve bearer API keys on every request so route handlers can use req.apiKey
+app.use(bearerAuthMiddleware);
 
 app.use("/api", router);
 
