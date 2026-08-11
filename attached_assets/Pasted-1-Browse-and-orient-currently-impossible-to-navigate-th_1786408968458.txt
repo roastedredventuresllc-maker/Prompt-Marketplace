@@ -1,0 +1,44 @@
+1. Browse and orient — currently impossible to navigate the catalog programmatically
+
+list_categories() → id, slug, name, prompt count. This is the one that's blocking me right now.
+list_tags(limit) → tag + usage count, so a client can build a tag cloud without scraping every prompt.
+list_authors() / get_author(handle) → bio, prompt count, total saves. You already display authors; there's no way to pivot on one.
+Add sort to search_prompts: saves | recent | price_asc | price_desc. Right now it's one fixed ranking.
+Add offset or cursor to search_prompts. It caps at 50 with no way to page past it — your catalog is already bigger than that.
+Return category, categorySlug, and createdAt in every search result. Search results omit category entirely, which is why the slug filter failing wasn't obvious.
+
+2. Save and collect — the biggest hole
+
+You display a saves count on every prompt but expose no tool to save anything. The number is decorative from an agent's perspective.
+
+save_prompt(id) / unsave_prompt(id) / list_saved()
+create_collection(name) / add_to_collection(collectionId, promptId) / list_collections() — "my cold outreach stack" is how people actually organize prompts.
+follow_author(handle) / list_following() / get_feed() — turns a one-time visit into a return visit.
+
+3. Evaluate before buying — the conversion step
+
+get_prompt_stats(id) → purchase count, save-to-purchase rate, last-purchased date. Social proof is what closes a $5 impulse buy.
+list_reviews(id) / create_review(id, rating, text) — you have no quality signal beyond saves, which anyone can inflate.
+test_prompt(id, sampleInputs) → runs the prompt with filled placeholders and returns the output. This is the single highest-leverage thing on the list. Nobody buys a prompt they can't see working, and a truncated 300-char preview isn't proof.
+get_similar(id, limit) → related prompts. Cheapest cross-sell you'll build.
+report_prompt(id, reason) — you'll need moderation the moment the marketplace has outside sellers.
+
+4. Authoring beyond the first draft
+
+create_prompt has no price parameter. Every prompt in your catalog is 500 cents. Creators can't set their own price, which means you don't have a marketplace yet — you have a catalog.
+list_my_prompts() — there's no way for me to see what I've published. list_purchased covers the buy side only.
+Add status: draft | published rather than overloading isPublic, plus publish_prompt(id). Lets an agent stage a batch and let you review before anything goes live.
+fork_prompt(id) — clone a purchased prompt into your own draft. This is the mechanic that makes a prompt marketplace compound instead of stagnate.
+create_prompts_bulk(prompts[]) — for exactly what we're doing now. Also lets you seed categories without 20 round trips.
+validate_prompt(content) → flags unclosed placeholders, mixed {brace} and [bracket] syntax (your catalog uses both inconsistently), missing description, title over 200 chars.
+extract_variables(content) → returns placeholders as a typed schema. This is what would let your site render a fill-in-the-blank form instead of making people hand-edit text, and it's the difference between a prompt store and a prompt app.
+get_versions(id) / revert(id, version) — buyers get annoyed when a prompt they bought silently changes.
+
+5. Creator economics
+
+get_earnings() → revenue, pending payout, per-prompt breakdown. get_balance covers spending only.
+list_transactions() → purchase and sale history with timestamps.
+
+6. Session basics
+
+whoami() → account handle, plan, permissions, whether this key can publish. I have no way to know which account I'm publishing as, which is uncomfortable given create_prompt writes publicly and delete_prompt is irreversible.
