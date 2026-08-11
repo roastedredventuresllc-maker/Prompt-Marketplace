@@ -260,7 +260,7 @@ function ClaudeConnectPanel({ mcpKey: _ }: { mcpKey: string }) {
 
       <p className="text-[11px] text-white/25 font-sans leading-relaxed border-t border-white/[0.06] pt-4">
         {tab === "oauth"
-          ? "OAuth creates a dedicated key named "Claude (auto)" — add credits to it from the table above before buying prompts."
+          ? "OAuth creates a dedicated key named \u201cClaude (auto)\u201d — add credits to it from the table above before buying prompts."
           : "Keep your key private — anyone with it can act as you. Use a dedicated key (not your main one) and set a spending limit."}
       </p>
     </div>
