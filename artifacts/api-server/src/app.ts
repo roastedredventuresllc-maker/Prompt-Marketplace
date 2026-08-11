@@ -46,6 +46,28 @@ app.use(express.urlencoded({ extended: true }));
 app.use(discoveryRouter);
 app.use(sitemapRouter);
 
+// OAuth 2.0 well-known metadata — must be at root before Clerk middleware
+app.get("/.well-known/oauth-authorization-server", (req, res) => {
+  const origin = `${req.protocol}://${req.get("host")}`;
+  res.json({
+    issuer: origin,
+    authorization_endpoint: `${origin}/oauth/authorize`,
+    token_endpoint: `${origin}/api/oauth/token`,
+    registration_endpoint: `${origin}/api/oauth/register`,
+    response_types_supported: ["code"],
+    grant_types_supported: ["authorization_code"],
+    code_challenge_methods_supported: ["S256"],
+    token_endpoint_auth_methods_supported: ["none"],
+  });
+});
+
+// OAuth authorize — redirect the browser to the React frontend page.
+// Uses /connect/claude so it falls outside the /oauth path that routes to the API server.
+app.get("/oauth/authorize", (req, res) => {
+  const params = new URLSearchParams(req.query as Record<string, string>);
+  res.redirect(`/connect/claude?${params.toString()}`);
+});
+
 app.use(
   clerkMiddleware((req) => ({
     publishableKey: publishableKeyFromHost(
