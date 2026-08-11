@@ -203,9 +203,14 @@ function ClaudeConnectPanel({ mcpKey: _ }: { mcpKey: string }) {
         <ol className="space-y-4 list-none">
           <li className="flex gap-3">
             <span className="shrink-0 w-5 h-5 rounded-full bg-white/[0.08] text-white/40 text-[10px] font-bold flex items-center justify-center mt-0.5">1</span>
-            <p className="text-[12px] text-white/60 font-sans leading-relaxed">
-              In Claude → <span className="text-white/80">Settings → Connectors → Add custom connector</span>
-            </p>
+            <div className="space-y-1">
+              <p className="text-[12px] text-white/60 font-sans leading-relaxed">
+                In Claude → <span className="text-white/80">Settings → Connectors</span>
+              </p>
+              <p className="text-[11px] text-amber-400/80 font-sans leading-relaxed">
+                ⚠️ If Promptly already appears there, <span className="text-amber-400">delete it first</span> — Claude caches old connections and won't show the sign-in pop-up otherwise.
+              </p>
+            </div>
           </li>
           <li className="flex gap-3">
             <span className="shrink-0 w-5 h-5 rounded-full bg-white/[0.08] text-white/40 text-[10px] font-bold flex items-center justify-center mt-0.5">2</span>
