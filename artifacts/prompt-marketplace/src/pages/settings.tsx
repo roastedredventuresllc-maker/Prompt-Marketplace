@@ -235,7 +235,7 @@ function ClaudeConnectPanel({ mcpKey: _ }: { mcpKey: string }) {
           <li className="flex gap-3">
             <span className="shrink-0 w-5 h-5 rounded-full bg-white/[0.08] text-white/40 text-[10px] font-bold flex items-center justify-center mt-0.5">1</span>
             <p className="text-[12px] text-white/60 font-sans leading-relaxed">
-              From the table above, click <span className="text-white/80">Reveal</span> on any API key and copy the full <span className="text-white/80 font-mono">sk_…</span> value.
+              Generate a new API key below. Copy the full <span className="text-white/80 font-mono">sk_…</span> value from the yellow banner — it's only shown once.
             </p>
           </li>
           <li className="flex gap-3">

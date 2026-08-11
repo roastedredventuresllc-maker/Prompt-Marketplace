@@ -48,9 +48,18 @@ app.use(sitemapRouter);
 
 // OAuth 2.0 well-known metadata — must be at root before Clerk middleware
 
+/** Derive the base origin, honouring Replit's TLS-terminating proxy.
+ *  Inside Replit (dev + prod) TLS terminates at the proxy so req.protocol
+ *  is always "http". The real scheme is in x-forwarded-proto. */
+function getOrigin(req: Parameters<Parameters<typeof app.get>[1]>[0]) {
+  const proto = req.get("x-forwarded-proto") ?? req.protocol;
+  const host = req.get("x-forwarded-host") ?? req.get("host") ?? "localhost";
+  return `${proto}://${host}`;
+}
+
 // RFC 9728: Protected Resource Metadata — Claude checks THIS first to find the auth server
 app.get("/.well-known/oauth-protected-resource", (req, res) => {
-  const origin = `${req.protocol}://${req.get("host")}`;
+  const origin = getOrigin(req);
   res.json({
     resource: `${origin}/api/mcp`,
     authorization_servers: [origin],
@@ -61,7 +70,7 @@ app.get("/.well-known/oauth-protected-resource", (req, res) => {
 
 // RFC 8414: Authorization Server Metadata — Claude fetches this after the above
 app.get("/.well-known/oauth-authorization-server", (req, res) => {
-  const origin = `${req.protocol}://${req.get("host")}`;
+  const origin = getOrigin(req);
   res.json({
     issuer: origin,
     authorization_endpoint: `${origin}/oauth/authorize`,
