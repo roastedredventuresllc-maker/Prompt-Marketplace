@@ -13,10 +13,10 @@ declare global {
 }
 
 /**
- * Reads an `Authorization: Bearer sk_...` header and resolves it to the
- * matching api_keys row.  Sets req.apiKey if valid and active; otherwise
- * leaves it undefined (the route handler decides whether to 401 or fall
- * through to Clerk session auth).
+ * Resolves an API key to req.apiKey.  Accepts the key two ways:
+ *   1. Authorization: Bearer sk_...  header  (standard agent use)
+ *   2. ?key=sk_...  query parameter           (Claude.ai connector — URL only, no header field)
+ * Sets req.apiKey if valid and active; otherwise leaves it undefined.
  */
 export async function bearerAuthMiddleware(
   req: Request,
@@ -24,11 +24,16 @@ export async function bearerAuthMiddleware(
   next: NextFunction,
 ): Promise<void> {
   const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer sk_")) {
-    return next();
-  }
+  const queryKey = typeof req.query.key === "string" ? req.query.key : undefined;
 
-  const rawKey = authHeader.slice(7); // strip "Bearer "
+  // Pick whichever source is present; header takes priority
+  const rawKey = authHeader?.startsWith("Bearer sk_")
+    ? authHeader.slice(7)
+    : queryKey?.startsWith("sk_")
+      ? queryKey
+      : null;
+
+  if (!rawKey) return next();
   const keyHash = createHash("sha256").update(rawKey).digest("hex");
 
   const [apiKey] = await db

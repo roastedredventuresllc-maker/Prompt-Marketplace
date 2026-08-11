@@ -168,26 +168,13 @@ function PricingPanel() {
 
 function ClaudeConnectPanel({ mcpKey }: { mcpKey: string }) {
   const [copiedUrl, setCopiedUrl] = useState(false);
-  const [copiedJson, setCopiedJson] = useState(false);
 
-  const configSnippet = JSON.stringify(
-    {
-      mcpServers: {
-        promptly: {
-          type: "http",
-          url: MCP_URL,
-          headers: { Authorization: `Bearer ${mcpKey}…` },
-        },
-      },
-    },
-    null,
-    2
-  );
+  // The full key isn't stored — only the prefix. User must paste their real key.
+  const connectorUrl = `${MCP_URL}?key=YOUR_FULL_API_KEY`;
 
-  function copy(text: string, which: "url" | "json") {
+  function copy(text: string, which: "url") {
     navigator.clipboard.writeText(text);
     if (which === "url") { setCopiedUrl(true); setTimeout(() => setCopiedUrl(false), 2000); }
-    else { setCopiedJson(true); setTimeout(() => setCopiedJson(false), 2000); }
   }
 
   return (
@@ -197,44 +184,49 @@ function ClaudeConnectPanel({ mcpKey }: { mcpKey: string }) {
         <p className="text-[11px] font-sans font-semibold tracking-wide uppercase text-white/40">Connect to Claude</p>
       </div>
 
-      {/* MCP URL row */}
-      <div>
-        <p className="text-[11px] text-white/30 mb-1.5 font-sans">MCP Server URL</p>
-        <div className="flex items-center gap-2">
-          <code className="flex-1 font-mono text-[12px] text-green-400 bg-white/[0.05] rounded-xl px-4 py-2.5 truncate">
-            {MCP_URL}
-          </code>
-          <button
-            onClick={() => copy(MCP_URL, "url")}
-            className="shrink-0 p-2 rounded-lg bg-white/[0.08] hover:bg-white/[0.15] transition-colors"
-            title="Copy URL"
-          >
-            {copiedUrl ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4 text-white/50" />}
-          </button>
-        </div>
-      </div>
+      {/* Steps */}
+      <ol className="space-y-4 list-none">
+        <li className="flex gap-3">
+          <span className="shrink-0 w-5 h-5 rounded-full bg-white/[0.08] text-white/40 text-[10px] font-bold flex items-center justify-center mt-0.5">1</span>
+          <div className="flex-1">
+            <p className="text-[12px] text-white/60 font-sans mb-1">
+              In Claude → Settings → Connectors → <span className="text-white/80">Add custom connector</span>
+            </p>
+          </div>
+        </li>
+        <li className="flex gap-3">
+          <span className="shrink-0 w-5 h-5 rounded-full bg-white/[0.08] text-white/40 text-[10px] font-bold flex items-center justify-center mt-0.5">2</span>
+          <div className="flex-1">
+            <p className="text-[12px] text-white/60 font-sans mb-2">
+              Paste this as the <span className="text-white/80">Remote MCP Server URL</span> — replace <code className="bg-white/[0.08] px-1 rounded text-orange-400">YOUR_FULL_API_KEY</code> with your key from above:
+            </p>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 font-mono text-[11px] text-green-400 bg-white/[0.05] rounded-xl px-3 py-2.5 break-all leading-relaxed">
+                {MCP_URL}?key=<span className="text-orange-400">YOUR_FULL_API_KEY</span>
+              </code>
+              <button
+                onClick={() => copy(connectorUrl, "url")}
+                className="shrink-0 p-2 rounded-lg bg-white/[0.08] hover:bg-white/[0.15] transition-colors"
+                title="Copy URL template"
+              >
+                {copiedUrl ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4 text-white/50" />}
+              </button>
+            </div>
+          </div>
+        </li>
+        <li className="flex gap-3">
+          <span className="shrink-0 w-5 h-5 rounded-full bg-white/[0.08] text-white/40 text-[10px] font-bold flex items-center justify-center mt-0.5">3</span>
+          <div className="flex-1">
+            <p className="text-[12px] text-white/60 font-sans">
+              Give it a name (e.g. <span className="text-white/80">Promptly</span>), leave the OAuth fields blank, and save.
+            </p>
+          </div>
+        </li>
+      </ol>
 
-      {/* Config snippet */}
-      <div>
-        <p className="text-[11px] text-white/30 mb-1.5 font-sans">
-          Paste into <code className="bg-white/[0.06] px-1 rounded">claude_desktop_config.json</code>
-        </p>
-        <div className="relative">
-          <pre className="font-mono text-[11px] text-white/60 bg-white/[0.05] rounded-xl px-4 py-3 overflow-x-auto leading-relaxed whitespace-pre">
-            {configSnippet}
-          </pre>
-          <button
-            onClick={() => copy(configSnippet.replace(`${mcpKey}…`, `${mcpKey}…`), "json")}
-            className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/[0.08] hover:bg-white/[0.15] transition-colors"
-            title="Copy config"
-          >
-            {copiedJson ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5 text-white/50" />}
-          </button>
-        </div>
-        <p className="text-[11px] text-white/25 mt-2 font-sans leading-relaxed">
-          Replace the key prefix shown with your full API key from above.
-        </p>
-      </div>
+      <p className="text-[11px] text-white/25 font-sans leading-relaxed border-t border-white/[0.06] pt-4">
+        Your key prefix starts with <code className="bg-white/[0.06] px-1 rounded">{mcpKey}</code>. Copy the full key from the amber banner shown when you first created it — it's not stored and cannot be retrieved.
+      </p>
     </div>
   );
 }
