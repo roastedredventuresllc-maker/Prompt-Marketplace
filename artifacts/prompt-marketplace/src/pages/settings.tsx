@@ -4,8 +4,10 @@ import { Layout } from "@/components/layout";
 import { useUser } from "@clerk/react";
 import {
   ArrowLeft, Save, DollarSign, Loader2, CheckCircle, AlertCircle,
-  Key, Plus, Trash2, Eye, EyeOff, Copy, Check, RefreshCw,
+  Key, Plus, Trash2, Eye, Copy, Check, RefreshCw, Plug,
 } from "lucide-react";
+
+const MCP_URL = "https://prompt-marketplace99.replit.app/api/mcp";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -157,6 +159,81 @@ function PricingPanel() {
             <AlertCircle className="h-4 w-4" /> Please enter valid prices
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ── Claude connect panel ──────────────────────────────────────────────────
+
+function ClaudeConnectPanel({ mcpKey }: { mcpKey: string }) {
+  const [copiedUrl, setCopiedUrl] = useState(false);
+  const [copiedJson, setCopiedJson] = useState(false);
+
+  const configSnippet = JSON.stringify(
+    {
+      mcpServers: {
+        promptly: {
+          type: "http",
+          url: MCP_URL,
+          headers: { Authorization: `Bearer ${mcpKey}…` },
+        },
+      },
+    },
+    null,
+    2
+  );
+
+  function copy(text: string, which: "url" | "json") {
+    navigator.clipboard.writeText(text);
+    if (which === "url") { setCopiedUrl(true); setTimeout(() => setCopiedUrl(false), 2000); }
+    else { setCopiedJson(true); setTimeout(() => setCopiedJson(false), 2000); }
+  }
+
+  return (
+    <div className="bg-[#1d1d1f] rounded-2xl p-5 space-y-5">
+      <div className="flex items-center gap-2">
+        <Plug className="h-4 w-4 text-white/40 shrink-0" />
+        <p className="text-[11px] font-sans font-semibold tracking-wide uppercase text-white/40">Connect to Claude</p>
+      </div>
+
+      {/* MCP URL row */}
+      <div>
+        <p className="text-[11px] text-white/30 mb-1.5 font-sans">MCP Server URL</p>
+        <div className="flex items-center gap-2">
+          <code className="flex-1 font-mono text-[12px] text-green-400 bg-white/[0.05] rounded-xl px-4 py-2.5 truncate">
+            {MCP_URL}
+          </code>
+          <button
+            onClick={() => copy(MCP_URL, "url")}
+            className="shrink-0 p-2 rounded-lg bg-white/[0.08] hover:bg-white/[0.15] transition-colors"
+            title="Copy URL"
+          >
+            {copiedUrl ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4 text-white/50" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Config snippet */}
+      <div>
+        <p className="text-[11px] text-white/30 mb-1.5 font-sans">
+          Paste into <code className="bg-white/[0.06] px-1 rounded">claude_desktop_config.json</code>
+        </p>
+        <div className="relative">
+          <pre className="font-mono text-[11px] text-white/60 bg-white/[0.05] rounded-xl px-4 py-3 overflow-x-auto leading-relaxed whitespace-pre">
+            {configSnippet}
+          </pre>
+          <button
+            onClick={() => copy(configSnippet.replace(`${mcpKey}…`, `${mcpKey}…`), "json")}
+            className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/[0.08] hover:bg-white/[0.15] transition-colors"
+            title="Copy config"
+          >
+            {copiedJson ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5 text-white/50" />}
+          </button>
+        </div>
+        <p className="text-[11px] text-white/25 mt-2 font-sans leading-relaxed">
+          Replace the key prefix shown with your full API key from above.
+        </p>
       </div>
     </div>
   );
@@ -364,16 +441,8 @@ function ApiKeysPanel() {
         </button>
       </form>
 
-      {/* Quick-start snippet */}
-      {keys.length > 0 && (
-        <div className="bg-[#1d1d1f] rounded-2xl p-5 text-[12px] font-mono text-white/70 space-y-1 leading-relaxed">
-          <p className="text-white/40 font-sans text-[11px] mb-3 font-medium tracking-wide uppercase">Quick start — MCP</p>
-          <p><span className="text-green-400">POST</span> /api/mcp</p>
-          <p className="text-white/40">Authorization: Bearer {keys[0].keyPrefix}…</p>
-          <p className="text-white/40">Content-Type: application/json</p>
-          <p className="mt-2">{`{"jsonrpc":"2.0","method":"tools/call","params":{"name":"search_prompts","arguments":{"query":"financial analysis"}},"id":1}`}</p>
-        </div>
-      )}
+      {/* Connect to Claude */}
+      {keys.length > 0 && <ClaudeConnectPanel mcpKey={keys[0].keyPrefix} />}
     </div>
   );
 }
