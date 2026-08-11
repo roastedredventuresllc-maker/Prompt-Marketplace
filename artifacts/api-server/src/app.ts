@@ -47,6 +47,19 @@ app.use(discoveryRouter);
 app.use(sitemapRouter);
 
 // OAuth 2.0 well-known metadata — must be at root before Clerk middleware
+
+// RFC 9728: Protected Resource Metadata — Claude checks THIS first to find the auth server
+app.get("/.well-known/oauth-protected-resource", (req, res) => {
+  const origin = `${req.protocol}://${req.get("host")}`;
+  res.json({
+    resource: `${origin}/api/mcp`,
+    authorization_servers: [origin],
+    bearer_methods_supported: ["header", "query"],
+    resource_documentation: `${origin}/api/mcp`,
+  });
+});
+
+// RFC 8414: Authorization Server Metadata — Claude fetches this after the above
 app.get("/.well-known/oauth-authorization-server", (req, res) => {
   const origin = `${req.protocol}://${req.get("host")}`;
   res.json({

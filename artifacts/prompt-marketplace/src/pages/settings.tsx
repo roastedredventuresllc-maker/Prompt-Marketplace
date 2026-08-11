@@ -167,12 +167,13 @@ function PricingPanel() {
 // ── Claude connect panel ──────────────────────────────────────────────────
 
 function ClaudeConnectPanel({ mcpKey: _ }: { mcpKey: string }) {
-  const [copied, setCopied] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
+  const [tab, setTab] = useState<"oauth" | "key">("oauth");
 
-  function copy() {
+  function copyUrl() {
     navigator.clipboard.writeText(MCP_URL);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedUrl(true);
+    setTimeout(() => setCopiedUrl(false), 2000);
   }
 
   return (
@@ -182,39 +183,85 @@ function ClaudeConnectPanel({ mcpKey: _ }: { mcpKey: string }) {
         <p className="text-[11px] font-sans font-semibold tracking-wide uppercase text-white/40">Connect to Claude</p>
       </div>
 
-      <ol className="space-y-4 list-none">
-        <li className="flex gap-3">
-          <span className="shrink-0 w-5 h-5 rounded-full bg-white/[0.08] text-white/40 text-[10px] font-bold flex items-center justify-center mt-0.5">1</span>
-          <p className="text-[12px] text-white/60 font-sans leading-relaxed">
-            In Claude → <span className="text-white/80">Settings → Connectors → Add custom connector</span>
-          </p>
-        </li>
-        <li className="flex gap-3">
-          <span className="shrink-0 w-5 h-5 rounded-full bg-white/[0.08] text-white/40 text-[10px] font-bold flex items-center justify-center mt-0.5">2</span>
-          <div className="flex-1 space-y-2">
-            <p className="text-[12px] text-white/60 font-sans">
-              Paste this as the <span className="text-white/80">Remote MCP Server URL</span>:
+      {/* Tab switcher */}
+      <div className="flex gap-1 bg-white/[0.05] rounded-xl p-1">
+        <button
+          onClick={() => setTab("oauth")}
+          className={`flex-1 text-[11px] font-sans font-medium py-1.5 rounded-lg transition-colors ${tab === "oauth" ? "bg-white/[0.12] text-white" : "text-white/40 hover:text-white/60"}`}
+        >
+          OAuth (recommended)
+        </button>
+        <button
+          onClick={() => setTab("key")}
+          className={`flex-1 text-[11px] font-sans font-medium py-1.5 rounded-lg transition-colors ${tab === "key" ? "bg-white/[0.12] text-white" : "text-white/40 hover:text-white/60"}`}
+        >
+          API Key URL
+        </button>
+      </div>
+
+      {tab === "oauth" ? (
+        <ol className="space-y-4 list-none">
+          <li className="flex gap-3">
+            <span className="shrink-0 w-5 h-5 rounded-full bg-white/[0.08] text-white/40 text-[10px] font-bold flex items-center justify-center mt-0.5">1</span>
+            <p className="text-[12px] text-white/60 font-sans leading-relaxed">
+              In Claude → <span className="text-white/80">Settings → Connectors → Add custom connector</span>
             </p>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 font-mono text-[11px] text-green-400 bg-white/[0.05] rounded-xl px-3 py-2.5 break-all">
-                {MCP_URL}
-              </code>
-              <button onClick={copy} className="shrink-0 p-2 rounded-lg bg-white/[0.08] hover:bg-white/[0.15] transition-colors">
-                {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4 text-white/50" />}
-              </button>
+          </li>
+          <li className="flex gap-3">
+            <span className="shrink-0 w-5 h-5 rounded-full bg-white/[0.08] text-white/40 text-[10px] font-bold flex items-center justify-center mt-0.5">2</span>
+            <div className="flex-1 space-y-2">
+              <p className="text-[12px] text-white/60 font-sans">
+                Paste this as the <span className="text-white/80">Remote MCP Server URL</span>:
+              </p>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 font-mono text-[11px] text-green-400 bg-white/[0.05] rounded-xl px-3 py-2.5 break-all">
+                  {MCP_URL}
+                </code>
+                <button onClick={copyUrl} className="shrink-0 p-2 rounded-lg bg-white/[0.08] hover:bg-white/[0.15] transition-colors">
+                  {copiedUrl ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4 text-white/50" />}
+                </button>
+              </div>
             </div>
-          </div>
-        </li>
-        <li className="flex gap-3">
-          <span className="shrink-0 w-5 h-5 rounded-full bg-white/[0.08] text-white/40 text-[10px] font-bold flex items-center justify-center mt-0.5">3</span>
-          <p className="text-[12px] text-white/60 font-sans leading-relaxed">
-            Give it a name (e.g. <span className="text-white/80">Promptly</span>), leave OAuth fields blank, and save. Claude will open a sign-in window — log in and click <span className="text-white/80">Authorize Claude</span>.
-          </p>
-        </li>
-      </ol>
+          </li>
+          <li className="flex gap-3">
+            <span className="shrink-0 w-5 h-5 rounded-full bg-white/[0.08] text-white/40 text-[10px] font-bold flex items-center justify-center mt-0.5">3</span>
+            <p className="text-[12px] text-white/60 font-sans leading-relaxed">
+              Give it a name (e.g. <span className="text-white/80">Promptly</span>) and save. Claude will open a sign-in pop-up — log in and click <span className="text-white/80">Authorize Claude</span>. A dedicated key is created automatically.
+            </p>
+          </li>
+        </ol>
+      ) : (
+        <ol className="space-y-4 list-none">
+          <li className="flex gap-3">
+            <span className="shrink-0 w-5 h-5 rounded-full bg-white/[0.08] text-white/40 text-[10px] font-bold flex items-center justify-center mt-0.5">1</span>
+            <p className="text-[12px] text-white/60 font-sans leading-relaxed">
+              From the table above, click <span className="text-white/80">Reveal</span> on any API key and copy the full <span className="text-white/80 font-mono">sk_…</span> value.
+            </p>
+          </li>
+          <li className="flex gap-3">
+            <span className="shrink-0 w-5 h-5 rounded-full bg-white/[0.08] text-white/40 text-[10px] font-bold flex items-center justify-center mt-0.5">2</span>
+            <div className="flex-1 space-y-2">
+              <p className="text-[12px] text-white/60 font-sans">
+                In Claude → <span className="text-white/80">Settings → Connectors → Add custom connector</span>. Use this URL pattern, substituting your key:
+              </p>
+              <code className="block font-mono text-[11px] text-green-400 bg-white/[0.05] rounded-xl px-3 py-2.5 break-all">
+                {MCP_URL}?key=sk_YOUR_KEY_HERE
+              </code>
+            </div>
+          </li>
+          <li className="flex gap-3">
+            <span className="shrink-0 w-5 h-5 rounded-full bg-white/[0.08] text-white/40 text-[10px] font-bold flex items-center justify-center mt-0.5">3</span>
+            <p className="text-[12px] text-white/60 font-sans leading-relaxed">
+              Give it a name, save, and connect — no sign-in pop-up needed. Claude will be authenticated as <span className="text-white/80">your account</span> immediately.
+            </p>
+          </li>
+        </ol>
+      )}
 
       <p className="text-[11px] text-white/25 font-sans leading-relaxed border-t border-white/[0.06] pt-4">
-        Promptly creates a dedicated API key for Claude automatically. You can revoke it any time from this page.
+        {tab === "oauth"
+          ? "OAuth creates a dedicated key named "Claude (auto)" — add credits to it from the table above before buying prompts."
+          : "Keep your key private — anyone with it can act as you. Use a dedicated key (not your main one) and set a spending limit."}
       </p>
     </div>
   );
