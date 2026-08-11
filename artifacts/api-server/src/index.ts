@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { runMigrations } from "./lib/runMigrations";
 import { seedCategories } from "./lib/seedCategories";
 import { seedSubcategories } from "./lib/seedSubcategories";
 import { seedPrompts } from "./lib/seedPrompts";
@@ -18,7 +19,11 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-seedCategories()
+runMigrations()
+  .then(() => {
+    logger.info("Migrations complete");
+    return seedCategories();
+  })
   .then(() => {
     logger.info("Categories seeded");
     return seedSubcategories();

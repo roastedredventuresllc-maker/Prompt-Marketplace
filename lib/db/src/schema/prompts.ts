@@ -15,6 +15,8 @@ export const promptsTable = pgTable("prompts", {
   viewCount: integer("view_count").notNull().default(0),
   avgRating: decimal("avg_rating", { precision: 3, scale: 2 }).notNull().default("0"),
   ratingCount: integer("rating_count").notNull().default(0),
+  priceCents: integer("price_cents"),           // null = use author default price
+  idempotencyKey: text("idempotency_key"),      // optional client-supplied dedup key
   isPublic: boolean("is_public").notNull().default(true),
   deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

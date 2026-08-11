@@ -83,6 +83,21 @@ const TOOLS = [
     inputSchema: { type: "object", properties: {} },
   },
   {
+    name: "create_category",
+    description: "Create a new top-level category in the Promptly catalog. Use list_categories first to avoid duplicates.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Display name, e.g. 'Personal & Everyday'" },
+        slug: { type: "string", description: "URL-safe slug, e.g. 'personal-everyday'. Auto-generated from name if omitted." },
+        description: { type: "string", description: "One-sentence description shown on the category page." },
+        icon: { type: "string", description: "Lucide icon name (default: Sparkles)" },
+      },
+      required: ["name"],
+    },
+  },
+
+  {
     name: "list_tags",
     description: "Top tags across the catalog ordered by usage. Use to build a tag cloud or discover popular topics.",
     inputSchema: {
@@ -310,7 +325,9 @@ const TOOLS = [
         description: { type: "string", description: "Short description shown on listing cards" },
         categoryId: { type: "number", description: "Category ID — use list_categories to see options" },
         tags: { type: "array", items: { type: "string" }, description: "Tags (up to 10)" },
+        priceCents: { type: "number", description: "Price in cents (e.g. 500 = $5.00). Omit to use your account default price." },
         isPublic: { type: "boolean", description: "Publicly listed (default true)" },
+        idempotencyKey: { type: "string", description: "Optional unique key to prevent duplicates on retry. If a prompt with this key already exists for your account, it is returned instead of creating a new one." },
       },
       required: ["title", "content"],
     },
@@ -332,7 +349,9 @@ const TOOLS = [
               description: { type: "string" },
               categoryId: { type: "number" },
               tags: { type: "array", items: { type: "string" } },
+              priceCents: { type: "number", description: "Price in cents. Omit to use account default." },
               isPublic: { type: "boolean" },
+              idempotencyKey: { type: "string" },
             },
             required: ["title", "content"],
           },
@@ -353,6 +372,7 @@ const TOOLS = [
         description: { type: "string" },
         categoryId: { type: "number" },
         tags: { type: "array", items: { type: "string" } },
+        priceCents: { type: "number", description: "Price in cents. Omit to keep current price." },
         isPublic: { type: "boolean" },
       },
       required: ["id"],
@@ -482,6 +502,42 @@ async function listCategories() {
   }));
 }
 
+async function createCategory(args: Record<string, any>, apiKey: ApiKey) {
+  const name = String(args.name ?? "").trim();
+  if (!name) throw new Error("name is required");
+
+  // Auto-generate slug from name if not provided
+  const slug = args.slug
+    ? String(args.slug).trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+    : name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+  if (!slug) throw new Error("Could not generate a valid slug from the name provided");
+
+  // Check for duplicate
+  const [existing] = await db.select({ id: categoriesTable.id, slug: categoriesTable.slug })
+    .from(categoriesTable)
+    .where(eq(categoriesTable.slug, slug));
+  if (existing) throw new Error(`Category with slug '${slug}' already exists (id: ${existing.id}). Use list_categories to see all categories.`);
+
+  const maxOrder = await db
+    .select({ max: sql<number>`coalesce(max(sort_order), 0)::int` })
+    .from(categoriesTable);
+
+  const [cat] = await db.insert(categoriesTable).values({
+    name,
+    slug,
+    description: args.description ? String(args.description) : "",
+    icon: args.icon ? String(args.icon) : "Sparkles",
+    sortOrder: (maxOrder[0]?.max ?? 100) + 10,
+  }).returning();
+
+  return {
+    success: true,
+    category: { id: cat.id, name: cat.name, slug: cat.slug, description: cat.description, icon: cat.icon },
+    note: "Use this category's id in create_prompt(categoryId: ...). It will appear in list_categories immediately.",
+  };
+}
+
 async function listTags(args: Record<string, any>) {
   const limit = Math.min(Math.max(parseInt(args.limit ?? "50"), 1), 200);
   // Unnest the tags array and count occurrences
@@ -596,6 +652,7 @@ async function searchPrompts(args: Record<string, any>) {
       tags: promptsTable.tags,
       authorUsername: promptsTable.authorUsername,
       saveCount: promptsTable.saveCount,
+      priceCents: promptsTable.priceCents,
       avgRating: promptsTable.avgRating,
       ratingCount: promptsTable.ratingCount,
       categoryId: promptsTable.categoryId,
@@ -633,7 +690,7 @@ async function searchPrompts(args: Record<string, any>) {
       saves: r.saveCount,
       avgRating: Number(r.avgRating),
       ratingCount: r.ratingCount,
-      priceCents: pricingByAuthor[r.authorUsername] ?? 500,
+      priceCents: r.priceCents ?? pricingByAuthor[r.authorUsername] ?? 500,
       createdAt: r.createdAt,
     })),
     offset,
@@ -652,6 +709,7 @@ async function getPrompt(args: Record<string, any>) {
       title: promptsTable.title,
       description: promptsTable.description,
       content: promptsTable.content,
+      priceCents: promptsTable.priceCents,
       tags: promptsTable.tags,
       authorUsername: promptsTable.authorUsername,
       saveCount: promptsTable.saveCount,
@@ -685,7 +743,7 @@ async function getPrompt(args: Record<string, any>) {
     saves: row.saveCount,
     avgRating: Number(row.avgRating),
     ratingCount: row.ratingCount,
-    priceCents: author?.promptPriceCents ?? 500,
+    priceCents: row.priceCents ?? author?.promptPriceCents ?? 500,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     note: "Use purchase_prompt to unlock full content.",
@@ -1016,6 +1074,7 @@ async function listMyPrompts(args: Record<string, any>, apiKey: ApiKey) {
       id: promptsTable.id, title: promptsTable.title, description: promptsTable.description,
       isPublic: promptsTable.isPublic, tags: promptsTable.tags,
       saveCount: promptsTable.saveCount, viewCount: promptsTable.viewCount,
+      priceCents: promptsTable.priceCents,
       avgRating: promptsTable.avgRating, ratingCount: promptsTable.ratingCount,
       categoryName: categoriesTable.name, categorySlug: categoriesTable.slug,
       createdAt: promptsTable.createdAt, updatedAt: promptsTable.updatedAt,
@@ -1048,6 +1107,7 @@ async function listMyPrompts(args: Record<string, any>, apiKey: ApiKey) {
       isPublic: p.isPublic, tags: p.tags,
       category: p.categoryName ?? null, categorySlug: p.categorySlug ?? null,
       saves: p.saveCount, views: p.viewCount,
+      priceCents: p.priceCents ?? null,
       purchaseCount: purchaseCounts[p.id]?.count ?? 0,
       revenueCents: purchaseCounts[p.id]?.revenue ?? 0,
       avgRating: Number(p.avgRating), ratingCount: p.ratingCount,
@@ -1069,11 +1129,23 @@ async function createPrompt(args: Record<string, any>, apiKey: ApiKey) {
   const categoryId = args.categoryId ? parseInt(args.categoryId, 10) : 1;
   const tags: string[] = Array.isArray(args.tags) ? args.tags.slice(0, 10).map(String) : [];
   const isPublic: boolean = args.isPublic !== undefined ? Boolean(args.isPublic) : true;
+  const priceCents: number | null = args.priceCents !== undefined ? Math.max(0, parseInt(args.priceCents, 10)) : null;
+  const idempotencyKey: string | null = args.idempotencyKey ? String(args.idempotencyKey).trim() : null;
+
+  // Idempotency: return existing prompt if this key was already used
+  if (idempotencyKey) {
+    const [existing] = await db.select().from(promptsTable)
+      .where(and(eq(promptsTable.authorUsername, user.username), eq(promptsTable.idempotencyKey, idempotencyKey)));
+    if (existing) return {
+      success: true, idempotent: true,
+      prompt: { id: existing.id, title: existing.title, description: existing.description, categoryId: existing.categoryId, tags: existing.tags, priceCents: existing.priceCents, isPublic: existing.isPublic, author: existing.authorUsername, createdAt: existing.createdAt },
+    };
+  }
 
   const [prompt] = await db.insert(promptsTable).values({
     title, content,
     description: args.description ? String(args.description) : null,
-    categoryId, tags,
+    categoryId, tags, priceCents, idempotencyKey,
     authorUsername: user.username,
     isPublic,
   }).returning();
@@ -1082,8 +1154,8 @@ async function createPrompt(args: Record<string, any>, apiKey: ApiKey) {
     success: true,
     prompt: {
       id: prompt.id, title: prompt.title, description: prompt.description,
-      categoryId: prompt.categoryId, tags: prompt.tags, isPublic: prompt.isPublic,
-      author: prompt.authorUsername, createdAt: prompt.createdAt,
+      categoryId: prompt.categoryId, tags: prompt.tags, priceCents: prompt.priceCents,
+      isPublic: prompt.isPublic, author: prompt.authorUsername, createdAt: prompt.createdAt,
     },
   };
 }
@@ -1121,6 +1193,7 @@ async function updatePrompt(args: Record<string, any>, apiKey: ApiKey) {
   if (args.categoryId !== undefined) updates.categoryId = parseInt(args.categoryId, 10);
   if (args.tags !== undefined) updates.tags = Array.isArray(args.tags) ? args.tags.slice(0, 10).map(String) : [];
   if (args.isPublic !== undefined) updates.isPublic = Boolean(args.isPublic);
+  if (args.priceCents !== undefined) updates.priceCents = args.priceCents === null ? null : Math.max(0, parseInt(args.priceCents, 10));
 
   const [prompt] = await db.update(promptsTable).set(updates).where(eq(promptsTable.id, id)).returning();
   return { success: true, prompt: { id: prompt.id, title: prompt.title, description: prompt.description, categoryId: prompt.categoryId, tags: prompt.tags, isPublic: prompt.isPublic, updatedAt: prompt.updatedAt } };
@@ -1203,7 +1276,7 @@ async function purchasePrompt(args: Record<string, any>, apiKey: ApiKey) {
     return { alreadyOwned: true, prompt: { id: prompt.id, title: prompt.title, content: prompt.content } };
   }
 
-  const priceCents = author?.promptPriceCents ?? 500;
+  const priceCents = prompt.priceCents ?? author?.promptPriceCents ?? 500;
   if (priceCents > 0 && apiKey.creditsCents < priceCents) {
     throw new Error(`Insufficient credits. Need $${(priceCents / 100).toFixed(2)}, have $${(apiKey.creditsCents / 100).toFixed(2)}. Top up in Settings → API Keys.`);
   }
@@ -1322,6 +1395,7 @@ function jsonrpcOk(id: any, result: unknown) {
 
 const AUTH_REQUIRED = new Set([
   "whoami",
+  "create_category",
   "save_prompt", "unsave_prompt", "list_saved",
   "create_collection", "add_to_collection", "list_collections",
   "create_review",
@@ -1360,7 +1434,11 @@ router.post("/mcp", async (req, res): Promise<void> => {
       if (!name) { res.json(jsonrpcError(id, -32602, "Missing tool name")); return; }
 
       if (AUTH_REQUIRED.has(name) && !apiKey) {
-        res.json(jsonrpcError(id, -32001, `${name} requires authentication. Pass an Authorization: Bearer sk_... header or ?key=sk_... query param. Get a key at https://prompt-marketplace99.replit.app/settings.`));
+        // isError:true shows the real message in Claude — protocol errors (-32xxx) collapse to "Error occurred during tool execution"
+        res.json(jsonrpcOk(id, {
+          content: [{ type: "text", text: `"${name}" requires authentication.\n\nProvide your API key:\n  • Header:    Authorization: Bearer sk_...\n  • URL param:  ?key=sk_...\n\nGet a key at https://prompt-marketplace99.replit.app/settings` }],
+          isError: true,
+        }));
         return;
       }
 
@@ -1370,6 +1448,7 @@ router.post("/mcp", async (req, res): Promise<void> => {
         case "whoami": result = await whoami(apiKey!); break;
         // Browse
         case "list_categories": result = await listCategories(); break;
+        case "create_category": result = await createCategory(args, apiKey!); break;
         case "list_tags": result = await listTags(args); break;
         case "list_authors": result = await listAuthors(args); break;
         case "get_author": result = await getAuthor(args); break;
@@ -1404,7 +1483,10 @@ router.post("/mcp", async (req, res): Promise<void> => {
         case "get_earnings": result = await getEarnings(apiKey!); break;
         case "list_transactions": result = await listTransactions(args, apiKey!); break;
         default:
-          res.json(jsonrpcError(id, -32601, `Unknown tool: ${name}. Call tools/list to see all available tools.`));
+          res.json(jsonrpcOk(id, {
+            content: [{ type: "text", text: `Unknown tool: "${name}". Call tools/list to see all ${TOOLS.length} available tools.` }],
+            isError: true,
+          }));
           return;
       }
 
@@ -1414,7 +1496,12 @@ router.post("/mcp", async (req, res): Promise<void> => {
 
     res.json(jsonrpcError(id, -32601, `Unknown method: ${method}`));
   } catch (err: any) {
-    res.json(jsonrpcError(id, -32000, err?.message ?? "Internal error"));
+    // isError:true shows the actual message in Claude.
+    // Protocol-level errors (-32xxx) collapse to "Error occurred during tool execution" with no detail.
+    res.json(jsonrpcOk(id, {
+      content: [{ type: "text", text: `Error: ${err?.message ?? "Internal error"}` }],
+      isError: true,
+    }));
   }
 });
 

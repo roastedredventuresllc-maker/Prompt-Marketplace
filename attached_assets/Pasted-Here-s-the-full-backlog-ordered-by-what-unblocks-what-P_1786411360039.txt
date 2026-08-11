@@ -1,0 +1,36 @@
+Here's the full backlog, ordered by what unblocks what.
+
+P0 — Fix the auth failure (nothing else moves until this does)
+
+Pull the Replit deployment logs (not workspace) and find the stack trace at the moment of a whoami call.
+Run curl -i against /api/mcp calling whoami with your key. The status code splits the diagnosis: 401 → credential isn't arriving or isn't valid; 500 → your handler is throwing.
+Check whether the auth secret propagated to the deployment. Workspace secrets don't automatically carry over, and a deployed instance reading undefined produces exactly this symptom.
+Audit the shared auth helper introduced in the last batch — requireAuth, getUserFromKey, whatever it's called. Make it return a 401 rather than throw when the key doesn't resolve. That one function is my prime suspect: every tool that resolves an account fails, and validate_prompt — the only new tool that doesn't — works.
+Verify with whoami before anything else. If it returns your handle, writes will work.
+
+P1 — Error visibility (do this while you're in the auth code)
+
+Stop collapsing errors into "Error occurred during tool execution". Return the real status code and message. This cost us five rounds of guessing and will cost anyone else building against your API the same.
+Add an idempotency key to create_prompt and create_prompts_bulk. When writes come back up we'll be batch-publishing over a connection that's already proven flaky.
+
+P2 — Finish the undeployed pieces
+
+create_category(name, slug?, description?) — never shipped, still blocking the category work.
+Price parameter on create_prompt and create_prompts_bulk. Every prompt is locked at 500 cents, which means creators can't set prices — you have a catalog, not a marketplace.
+Reconcile what actually deployed against what you built. Most of the capability list landed, but these two didn't, and you thought they had.
+
+P3 — Content, once writes work
+
+Create the new category. My recommendation stands: Personal & Everyday, because your three most-saved prompts are all generic life-utility prompts beating every Law and Finance listing by ~5x. People & Management is the higher-ARPU alternative.
+Publish the calculator prompt — drafted, validated, ready.
+Seed the new category with 5–6 prompts via create_prompts_bulk so it doesn't launch looking empty.
+Normalize placeholder syntax across the existing catalog. You've got {brace} in older prompts and [bracket] in newer ones; extract_variables will behave inconsistently until that's uniform.
+
+P4 — Still missing from the capability list
+
+test_prompt(id, sampleInputs) — run a prompt with filled placeholders and return the output. Still the highest-leverage unbuilt thing you have. Nobody pays $5 for a prompt they can't see working, and a 300-char preview isn't proof.
+report_prompt(id, reason) — you'll need moderation before outside sellers arrive, not after.
+Version history on prompts (get_versions / revert) so buyers aren't surprised by silent edits.
+Confirmation step on delete_prompt and purchase_prompt rather than immediate execution — one spends real credits, the other is irreversible.
+
+If you only do three things: the auth helper (4), real error messages (6), and create_category (8). That gets us from blocked to publishing in one deploy.
