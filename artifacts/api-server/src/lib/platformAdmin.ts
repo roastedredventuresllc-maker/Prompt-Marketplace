@@ -24,7 +24,7 @@ export async function isPlatformAdmin(clerkUserId: string) {
   const configuredUsernames = splitAllowlist(process.env.PLATFORM_ADMIN_USERNAMES);
   const adminUsernames = configuredUsernames.size > 0
     ? configuredUsernames
-    : new Set(["brand"]);
+    : new Set(["jones"]);
 
   return adminUsernames.has(user.username);
 }
