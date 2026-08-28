@@ -220,6 +220,12 @@ router.delete("/prompts/:id", async (req, res): Promise<void> => {
 });
 
 router.post("/prompts/:id/save", async (req, res): Promise<void> => {
+  const publisher = await requirePublisher(getCallerClerkUserId(req));
+  if (!publisher.ok) {
+    res.status(publisher.status).json({ error: publisher.error });
+    return;
+  }
+
   const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = ToggleSavePromptParams.safeParse({ id: parseInt(rawId, 10) });
   if (!params.success) { res.status(400).json({ error: "Invalid ID" }); return; }
@@ -227,8 +233,10 @@ router.post("/prompts/:id/save", async (req, res): Promise<void> => {
   const parsed = ToggleSavePromptBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
+  const username = publisher.authorUsername;
+
   const [existing] = await db.select().from(savesTable)
-    .where(and(eq(savesTable.username, parsed.data.username), eq(savesTable.promptId, params.data.id)));
+    .where(and(eq(savesTable.username, username), eq(savesTable.promptId, params.data.id)));
 
   const [prompt] = await db.select().from(promptsTable)
     .where(and(eq(promptsTable.id, params.data.id), isNull(promptsTable.deletedAt)));
@@ -242,7 +250,7 @@ router.post("/prompts/:id/save", async (req, res): Promise<void> => {
     newSaveCount = Math.max(0, prompt.saveCount - 1);
     saved = false;
   } else {
-    await db.insert(savesTable).values({ username: parsed.data.username, promptId: params.data.id });
+    await db.insert(savesTable).values({ username, promptId: params.data.id });
     newSaveCount = prompt.saveCount + 1;
     saved = true;
   }

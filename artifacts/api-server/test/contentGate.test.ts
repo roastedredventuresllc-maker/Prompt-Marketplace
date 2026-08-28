@@ -174,6 +174,15 @@ test("prompt and library writes require a signed-in publisher or owner", () => {
   assert.match(postLibrary, /requirePublisher/);
   assert.match(postLibrary, /authorUsername: publisher\.authorUsername/);
 
+  const postSave = prompts.slice(prompts.indexOf('router.post("/prompts/:id/save"'));
+  assert.match(postSave, /requirePublisher\(getCallerClerkUserId\(req\)\)/);
+  assert.match(postSave, /publisher\.authorUsername/);
+  assert.doesNotMatch(postSave, /parsed\.data\.username/);
+  assert.ok(
+    postSave.indexOf("requirePublisher") < postSave.indexOf("ToggleSavePromptBody"),
+    "POST /prompts/:id/save must 401 before trusting the body",
+  );
+
   const patchLibrary = libraries.slice(libraries.indexOf('router.patch("/libraries/:id"'));
   assert.match(patchLibrary, /loadOwnedLibrary/);
   assert.match(patchLibrary, /priceCents/);
