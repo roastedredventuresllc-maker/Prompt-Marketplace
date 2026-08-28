@@ -7,8 +7,10 @@ import {
   promptsTable,
   librariesTable,
   libraryPromptsTable,
+  apiKeysTable,
 } from "@workspace/db";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, sql } from "drizzle-orm";
+import { calculateTransactionAmounts } from "../lib/commission";
 
 const router: Router = Router();
 
@@ -134,7 +136,15 @@ router.post("/access/free-use/:id", async (req, res): Promise<void> => {
 
   if (user.freePromptsUsed >= 3) { res.status(403).json({ error: "Free prompt limit reached" }); return; }
 
-  await db.insert(purchasesTable).values({ clerkUserId, itemType: "prompt", itemId: promptId, priceCents: 0 });
+  await db.insert(purchasesTable).values({
+    clerkUserId,
+    itemType: "prompt",
+    transactionType: "prompt_purchase",
+    itemId: promptId,
+    priceCents: 0,
+    commissionCents: 0,
+    netCents: 0,
+  });
   await db.update(usersTable).set({ freePromptsUsed: user.freePromptsUsed + 1 }).where(eq(usersTable.clerkUserId, clerkUserId));
 
   res.json({ success: true, freePromptsRemaining: Math.max(0, 2 - user.freePromptsUsed) });
@@ -219,6 +229,48 @@ router.post("/checkout/library/:id", async (req, res): Promise<void> => {
   res.json({ purchaseUrl: config.purchase_url, checkoutConfigId: config.id, priceCents });
 });
 
+/* ── POST /api/checkout/topup/:id ───────────────────────────────────── */
+router.post("/checkout/topup/:id", async (req, res): Promise<void> => {
+  const keyId = parseInt(req.params.id as string, 10);
+  const { userId: clerkUserId } = getAuth(req);
+  const amountDollars = Number(req.body?.amountDollars);
+  if (!clerkUserId) { res.status(401).json({ error: "Authentication required" }); return; }
+  if (!Number.isFinite(amountDollars) || amountDollars < 1) {
+    res.status(400).json({ error: "Top-up must be at least $1.00" }); return;
+  }
+
+  const [key] = await db.select({ id: apiKeysTable.id }).from(apiKeysTable)
+    .where(and(eq(apiKeysTable.id, keyId), eq(apiKeysTable.ownerClerkUserId, clerkUserId), eq(apiKeysTable.isActive, true)));
+  if (!key) { res.status(404).json({ error: "Active API key not found" }); return; }
+
+  const priceCents = Math.round(amountDollars * 100);
+  const amounts = calculateTransactionAmounts(priceCents);
+  const planId = await resolvePlanId(priceCents);
+  const baseUrl = `https://${(process.env.REPLIT_DOMAINS ?? "localhost").split(",")[0]}`;
+  const redirectUrl = `${baseUrl}/payment-success?item_type=credit_topup&item_id=${keyId}`;
+  const config = await whopApi("POST", "/api/v1/checkout_configurations", {
+    plan_id: planId,
+    redirect_url: redirectUrl,
+    metadata: {
+      clerk_user_id: clerkUserId,
+      item_type: "credit_topup",
+      item_id: String(keyId),
+      price_cents: String(priceCents),
+      commission_cents: String(amounts.commissionCents),
+      net_cents: String(amounts.netCents),
+    },
+  });
+
+  if (!config?.purchase_url) { res.status(500).json({ error: "Failed to create checkout" }); return; }
+  res.json({
+    purchaseUrl: config.purchase_url,
+    checkoutConfigId: config.id,
+    grossCents: amounts.grossCents,
+    commissionCents: amounts.commissionCents,
+    creditsCents: amounts.netCents,
+  });
+});
+
 /* ── POST /api/whop/verify ───────────────────────────────────────────── */
 router.post("/whop/verify", async (req, res): Promise<void> => {
   const { checkoutConfigId } = req.body as { checkoutConfigId?: string };
@@ -235,6 +287,7 @@ router.post("/whop/verify", async (req, res): Promise<void> => {
   const itemType: string = metadata.item_type ?? "";
   const itemId = parseInt(metadata.item_id ?? "0", 10);
   const priceCents = parseInt(metadata.price_cents ?? "0", 10);
+  const amounts = calculateTransactionAmounts(priceCents);
 
   if (!storedClerkUserId || !itemType || !itemId) {
     res.status(400).json({ error: "Invalid checkout metadata" });
@@ -258,12 +311,46 @@ router.post("/whop/verify", async (req, res): Promise<void> => {
   }
 
   // Idempotent: skip if already recorded for this checkout
-  const [existing] = await db.select().from(purchasesTable).where(and(eq(purchasesTable.clerkUserId, storedClerkUserId), eq(purchasesTable.itemType, itemType), eq(purchasesTable.itemId, itemId), eq(purchasesTable.whopCheckoutConfigId, checkoutConfigId)));
-  if (!existing) {
-    await db.insert(purchasesTable).values({ clerkUserId: storedClerkUserId, itemType, itemId, whopCheckoutConfigId: checkoutConfigId, priceCents });
+  if (itemType === "credit_topup") {
+    const [key] = await db.select().from(apiKeysTable)
+      .where(and(eq(apiKeysTable.id, itemId), eq(apiKeysTable.ownerClerkUserId, storedClerkUserId), eq(apiKeysTable.isActive, true)));
+    if (!key) { res.status(404).json({ error: "Active API key not found" }); return; }
   }
 
-  res.json({ success: true, itemType, itemId });
+  const transactionType = itemType === "credit_topup"
+    ? "credit_topup"
+    : itemType === "library" ? "library_purchase" : "prompt_purchase";
+
+  const wasInserted = await db.transaction(async (tx) => {
+    const inserted = await tx.insert(purchasesTable).values({
+      clerkUserId: storedClerkUserId,
+      itemType,
+      transactionType,
+      itemId,
+      whopCheckoutConfigId: checkoutConfigId,
+      priceCents: amounts.grossCents,
+      commissionCents: amounts.commissionCents,
+      netCents: amounts.netCents,
+    }).onConflictDoNothing().returning({ id: purchasesTable.id });
+
+    if (inserted.length === 0) return false;
+    if (itemType === "credit_topup") {
+      await tx.update(apiKeysTable)
+        .set({ creditsCents: sql`${apiKeysTable.creditsCents} + ${amounts.netCents}` })
+        .where(and(eq(apiKeysTable.id, itemId), eq(apiKeysTable.ownerClerkUserId, storedClerkUserId)));
+    }
+    return true;
+  });
+
+  res.json({
+    success: true,
+    itemType,
+    itemId,
+    grossCents: amounts.grossCents,
+    commissionCents: amounts.commissionCents,
+    netCents: amounts.netCents,
+    alreadyRecorded: !wasInserted,
+  });
 });
 
 

@@ -59,6 +59,7 @@ import {
   savesTable, ratingsTable,
 } from "@workspace/db";
 import { eq, and, desc, asc, sql, isNull, ilike, or } from "drizzle-orm";
+import { calculateTransactionAmounts } from "../lib/commission";
 
 const router: Router = Router();
 
@@ -1277,6 +1278,7 @@ async function purchasePrompt(args: Record<string, any>, apiKey: ApiKey) {
   }
 
   const priceCents = prompt.priceCents ?? author?.promptPriceCents ?? 500;
+  const amounts = calculateTransactionAmounts(priceCents);
   if (priceCents > 0 && apiKey.creditsCents < priceCents) {
     throw new Error(`Insufficient credits. Need $${(priceCents / 100).toFixed(2)}, have $${(apiKey.creditsCents / 100).toFixed(2)}. Top up in Settings → API Keys.`);
   }
@@ -1284,9 +1286,24 @@ async function purchasePrompt(args: Record<string, any>, apiKey: ApiKey) {
   if (priceCents > 0) {
     await db.update(apiKeysTable).set({ creditsCents: apiKey.creditsCents - priceCents }).where(eq(apiKeysTable.id, apiKey.id));
   }
-  await db.insert(purchasesTable).values({ clerkUserId: apiKey.ownerClerkUserId, itemType: "prompt", itemId: promptId, priceCents });
+  await db.insert(purchasesTable).values({
+    clerkUserId: apiKey.ownerClerkUserId,
+    itemType: "prompt",
+    transactionType: "prompt_purchase",
+    itemId: promptId,
+    priceCents,
+    commissionCents: amounts.commissionCents,
+    netCents: amounts.netCents,
+  });
 
-  return { success: true, charged: priceCents, remainingCreditsCents: apiKey.creditsCents - priceCents, prompt: { id: prompt.id, title: prompt.title, content: prompt.content } };
+  return {
+    success: true,
+    charged: priceCents,
+    commissionCents: amounts.commissionCents,
+    creatorNetCents: amounts.netCents,
+    remainingCreditsCents: apiKey.creditsCents - priceCents,
+    prompt: { id: prompt.id, title: prompt.title, content: prompt.content },
+  };
 }
 
 async function listPurchased(args: Record<string, any>, apiKey: ApiKey) {
@@ -1317,28 +1334,36 @@ async function getEarnings(apiKey: ApiKey) {
       p.item_id AS prompt_id,
       pr.title,
       count(p.id)::int AS sale_count,
-      coalesce(sum(p.price_cents), 0)::int AS revenue_cents
+      coalesce(sum(p.price_cents), 0)::int AS gross_cents,
+      coalesce(sum(p.commission_cents), 0)::int AS commission_cents,
+      coalesce(sum(p.net_cents), 0)::int AS net_cents
     FROM purchases p
     JOIN prompts pr ON pr.id = p.item_id
     WHERE p.item_type = 'prompt'
       AND pr.author_username = ${user.username}
     GROUP BY p.item_id, pr.title
-    ORDER BY revenue_cents DESC
+    ORDER BY net_cents DESC
   `);
 
   const perPrompt = (rows.rows as any[]).map((r) => ({
     promptId: r.prompt_id,
     title: r.title,
     saleCount: r.sale_count,
-    revenueCents: r.revenue_cents,
-    revenueDollars: (r.revenue_cents / 100).toFixed(2),
+    grossCents: r.gross_cents,
+    commissionCents: r.commission_cents,
+    netCents: r.net_cents,
+    netDollars: (r.net_cents / 100).toFixed(2),
   }));
 
-  const totalCents = perPrompt.reduce((s, r) => s + r.revenueCents, 0);
+  const grossCents = perPrompt.reduce((s, r) => s + r.grossCents, 0);
+  const commissionCents = perPrompt.reduce((s, r) => s + r.commissionCents, 0);
+  const netCents = perPrompt.reduce((s, r) => s + r.netCents, 0);
 
   return {
-    totalRevenueCents: totalCents,
-    totalRevenueDollars: (totalCents / 100).toFixed(2),
+    grossRevenueCents: grossCents,
+    platformCommissionCents: commissionCents,
+    netEarningsCents: netCents,
+    netEarningsDollars: (netCents / 100).toFixed(2),
     promptCount: perPrompt.length,
     perPrompt,
     note: "Payout processing is handled via Whop. Check your Whop dashboard for payout status.",
@@ -1356,6 +1381,8 @@ async function listTransactions(args: Record<string, any>, apiKey: ApiKey) {
       p.item_id AS prompt_id,
       pr.title,
       p.price_cents,
+      p.commission_cents,
+      p.net_cents,
       p.created_at,
       CASE WHEN pr.author_username = ${user.username} THEN 'earning' ELSE 'spending' END AS direction
     FROM purchases p
@@ -1374,6 +1401,8 @@ async function listTransactions(args: Record<string, any>, apiKey: ApiKey) {
     promptId: r.prompt_id,
     title: r.title,
     priceCents: r.price_cents,
+    commissionCents: r.commission_cents,
+    netCents: r.net_cents,
     direction: r.direction as "earning" | "spending",
     date: r.created_at,
   }));

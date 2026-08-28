@@ -27,6 +27,15 @@ function UserMenu() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { data: myProfileInfo } = useMyProfileInfo();
+  const { data: adminInfo } = useQuery<{ isAdmin: boolean }>({
+    queryKey: ["admin", "me"],
+    queryFn: async () => {
+      const res = await fetch(`${basePath}/api/admin/me`, { credentials: "include" });
+      return res.ok ? res.json() : { isAdmin: false };
+    },
+    enabled: !!user,
+    retry: false,
+  });
   const myUsername = myProfileInfo?.username ?? null;
   const myAvatarUrl = myProfileInfo?.avatarUrl ?? user?.imageUrl ?? null;
   const [, setLocation] = useLocation();
@@ -121,6 +130,16 @@ function UserMenu() {
           >
             Analytics
           </Link>
+          {adminInfo?.isAdmin && (
+            <Link
+              href="/admin/sales"
+              onClick={() => setOpen(false)}
+              className="block px-4 py-2 text-[13px] text-foreground/70 hover:bg-black/[0.04] hover:text-foreground transition-colors"
+              data-testid="menu-admin-sales"
+            >
+              Site sales
+            </Link>
+          )}
           <Link
             href="/settings"
             onClick={() => setOpen(false)}

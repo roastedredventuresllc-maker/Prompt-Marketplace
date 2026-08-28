@@ -16,17 +16,27 @@ type PromptStat = {
   ratingCount: number;
   isPublic: boolean;
   purchaseCount: number;
-  revenueCents: number;
+  grossRevenueCents: number;
+  commissionCents: number;
+  netRevenueCents: number;
 };
 
 type Totals = {
   totalViews: number;
   totalSaves: number;
   totalPurchases: number;
-  totalRevenueCents: number;
+  totalGrossRevenueCents: number;
+  totalCommissionCents: number;
+  totalNetRevenueCents: number;
 };
 
-type MonthlyRow = { month: string; purchases: number; revenueCents: number };
+type MonthlyRow = {
+  month: string;
+  purchases: number;
+  grossRevenueCents: number;
+  commissionCents: number;
+  netRevenueCents: number;
+};
 
 type AnalyticsData = {
   prompts: PromptStat[];
@@ -72,23 +82,23 @@ function MonthlyChart({ data }: { data: MonthlyRow[] }) {
     );
   }
 
-  const maxRevenue = Math.max(...data.map(d => d.revenueCents), 1);
+  const maxRevenue = Math.max(...data.map(d => d.netRevenueCents), 1);
 
   return (
     <div className="flex items-end gap-3 h-40 px-2">
       {data.map(row => {
-        const height = Math.max((row.revenueCents / maxRevenue) * 100, row.revenueCents > 0 ? 4 : 0);
+        const height = Math.max((row.netRevenueCents / maxRevenue) * 100, row.netRevenueCents > 0 ? 4 : 0);
         const label = row.month.slice(5); // "MM" from "YYYY-MM"
         return (
           <div key={row.month} className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
             <div className="text-[10px] font-semibold tabular-nums" style={{ color: "var(--orange)" }}>
-              {row.revenueCents > 0 ? dollars(row.revenueCents) : ""}
+              {row.netRevenueCents > 0 ? dollars(row.netRevenueCents) : ""}
             </div>
             <div
               className="w-full rounded-t-lg transition-all"
               style={{
                 height: `${height}%`,
-                minHeight: row.revenueCents > 0 ? 4 : 0,
+                minHeight: row.netRevenueCents > 0 ? 4 : 0,
                 background: "var(--orange)",
                 opacity: 0.85,
               }}
@@ -204,9 +214,9 @@ export default function Analytics() {
             <StatCard icon={<ShoppingCart className="h-4 w-4" />} label="Purchases" value={totals.totalPurchases.toLocaleString()} />
             <StatCard
               icon={<DollarSign className="h-4 w-4" />}
-              label="Revenue"
-              value={dollars(totals.totalRevenueCents)}
-              sub="before platform fees"
+              label="Net earnings"
+              value={dollars(totals.totalNetRevenueCents)}
+              sub={`${dollars(totals.totalGrossRevenueCents)} gross − ${dollars(totals.totalCommissionCents)} fee`}
             />
           </div>
 
@@ -214,7 +224,7 @@ export default function Analytics() {
           <div className="bg-white rounded-2xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-black/[0.05] mb-8">
             <div className="flex items-center gap-2 mb-6">
               <TrendingUp className="h-4 w-4" style={{ color: "var(--orange)" }} />
-              <h2 className="text-[15px] font-semibold">Monthly revenue (last 6 months)</h2>
+              <h2 className="text-[15px] font-semibold">Monthly net earnings (last 6 months)</h2>
             </div>
             <MonthlyChart data={monthly} />
           </div>
@@ -240,7 +250,9 @@ export default function Analytics() {
                       <th className="px-4 py-3 font-medium text-right">Views</th>
                       <th className="px-4 py-3 font-medium text-right">Saves</th>
                       <th className="px-4 py-3 font-medium text-right">Sales</th>
-                      <th className="px-4 py-3 font-medium text-right">Revenue</th>
+                       <th className="px-4 py-3 font-medium text-right">Gross</th>
+                       <th className="px-4 py-3 font-medium text-right">Fee</th>
+                       <th className="px-4 py-3 font-medium text-right">Net</th>
                       <th className="px-4 py-3 font-medium text-right">Rating</th>
                     </tr>
                   </thead>
@@ -258,8 +270,14 @@ export default function Analytics() {
                         <td className="px-4 py-3 text-right tabular-nums text-foreground/60">{p.viewCount.toLocaleString()}</td>
                         <td className="px-4 py-3 text-right tabular-nums text-foreground/60">{p.saveCount.toLocaleString()}</td>
                         <td className="px-4 py-3 text-right tabular-nums text-foreground/60">{p.purchaseCount}</td>
-                        <td className="px-4 py-3 text-right tabular-nums font-medium" style={{ color: p.revenueCents > 0 ? "var(--orange)" : undefined }}>
-                          {p.revenueCents > 0 ? dollars(p.revenueCents) : "—"}
+                         <td className="px-4 py-3 text-right tabular-nums text-foreground/60">
+                           {p.grossRevenueCents > 0 ? dollars(p.grossRevenueCents) : "—"}
+                         </td>
+                         <td className="px-4 py-3 text-right tabular-nums text-foreground/45">
+                           {p.commissionCents > 0 ? dollars(p.commissionCents) : "—"}
+                         </td>
+                         <td className="px-4 py-3 text-right tabular-nums font-medium" style={{ color: p.netRevenueCents > 0 ? "var(--orange)" : undefined }}>
+                           {p.netRevenueCents > 0 ? dollars(p.netRevenueCents) : "—"}
                         </td>
                         <td className="px-4 py-3 text-right">
                           {p.ratingCount > 0 ? (

@@ -21,6 +21,7 @@ import EditProfile from "@/pages/edit-profile";
 import Firms from "@/pages/firms";
 import PromptEdit from "@/pages/prompt-edit";
 import Analytics from "@/pages/analytics";
+import AdminSales from "@/pages/admin-sales";
 import OAuthAuthorize from "@/pages/oauth-authorize";
 
 const clerkPubKey = publishableKeyFromHost(
@@ -137,6 +138,7 @@ function Router() {
       <Route path="/firms" component={Firms} />
       <Route path="/prompt/:id/edit" component={PromptEdit} />
       <Route path="/analytics" component={Analytics} />
+      <Route path="/admin/sales" component={AdminSales} />
       <Route path="/connect/claude" component={OAuthAuthorize} />
       <Route path="/sign-in/*?" component={SignInPage} />
       <Route path="/sign-up/*?" component={SignUpPage} />

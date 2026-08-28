@@ -19,6 +19,7 @@ import { getAuth } from "@clerk/express";
 import { createHash, randomBytes } from "node:crypto";
 import { db, apiKeysTable, usersTable, promptsTable, purchasesTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
+import { calculateTransactionAmounts } from "../lib/commission";
 
 const router: Router = Router();
 
@@ -157,36 +158,11 @@ router.delete("/agent/keys/:id", async (req, res): Promise<void> => {
   res.json({ success: true });
 });
 
-/**
- * Add credits to a key (in dollars, converted to cents).
- * For the MVP this is manually triggered; later, wire to Stripe Checkout.
- */
+/** Credit top-ups must go through the verified Whop checkout route. */
 router.post("/agent/keys/:id/topup", async (req, res): Promise<void> => {
-  const userId = requireClerk(req as any, res as any);
-  if (!userId) return;
-
-  const id = parseInt(req.params.id, 10);
-  const { amountDollars } = req.body as { amountDollars?: number };
-  if (!amountDollars || amountDollars <= 0) {
-    res.status(400).json({ error: "amountDollars must be > 0" });
-    return;
-  }
-
-  const [key] = await db
-    .select()
-    .from(apiKeysTable)
-    .where(and(eq(apiKeysTable.id, id), eq(apiKeysTable.ownerClerkUserId, userId)));
-
-  if (!key) { res.status(404).json({ error: "Key not found" }); return; }
-
-  const addCents = Math.round(amountDollars * 100);
-  const [updated] = await db
-    .update(apiKeysTable)
-    .set({ creditsCents: key.creditsCents + addCents })
-    .where(eq(apiKeysTable.id, id))
-    .returning({ id: apiKeysTable.id, creditsCents: apiKeysTable.creditsCents });
-
-  res.json({ id: updated.id, creditsCents: updated.creditsCents });
+  res.status(410).json({
+    error: "Direct top-ups are disabled. Use /api/checkout/topup/:id.",
+  });
 });
 
 // ── Agent operations (Bearer-authenticated) ───────────────────────────────
@@ -267,6 +243,7 @@ router.post("/agent/purchase", async (req, res): Promise<void> => {
 
   // Determine price
   const priceCents = author?.promptPriceCents ?? 500;
+  const amounts = calculateTransactionAmounts(priceCents);
 
   // Free prompt — no credits needed
   if (priceCents === 0) {
@@ -275,6 +252,9 @@ router.post("/agent/purchase", async (req, res): Promise<void> => {
       itemType: "prompt",
       itemId: promptId,
       priceCents: 0,
+      transactionType: "prompt_purchase",
+      commissionCents: 0,
+      netCents: 0,
     });
     res.json({ success: true, charged: 0, prompt: { id: prompt.id, title: prompt.title, content: prompt.content } });
     return;
@@ -298,11 +278,16 @@ router.post("/agent/purchase", async (req, res): Promise<void> => {
     itemType: "prompt",
     itemId: promptId,
     priceCents,
+    transactionType: "prompt_purchase",
+    commissionCents: amounts.commissionCents,
+    netCents: amounts.netCents,
   });
 
   res.json({
     success: true,
     charged: priceCents,
+    commissionCents: amounts.commissionCents,
+    creatorNetCents: amounts.netCents,
     remainingCreditsCents: apiKey.creditsCents - priceCents,
     prompt: { id: prompt.id, title: prompt.title, content: prompt.content },
   });

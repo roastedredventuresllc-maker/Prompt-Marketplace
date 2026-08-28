@@ -142,7 +142,6 @@ router.post("/libraries", async (req, res): Promise<void> => {
       description: parsed.data.description ?? null,
       authorUsername: parsed.data.authorUsername,
       isPublic: parsed.data.isPublic ?? true,
-      ...(parsed.data.kind ? { kind: parsed.data.kind } : {}),
     } as any)
     .returning();
 
