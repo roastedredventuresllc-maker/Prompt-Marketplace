@@ -59,6 +59,7 @@ type PromptItem = {
   id: number;
   title: string;
   content: string;
+  isGated?: boolean;
   description?: string | null;
   categoryName: string;
   subcategoryName?: string | null;
@@ -134,7 +135,7 @@ function PromptCard({
           </div>
 
           {/* Copy — always visible, dims when not hovering */}
-          {!locked && (
+          {!locked && prompt.isGated === false && (
             <button
               onClick={e => onCopy(e, prompt.content, prompt.id)}
               className="shrink-0 flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg bg-black/[0.04] hover:bg-black/[0.08] text-foreground/40 hover:text-foreground/70 font-medium transition-all"

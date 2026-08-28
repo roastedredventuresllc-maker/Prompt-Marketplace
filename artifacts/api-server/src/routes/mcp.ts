@@ -17,7 +17,7 @@
  *   list_authors            Top authors sorted by prompt count or saves
  *   get_author              Full author profile by handle
  *   search_prompts          Full-text search + filter + sort + pagination
- *   get_prompt              Metadata + 300-char preview for one prompt
+ *   get_prompt              Metadata + preview; full text if owned/purchased
  *   get_similar             Related prompts by tag overlap
  *   get_prompt_stats        Purchase count, save-to-purchase rate, last sale
  *   list_reviews            All ratings/reviews for a prompt
@@ -63,6 +63,7 @@ import {
 } from "@workspace/db";
 import { eq, and, desc, asc, sql, isNull, ilike, or } from "drizzle-orm";
 import { calculateTransactionAmounts } from "../lib/commission";
+import { checkPromptAccess } from "../lib/promptAccess";
 
 const router: Router = Router();
 
@@ -150,7 +151,7 @@ const TOOLS = [
   },
   {
     name: "get_prompt",
-    description: "Metadata + 300-char content preview for one prompt. Call purchase_prompt to unlock full text.",
+    description: "Metadata + content preview for one prompt (300-char preview). Authenticated owners and purchasers receive full `content`. Otherwise call purchase_prompt to unlock.",
     inputSchema: {
       type: "object",
       properties: {
@@ -777,7 +778,7 @@ async function searchPrompts(args: Record<string, any>) {
   };
 }
 
-async function getPrompt(args: Record<string, any>) {
+async function getPrompt(args: Record<string, any>, apiKey?: ApiKey) {
   const id = parseInt(args.id, 10);
   if (isNaN(id)) throw new Error("id must be a number");
 
@@ -808,6 +809,28 @@ async function getPrompt(args: Record<string, any>) {
     .from(usersTable).where(eq(usersTable.username, row.authorUsername));
 
   const preview = row.content.slice(0, 300) + (row.content.length > 300 ? "…" : "");
+  const hasAccess = apiKey ? await checkPromptAccess(apiKey.ownerClerkUserId, id) : false;
+
+  if (hasAccess) {
+    return {
+      id: row.id,
+      title: row.title,
+      description: row.description ?? "",
+      content: row.content,
+      contentPreview: preview,
+      tags: row.tags,
+      author: row.authorUsername,
+      category: row.categoryName ?? null,
+      categorySlug: row.categorySlug ?? null,
+      saves: row.saveCount,
+      avgRating: Number(row.avgRating),
+      ratingCount: row.ratingCount,
+      priceCents: row.priceCents ?? author?.promptPriceCents ?? 500,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      isGated: false,
+    };
+  }
 
   return {
     id: row.id,
@@ -824,6 +847,7 @@ async function getPrompt(args: Record<string, any>) {
     priceCents: row.priceCents ?? author?.promptPriceCents ?? 500,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+    isGated: true,
     note: "Use purchase_prompt to unlock full content.",
   };
 }
@@ -1300,13 +1324,12 @@ async function forkPrompt(args: Record<string, any>, apiKey: ApiKey) {
   const [source] = await db.select().from(promptsTable).where(and(eq(promptsTable.id, id), isNull(promptsTable.deletedAt)));
   if (!source) throw new Error(`Prompt ${id} not found`);
 
-  // Must own or have purchased
+  // Must own, have purchased, or have unlocked via a library purchase
   const [sourceAuthor] = await db.select().from(usersTable).where(eq(usersTable.username, source.authorUsername));
   const owns = sourceAuthor && isOwner(sourceAuthor, apiKey.ownerClerkUserId);
   if (!owns) {
-    const [purchased] = await db.select().from(purchasesTable)
-      .where(and(eq(purchasesTable.clerkUserId, apiKey.ownerClerkUserId), eq(purchasesTable.itemType, "prompt"), eq(purchasesTable.itemId, id)));
-    if (!purchased) throw new Error("You must own or have purchased this prompt to fork it.");
+    const hasAccess = await checkPromptAccess(apiKey.ownerClerkUserId, id);
+    if (!hasAccess) throw new Error("You must own or have purchased this prompt to fork it.");
   }
 
   const [forked] = await db.insert(promptsTable).values({
@@ -1556,7 +1579,7 @@ router.post("/mcp", async (req, res): Promise<void> => {
         case "list_authors": result = await listAuthors(args); break;
         case "get_author": result = await getAuthor(args); break;
         case "search_prompts": result = await searchPrompts(args); break;
-        case "get_prompt": result = await getPrompt(args); break;
+        case "get_prompt": result = await getPrompt(args, apiKey); break;
         case "get_similar": result = await getSimilar(args); break;
         case "get_prompt_stats": result = await getPromptStats(args); break;
         case "list_reviews": result = await listReviews(args); break;

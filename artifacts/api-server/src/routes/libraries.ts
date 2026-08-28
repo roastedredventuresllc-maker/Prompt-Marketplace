@@ -22,7 +22,7 @@ import {
   GetUserLibrariesResponse,
 } from "@workspace/api-zod";
 import { applyContentGate } from "../lib/contentGate";
-import { checkLibraryAccess, getCallerClerkUserId } from "../lib/promptAccess";
+import { getAccessiblePromptIds, getCallerClerkUserId, loadOwnedLibrary } from "../lib/promptAccess";
 
 const router: IRouter = Router();
 
@@ -182,8 +182,8 @@ router.get("/libraries/:id", async (req, res): Promise<void> => {
     if (p) prompts.push(p);
   }
 
-  const hasAccess = await checkLibraryAccess(getCallerClerkUserId(req), library.id);
-  const promptItems = await Promise.all(prompts.map((p) => buildPromptItem(p, hasAccess)));
+  const accessible = await getAccessiblePromptIds(getCallerClerkUserId(req), prompts.map((p) => p.id));
+  const promptItems = await Promise.all(prompts.map((p) => buildPromptItem(p, accessible.has(p.id))));
 
   const result = {
     id: library.id,
@@ -273,20 +273,20 @@ router.post("/libraries/:id/prompts", async (req, res): Promise<void> => {
     return;
   }
 
+  const owned = await loadOwnedLibrary(getCallerClerkUserId(req), params.data.id);
+  if (!owned.ok) {
+    res.status(owned.status).json({ error: owned.error });
+    return;
+  }
+
   const parsed = AddPromptToLibraryBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
 
-  // Verify library and prompt exist before inserting
-  const [libraryExists] = await db.select({ id: librariesTable.id }).from(librariesTable).where(eq(librariesTable.id, params.data.id));
-  if (!libraryExists) {
-    res.status(404).json({ error: "Library not found" });
-    return;
-  }
-
-  const [promptExists] = await db.select({ id: promptsTable.id }).from(promptsTable).where(eq(promptsTable.id, parsed.data.promptId));
+  const [promptExists] = await db.select({ id: promptsTable.id }).from(promptsTable)
+    .where(and(eq(promptsTable.id, parsed.data.promptId), isNull(promptsTable.deletedAt)));
   if (!promptExists) {
     res.status(404).json({ error: "Prompt not found" });
     return;
@@ -312,13 +312,7 @@ router.post("/libraries/:id/prompts", async (req, res): Promise<void> => {
     await db.update(librariesTable).set({ updatedAt: new Date() }).where(eq(librariesTable.id, params.data.id));
   }
 
-  const [library] = await db.select().from(librariesTable).where(eq(librariesTable.id, params.data.id));
-  if (!library) {
-    res.status(404).json({ error: "Library not found" });
-    return;
-  }
-
-  const result = await buildLibraryResponse(library);
+  const result = await buildLibraryResponse(owned.library);
   res.json(AddPromptToLibraryResponse.parse(result));
 });
 
@@ -335,6 +329,12 @@ router.delete("/libraries/:id/prompts/:promptId", async (req, res): Promise<void
     return;
   }
 
+  const owned = await loadOwnedLibrary(getCallerClerkUserId(req), params.data.id);
+  if (!owned.ok) {
+    res.status(owned.status).json({ error: owned.error });
+    return;
+  }
+
   await db
     .delete(libraryPromptsTable)
     .where(
@@ -346,13 +346,7 @@ router.delete("/libraries/:id/prompts/:promptId", async (req, res): Promise<void
 
   await db.update(librariesTable).set({ updatedAt: new Date() }).where(eq(librariesTable.id, params.data.id));
 
-  const [library] = await db.select().from(librariesTable).where(eq(librariesTable.id, params.data.id));
-  if (!library) {
-    res.status(404).json({ error: "Library not found" });
-    return;
-  }
-
-  const result = await buildLibraryResponse(library);
+  const result = await buildLibraryResponse(owned.library);
   res.json(RemovePromptFromLibraryResponse.parse(result));
 });
 

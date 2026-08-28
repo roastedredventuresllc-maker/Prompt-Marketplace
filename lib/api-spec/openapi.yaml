@@ -626,6 +626,7 @@ components:
         - id
         - title
         - content
+        - isGated
         - categoryId
         - categoryName
         - tags

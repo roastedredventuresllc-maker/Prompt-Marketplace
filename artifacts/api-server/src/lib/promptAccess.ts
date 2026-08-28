@@ -113,27 +113,21 @@ export async function checkPromptAccess(
   return set.has(promptId);
 }
 
-export async function checkLibraryAccess(
+export async function loadOwnedLibrary(
   clerkUserId: string | null,
   libraryId: number,
-): Promise<boolean> {
-  if (!clerkUserId) return false;
+): Promise<
+  | { ok: true; library: typeof librariesTable.$inferSelect }
+  | { ok: false; status: 401 | 403 | 404; error: string }
+> {
+  if (!clerkUserId) return { ok: false, status: 401, error: "Unauthorized" };
 
   const [library] = await db.select().from(librariesTable).where(eq(librariesTable.id, libraryId));
-  if (!library) return false;
+  if (!library) return { ok: false, status: 404, error: "Library not found" };
 
   const [author] = await db.select().from(usersTable).where(eq(usersTable.username, library.authorUsername));
-  if (isAuthorOrAdmin(author, clerkUserId)) return true;
-
-  const [purchase] = await db
-    .select()
-    .from(purchasesTable)
-    .where(
-      and(
-        eq(purchasesTable.clerkUserId, clerkUserId),
-        eq(purchasesTable.itemType, "library"),
-        eq(purchasesTable.itemId, libraryId),
-      ),
-    );
-  return !!purchase;
+  if (!isAuthorOrAdmin(author, clerkUserId)) {
+    return { ok: false, status: 403, error: "Forbidden" };
+  }
+  return { ok: true, library };
 }

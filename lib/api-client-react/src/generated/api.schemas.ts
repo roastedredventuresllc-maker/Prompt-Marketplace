@@ -41,7 +41,7 @@ export interface Prompt {
   /** Full prompt body when the caller has access (author, admin, or purchase). Otherwise a ~120 character preview. */
   content: string;
   /** True when content is a truncated preview because the caller has not purchased and is not the author/admin. */
-  isGated?: boolean;
+  isGated: boolean;
   /** @nullable */
   description?: string | null;
   categoryId: number;

@@ -304,7 +304,7 @@ export default function PromptDetail() {
   const accentColor = "var(--orange)";
 
   const handleCopy = () => {
-    if (!prompt?.content) return;
+    if (!prompt?.content || prompt.isGated !== false) return;
     navigator.clipboard.writeText(prompt.content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -438,12 +438,14 @@ export default function PromptDetail() {
                     {prompt.content}
                   </div>
                   <div className="flex items-center gap-3 mt-6">
+                    {prompt.isGated === false && (
                     <button onClick={handleCopy}
                       className="flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-[14px] text-white transition-opacity hover:opacity-80"
                       style={{ background: accentColor }} data-testid="copy-btn">
                       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                       {copied ? "Copied!" : "Copy prompt"}
                     </button>
+                    )}
                   </div>
                 </PaywallGate>
 
