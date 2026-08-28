@@ -4,6 +4,14 @@ modules = ["nodejs-24", "postgresql-16", "python-base-3.13"]
 router = "application"
 deploymentTarget = "autoscale"
 
+[deployment.build]
+args = ["pnpm", "run", "build:vercel"]
+env = { "CI" = "true", "NODE_ENV" = "production" }
+
+[deployment.run]
+args = ["node", "--enable-source-maps", "artifacts/api-server/dist/index.mjs"]
+env = { "NODE_ENV" = "production", "PORT" = "8080" }
+
 [deployment.postBuild]
 args = ["pnpm", "store", "prune"]
 env = { "CI" = "true" }
