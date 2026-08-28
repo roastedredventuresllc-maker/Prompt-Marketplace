@@ -4,11 +4,25 @@ import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { publicAppUrl } from "../src/lib/publicAppUrl.ts";
-import { normalizeVercelRequestUrl, VERCEL_EXPRESS_BRIDGE } from "../src/lib/vercelRequestUrl.ts";
+import {
+  normalizeVercelRequestUrl,
+  restoreVercelApiUrl,
+  VERCEL_EXPRESS_BRIDGE,
+} from "../src/lib/vercelRequestUrl.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const apiRoot = join(here, "..");
 const repoRoot = join(apiRoot, "..", "..");
+
+test("restoreVercelApiUrl rebuilds Express paths after the /api rewrite", () => {
+  assert.equal(restoreVercelApiUrl("/api?__path=prompts"), "/api/prompts");
+  assert.equal(restoreVercelApiUrl("/api?__path=prompts/1&q=x"), "/api/prompts/1?q=x");
+  assert.equal(
+    restoreVercelApiUrl("/api?__orig=/.well-known/mcp.json"),
+    "/.well-known/mcp.json",
+  );
+  assert.equal(restoreVercelApiUrl("/api/healthz"), "/api/healthz");
+});
 
 test("normalizeVercelRequestUrl unwraps the Express bridge prefix only", () => {
   assert.equal(normalizeVercelRequestUrl("/api/prompts?q=1"), "/api/prompts?q=1");
@@ -72,10 +86,12 @@ test("Vercel config builds the Vite app and Express serverless entry from repo r
   assert.equal(vercel.buildCommand, "pnpm --filter @workspace/prompt-marketplace run build");
   assert.equal(vercel.outputDirectory, "artifacts/prompt-marketplace/dist/public");
   assert.equal(vercel.rewrites[0].source, "/api/:path*");
-  assert.equal(vercel.rewrites[0].destination, "/api");
+  assert.equal(vercel.rewrites[0].destination, "/api?__path=:path*");
+  assert.equal(vercel.functions["api/index.ts"].maxDuration, 30);
   assert.match(rootPkg.packageManager, /^pnpm@/);
   assert.equal(rootPkg.dependencies?.["@replit/connectors-sdk"], undefined);
   assert.match(handler, /from "\.\.\/artifacts\/api-server\/src\/app"/);
+  assert.match(handler, /restoreVercelApiUrl/);
   assert.match(access, /from "\.\.\/lib\/publicAppUrl"/);
   assert.match(access, /from "\.\.\/lib\/whopHttp"/);
   assert.doesNotMatch(access, /REPLIT_DOMAINS/);

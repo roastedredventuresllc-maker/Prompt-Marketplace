@@ -1,3 +1,31 @@
+/**
+ * Restore Express paths after vercel.json rewrites everything to /api.
+ * /api/:path* arrives as /api?__path=:path*
+ * Root Express routes (well-known, oauth, sitemap) arrive as /api?__orig=<full path>
+ */
+export function restoreVercelApiUrl(url: string): string {
+  const q = url.indexOf("?");
+  const search = q === -1 ? "" : url.slice(q + 1);
+  const params = new URLSearchParams(search);
+  const orig = params.get("__orig");
+  const nested = params.get("__path");
+  params.delete("__orig");
+  params.delete("__path");
+  const rest = params.toString();
+  const qs = rest ? `?${rest}` : "";
+
+  if (orig) {
+    const path = orig.startsWith("/") ? orig : `/${orig}`;
+    return `${path}${qs}`;
+  }
+
+  if (nested != null && nested !== "") {
+    return `/api/${nested.replace(/^\/+/, "")}${qs}`;
+  }
+
+  return url;
+}
+
 export const VERCEL_EXPRESS_BRIDGE = "/api/__express";
 
 /**

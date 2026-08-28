@@ -4,16 +4,18 @@ pnpm workspace: Vite frontend in `artifacts/prompt-marketplace`, Express API in 
 
 ## Vercel
 
-Import this GitHub repo with **Root Directory** `.`. `vercel.json` sets `framework` to `null` so Vercel does not auto-detect Replit/Vite at the wrong path.
+**Root Directory must be the repo root (`.`).** Importing `artifacts/api-server` deploys Express alone (slug `prompt-marketplace-api-server-…`) and skips the marketplace UI.
+
+Full settings, rewrites, and the two-project fallback: [VERCEL.md](./VERCEL.md).
 
 | Setting | Value |
 | --- | --- |
-| Install | `pnpm install` (honors `.npmrc` and the root `preinstall` guard) |
+| Install | `pnpm install` |
 | Build | `pnpm --filter @workspace/prompt-marketplace run build` |
 | Output | `artifacts/prompt-marketplace/dist/public` |
-| API | `api/index.ts` — default-exports the Express app. `/api/*` rewrites to it. |
+| API | `api/index.ts` wraps Express; `/api/:path*` rewrites to it |
 
-Do not use root `pnpm build` on Vercel (that typechecks the whole monorepo, including Replit-only artifacts).
+Do not use root `pnpm build` on Vercel.
 
 ### Environment variables (names only — set values in the Vercel project)
 
