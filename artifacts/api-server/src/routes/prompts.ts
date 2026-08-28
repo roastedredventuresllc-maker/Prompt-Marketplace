@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { getAuth } from "@clerk/express";
-import { db, promptsTable, categoriesTable, subcategoriesTable, usersTable, savesTable, purchasesTable, libraryPromptsTable } from "@workspace/db";
-import { eq, sql, desc, and, inArray, isNull } from "drizzle-orm";
+import { db, promptsTable, categoriesTable, subcategoriesTable, usersTable, savesTable } from "@workspace/db";
+import { eq, sql, desc, and, isNull } from "drizzle-orm";
 import {
   ListPromptsQueryParams,
   ListPromptsResponse,
@@ -19,43 +19,12 @@ import {
   GetTrendingPromptsQueryParams,
   GetTrendingPromptsResponse,
 } from "@workspace/api-zod";
+import { applyContentGate } from "../lib/contentGate";
+import { checkPromptAccess, getAccessiblePromptIds, getCallerClerkUserId } from "../lib/promptAccess";
 
 const router: IRouter = Router();
 
-/** Returns first ~120 chars as a teaser for gated content */
-function truncateContent(content: string): string {
-  const snippet = content.replace(/\s+/g, " ").trim().slice(0, 120);
-  return snippet.length < content.trim().length ? snippet + "…" : snippet;
-}
-
-/** Server-side access check: true if author, purchased, or library-purchased */
-async function checkPromptAccess(clerkUserId: string | null, promptId: number): Promise<boolean> {
-  if (!clerkUserId) return false;
-
-  const [promptRow] = await db.select().from(promptsTable)
-    .where(and(eq(promptsTable.id, promptId), isNull(promptsTable.deletedAt)));
-  if (promptRow) {
-    const [author] = await db.select().from(usersTable).where(eq(usersTable.username, promptRow.authorUsername));
-    if (author && (author.clerkUserId === clerkUserId || author.ownerClerkUserId === clerkUserId)) return true;
-  }
-
-  const [direct] = await db.select().from(purchasesTable)
-    .where(and(eq(purchasesTable.clerkUserId, clerkUserId), eq(purchasesTable.itemType, "prompt"), eq(purchasesTable.itemId, promptId)));
-  if (direct) return true;
-
-  const libRows = await db.select({ libraryId: libraryPromptsTable.libraryId })
-    .from(libraryPromptsTable)
-    .where(eq(libraryPromptsTable.promptId, promptId));
-  if (libRows.length > 0) {
-    const [libPurchase] = await db.select().from(purchasesTable)
-      .where(and(eq(purchasesTable.clerkUserId, clerkUserId), eq(purchasesTable.itemType, "library"), inArray(purchasesTable.itemId, libRows.map(l => l.libraryId))));
-    if (libPurchase) return true;
-  }
-
-  return false;
-}
-
-async function buildPromptResponse(prompt: typeof promptsTable.$inferSelect) {
+async function buildPromptResponse(prompt: typeof promptsTable.$inferSelect, hasAccess: boolean) {
   const [category] = await db.select().from(categoriesTable).where(eq(categoriesTable.id, prompt.categoryId));
   const [author] = await db.select().from(usersTable).where(eq(usersTable.username, prompt.authorUsername));
 
@@ -65,7 +34,7 @@ async function buildPromptResponse(prompt: typeof promptsTable.$inferSelect) {
     subcategoryName = sub?.name ?? null;
   }
 
-  return {
+  return applyContentGate({
     id: prompt.id,
     title: prompt.title,
     content: prompt.content,
@@ -87,7 +56,7 @@ async function buildPromptResponse(prompt: typeof promptsTable.$inferSelect) {
     isPublic: prompt.isPublic,
     createdAt: prompt.createdAt.toISOString(),
     updatedAt: prompt.updatedAt.toISOString(),
-  };
+  }, hasAccess);
 }
 
 router.get("/prompts/trending", async (req, res): Promise<void> => {
@@ -99,7 +68,8 @@ router.get("/prompts/trending", async (req, res): Promise<void> => {
     .orderBy(desc(promptsTable.saveCount), desc(promptsTable.viewCount))
     .limit(limit);
 
-  const results = await Promise.all(prompts.map(buildPromptResponse));
+  const accessible = await getAccessiblePromptIds(getCallerClerkUserId(req), prompts.map((p) => p.id));
+  const results = await Promise.all(prompts.map((p) => buildPromptResponse(p, accessible.has(p.id))));
   res.json(GetTrendingPromptsResponse.parse(results));
 });
 
@@ -138,7 +108,8 @@ router.get("/prompts", async (req, res): Promise<void> => {
     .limit(limit)
     .offset(offset);
 
-  const results = await Promise.all(prompts.map(buildPromptResponse));
+  const accessible = await getAccessiblePromptIds(getCallerClerkUserId(req), prompts.map((p) => p.id));
+  const results = await Promise.all(prompts.map((p) => buildPromptResponse(p, accessible.has(p.id))));
   res.json(ListPromptsResponse.parse({ prompts: results, total: countResult?.total ?? 0 }));
 });
 
@@ -157,7 +128,7 @@ router.post("/prompts", async (req, res): Promise<void> => {
     isPublic: parsed.data.isPublic ?? true,
   }).returning();
 
-  const result = await buildPromptResponse(prompt);
+  const result = await buildPromptResponse(prompt, true);
   res.status(201).json(CreatePromptResponse.parse(result));
 });
 
@@ -173,13 +144,9 @@ router.get("/prompts/:id", async (req, res): Promise<void> => {
 
   await db.update(promptsTable).set({ viewCount: prompt.viewCount + 1 }).where(eq(promptsTable.id, prompt.id));
 
-  const { userId: clerkUserId } = getAuth(req);
-  const hasAccess = await checkPromptAccess(clerkUserId ?? null, prompt.id);
-  const displayPrompt = { ...prompt, viewCount: prompt.viewCount + 1 };
-  if (!hasAccess) displayPrompt.content = truncateContent(prompt.content);
-
-  const result = await buildPromptResponse(displayPrompt);
-  res.json({ ...GetPromptResponse.parse(result), isGated: !hasAccess });
+  const hasAccess = await checkPromptAccess(getCallerClerkUserId(req), prompt.id);
+  const result = await buildPromptResponse({ ...prompt, viewCount: prompt.viewCount + 1 }, hasAccess);
+  res.json(GetPromptResponse.parse(result));
 });
 
 router.patch("/prompts/:id", async (req, res): Promise<void> => {
@@ -216,7 +183,7 @@ router.patch("/prompts/:id", async (req, res): Promise<void> => {
     .returning();
   if (!prompt) { res.status(404).json({ error: "Prompt not found" }); return; }
 
-  const result = await buildPromptResponse(prompt);
+  const result = await buildPromptResponse(prompt, true);
   res.json(UpdatePromptResponse.parse(result));
 });
 

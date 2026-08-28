@@ -90,6 +90,7 @@ function PromptCard({ prompt }: { prompt: Prompt }) {
               <span className="text-[12px] text-foreground/40 truncate">{prompt.authorDisplayName}</span>
             )}
           </div>
+          {prompt.isGated === false && (
           <button
             onClick={handleCopy}
             className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-lg bg-black/[0.04] hover:bg-black/[0.08] text-foreground/50 font-medium"
@@ -97,6 +98,7 @@ function PromptCard({ prompt }: { prompt: Prompt }) {
             {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
             {copied ? "Copied" : "Copy"}
           </button>
+          )}
         </div>
       </div>
     </Link>

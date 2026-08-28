@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { getAuth } from "@clerk/express";
 import { db, librariesTable, libraryPromptsTable, promptsTable, categoriesTable, subcategoriesTable, usersTable } from "@workspace/db";
-import { eq, sql, desc, and } from "drizzle-orm";
+import { eq, sql, desc, and, isNull } from "drizzle-orm";
 import {
   CreateLibraryBody,
   CreateLibraryResponse,
@@ -21,6 +21,8 @@ import {
   GetUserLibrariesParams,
   GetUserLibrariesResponse,
 } from "@workspace/api-zod";
+import { applyContentGate } from "../lib/contentGate";
+import { checkLibraryAccess, getCallerClerkUserId } from "../lib/promptAccess";
 
 const router: IRouter = Router();
 
@@ -60,13 +62,13 @@ async function buildLibraryResponse(library: typeof librariesTable.$inferSelect)
   };
 }
 
-async function buildPromptItem(prompt: typeof promptsTable.$inferSelect) {
+async function buildPromptItem(prompt: typeof promptsTable.$inferSelect, hasAccess: boolean) {
   const [category] = await db.select().from(categoriesTable).where(eq(categoriesTable.id, prompt.categoryId));
   const [author] = await db.select().from(usersTable).where(eq(usersTable.username, prompt.authorUsername));
   const [subcategory] = prompt.subcategoryId
     ? await db.select().from(subcategoriesTable).where(eq(subcategoriesTable.id, prompt.subcategoryId))
     : [undefined];
-  return {
+  return applyContentGate({
     id: prompt.id,
     title: prompt.title,
     content: prompt.content,
@@ -79,14 +81,14 @@ async function buildPromptItem(prompt: typeof promptsTable.$inferSelect) {
     authorUsername: prompt.authorUsername,
     authorDisplayName: author?.displayName ?? prompt.authorUsername,
     authorAvatarUrl: author?.avatarUrl ?? null,
-    authorOrgType: (author as any)?.orgType ?? null,
+    authorOrgType: (author as any)?.orgType ?? "individual",
     authorOrgName: (author as any)?.orgName ?? null,
     saveCount: prompt.saveCount,
     viewCount: prompt.viewCount,
     isPublic: prompt.isPublic,
     createdAt: prompt.createdAt.toISOString(),
     updatedAt: prompt.updatedAt.toISOString(),
-  };
+  }, hasAccess);
 }
 
 router.get("/users/:username/libraries", async (req, res): Promise<void> => {
@@ -176,11 +178,12 @@ router.get("/libraries/:id", async (req, res): Promise<void> => {
 
   const prompts: typeof promptsTable.$inferSelect[] = [];
   for (const lp of libraryPrompts) {
-    const [p] = await db.select().from(promptsTable).where(eq(promptsTable.id, lp.promptId));
+    const [p] = await db.select().from(promptsTable).where(and(eq(promptsTable.id, lp.promptId), isNull(promptsTable.deletedAt)));
     if (p) prompts.push(p);
   }
 
-  const promptItems = await Promise.all(prompts.map(buildPromptItem));
+  const hasAccess = await checkLibraryAccess(getCallerClerkUserId(req), library.id);
+  const promptItems = await Promise.all(prompts.map((p) => buildPromptItem(p, hasAccess)));
 
   const result = {
     id: library.id,
@@ -189,6 +192,8 @@ router.get("/libraries/:id", async (req, res): Promise<void> => {
     authorUsername: library.authorUsername,
     authorDisplayName: author?.displayName ?? library.authorUsername,
     isPublic: library.isPublic,
+    kind: (library as any).kind ?? "collection",
+    priceCents: library.priceCents ?? null,
     prompts: promptItems,
     createdAt: library.createdAt.toISOString(),
     updatedAt: library.updatedAt.toISOString(),

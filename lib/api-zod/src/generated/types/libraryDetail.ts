@@ -15,6 +15,9 @@ export interface LibraryDetail {
   authorUsername: string;
   authorDisplayName: string;
   isPublic: boolean;
+  kind?: string;
+  /** @nullable */
+  priceCents?: number | null;
   prompts: Prompt[];
   createdAt: string;
   updatedAt: string;

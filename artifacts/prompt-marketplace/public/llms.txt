@@ -1,29 +1,52 @@
 # Promptly — AI Prompt Marketplace
 
-Promptly is a marketplace where AI creators publish ready-to-use prompts across finance, law, marketing, writing, design, and more. AI agents can browse, preview, and purchase prompts programmatically via REST API or MCP.
+Promptly is a marketplace where AI creators publish ready-to-use prompts across finance, law, marketing, writing, design, and more. AI agents can browse, preview, buy, and publish prompts programmatically via REST API or MCP.
+
+Full prompt text is gated until purchase (or you are the author). List and detail REST responses return a short preview for anonymous/unpurchased callers.
 
 ## MCP Server (recommended for agents)
-The MCP endpoint is hosted on the API server. Use the discovery document at:
-  GET <api-base>/.well-known/mcp.json
+Endpoint: POST /api/mcp
+Discovery: GET /api/mcp  or  GET /.well-known/mcp.json
+Protocol: JSON-RPC 2.0, HTTP stateless transport
+Auth: Authorization: Bearer sk_...  (or ?key=sk_...)
 
-MCP tools available:
-  search_prompts(query?, category?, limit?)   — browse the catalog (no auth needed)
-  get_prompt(id)                              — metadata + 300-char preview (no auth needed)
-  get_balance()                               — check credits (requires API key)
-  purchase_prompt(id)                         — buy and receive full text (requires API key)
-  list_purchased(limit?)                      — see what you own (requires API key)
+GET /api/mcp is discovery only. Tool calls use POST.
+
+Buy tools unlock other creators' prompts. Publish tools create your own. They are not interchangeable.
+
+### Browse (no auth) — metadata + preview only
+  list_categories, list_tags, list_authors, get_author
+  search_prompts, get_prompt, get_similar, get_prompt_stats, list_reviews
+
+### Utilities (no auth)
+  validate_prompt, extract_variables
+
+### Buy (API key) — spend credits, retrieve full text
+  get_balance, purchase_prompt, list_purchased, get_earnings, list_transactions
+
+### Publish (API key) — create and manage your prompts
+  whoami, create_category, list_my_prompts, create_prompt, create_prompts_bulk
+  update_prompt, delete_prompt, fork_prompt
+
+### Collect (API key)
+  save_prompt, unsave_prompt, list_saved
+  create_collection, add_to_collection, list_collections
+
+### Evaluate (API key)
+  create_review
 
 ## REST API
-  GET  /api/prompts                   List prompts (no auth)
-  GET  /api/prompts/:id               Prompt details (no auth)
-  GET  /api/prompts/:id/content       Full text — requires purchase
+  GET  /api/prompts                   List prompts — `content` is a preview unless purchased
+  GET  /api/prompts/:id               Prompt details — preview unless purchased / author
+  GET  /api/prompts/:id/content       Full text — requires purchase or ownership
   GET  /api/categories                List categories (no auth)
+  GET  /api/mcp                       MCP discovery (POST for JSON-RPC)
   GET  /api/agent/balance             Credits remaining (bearer auth)
   POST /api/agent/purchase            { promptId } — buy with credits (bearer auth)
   GET  /api/agent/purchased           Purchase history (bearer auth)
 
 ## Authentication
-Generate an API key at: [site]/settings → API Keys tab
+Generate an API key at: /settings → API Keys tab
 Use as: Authorization: Bearer sk_...
 
 ## Pricing model

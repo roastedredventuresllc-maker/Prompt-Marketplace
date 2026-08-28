@@ -20,6 +20,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { db, apiKeysTable, usersTable, promptsTable, purchasesTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
 import { calculateTransactionAmounts } from "../lib/commission";
+import { checkPromptAccess } from "../lib/promptAccess";
 
 const router: Router = Router();
 
@@ -314,31 +315,13 @@ router.get("/prompts/:id/content", async (req, res): Promise<void> => {
     return;
   }
 
-  // Author always has access
+  const hasAccess = await checkPromptAccess(callerClerkUserId, promptId);
+  if (hasAccess) {
+    res.json({ id: prompt.id, title: prompt.title, content: prompt.content });
+    return;
+  }
+
   const [author] = await db.select().from(usersTable).where(eq(usersTable.username, prompt.authorUsername));
-  const isAuthor = author && (author.clerkUserId === callerClerkUserId || author.ownerClerkUserId === callerClerkUserId);
-  if (isAuthor) {
-    res.json({ id: prompt.id, title: prompt.title, content: prompt.content });
-    return;
-  }
-
-  // Check purchase record
-  const [purchase] = await db
-    .select()
-    .from(purchasesTable)
-    .where(
-      and(
-        eq(purchasesTable.clerkUserId, callerClerkUserId),
-        eq(purchasesTable.itemType, "prompt"),
-        eq(purchasesTable.itemId, promptId),
-      ),
-    );
-
-  if (purchase) {
-    res.json({ id: prompt.id, title: prompt.title, content: prompt.content });
-    return;
-  }
-
   res.status(403).json({ error: "Purchase required", priceCents: author?.promptPriceCents ?? 500 });
 });
 
