@@ -12,37 +12,17 @@ import {
 import { eq, and, inArray, sql } from "drizzle-orm";
 import { calculateTransactionAmounts } from "../lib/commission";
 import { libraryMembershipUnlocksPrompt } from "../lib/contentGate";
+import { publicAppUrl } from "../lib/publicAppUrl";
+import { whopApi, whopProductId } from "../lib/whopHttp";
 
 const router: Router = Router();
-
-/* ── Whop REST helper (same pattern as whop-api.mjs) ──────────────────── */
-async function whopApi(method: string, path: string, body?: object): Promise<any> {
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  const xReplitToken = process.env.REPL_IDENTITY
-    ? "repl " + process.env.REPL_IDENTITY
-    : process.env.WEB_REPL_RENEWAL
-      ? "depl " + process.env.WEB_REPL_RENEWAL
-      : null;
-  if (!hostname || !xReplitToken) throw new Error("Missing Replit env vars for Whop");
-
-  const resp = await fetch(`https://${hostname}/api/v2/proxy/${path}`, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      "X-Replit-Token": xReplitToken,
-      "Connector-Name": "whop",
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
-  return resp.json();
-}
 
 /* ── Plan resolver: standard prices → pre-created; else dynamic ─────── */
 async function resolvePlanId(priceCents: number): Promise<string> {
   if (priceCents === 500) return process.env.WHOP_PROMPT_PLAN_ID!;
   if (priceCents === 10000) return process.env.WHOP_COLLECTION_PLAN_ID!;
   const plan = await whopApi("POST", "/api/v1/plans", {
-    product_id: "prod_O9RuGmzn0dt7G",
+    product_id: whopProductId(),
     company_id: process.env.WHOP_COMPANY_ID!,
     plan_type: "one_time",
     initial_price: priceCents / 100,
@@ -202,7 +182,7 @@ router.post("/checkout/prompt/:id", async (req, res): Promise<void> => {
   const priceCents = author?.promptPriceCents ?? 500;
 
   const planId = await resolvePlanId(priceCents);
-  const baseUrl = `https://${(process.env.REPLIT_DOMAINS ?? "localhost").split(",")[0]}`;
+  const baseUrl = publicAppUrl(req);
   const redirectUrl = `${baseUrl}/payment-success?item_type=prompt&item_id=${promptId}`;
 
   const config = await whopApi("POST", "/api/v1/checkout_configurations", {
@@ -227,7 +207,7 @@ router.post("/checkout/library/:id", async (req, res): Promise<void> => {
   const priceCents = library?.priceCents ?? author?.collectionPriceCents ?? 10000;
 
   const planId = await resolvePlanId(priceCents);
-  const baseUrl = `https://${(process.env.REPLIT_DOMAINS ?? "localhost").split(",")[0]}`;
+  const baseUrl = publicAppUrl(req);
   const redirectUrl = `${baseUrl}/payment-success?item_type=library&item_id=${libraryId}`;
 
   const config = await whopApi("POST", "/api/v1/checkout_configurations", {
@@ -257,7 +237,7 @@ router.post("/checkout/topup/:id", async (req, res): Promise<void> => {
   const priceCents = Math.round(amountDollars * 100);
   const amounts = calculateTransactionAmounts(priceCents);
   const planId = await resolvePlanId(priceCents);
-  const baseUrl = `https://${(process.env.REPLIT_DOMAINS ?? "localhost").split(",")[0]}`;
+  const baseUrl = publicAppUrl(req);
   const redirectUrl = `${baseUrl}/payment-success?item_type=credit_topup&item_id=${keyId}`;
   const config = await whopApi("POST", "/api/v1/checkout_configurations", {
     plan_id: planId,

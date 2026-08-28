@@ -1,0 +1,43 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm run build:vercel",
+  "outputDirectory": "artifacts/prompt-marketplace/dist/public",
+  "functions": {
+    "api/index.mjs": {
+      "maxDuration": 30,
+      "includeFiles": "artifacts/api-server/dist/**"
+    },
+    "api/[...path].mjs": {
+      "maxDuration": 30,
+      "includeFiles": "artifacts/api-server/dist/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/.well-known/:path*",
+      "destination": "/api/__express/.well-known/:path*"
+    },
+    {
+      "source": "/oauth/:path*",
+      "destination": "/api/__express/oauth/:path*"
+    },
+    {
+      "source": "/llms.txt",
+      "destination": "/api/__express/llms.txt"
+    },
+    {
+      "source": "/openapi.json",
+      "destination": "/api/__express/openapi.json"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/__express/sitemap.xml"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
