@@ -94,6 +94,7 @@ paths:
       operationId: listPrompts
       tags: [prompts]
       summary: List prompts with optional filters
+      description: "Public catalog. `content` is a truncated preview unless the caller is the author/admin or has purchased the prompt. Full text is also available at GET /prompts/{id}/content after purchase."
       parameters:
         - name: categoryId
           in: query
@@ -154,6 +155,7 @@ paths:
       operationId: getTrendingPrompts
       tags: [prompts]
       summary: Get trending prompts
+      description: "Public catalog. `content` is a truncated preview unless the caller has access (author, admin, or purchase)."
       parameters:
         - name: limit
           in: query
@@ -174,6 +176,7 @@ paths:
       operationId: getPrompt
       tags: [prompts]
       summary: Get a prompt by ID
+      description: "Returns metadata plus content. Unpurchased callers receive a truncated preview and isGated=true. Authors, firm admins, and purchasers receive the full body. Use GET /prompts/{id}/content for an explicit paid-content endpoint."
       parameters:
         - name: id
           in: path
@@ -580,6 +583,10 @@ components:
           type: string
         content:
           type: string
+          description: "Full prompt body when the caller has access (author, admin, or purchase). Otherwise a ~120 character preview."
+        isGated:
+          type: boolean
+          description: "True when content is a truncated preview because the caller has not purchased and is not the author/admin."
         description:
           type: ["string", "null"]
         categoryId:
@@ -619,6 +626,7 @@ components:
         - id
         - title
         - content
+        - isGated
         - categoryId
         - categoryName
         - tags
@@ -817,6 +825,12 @@ components:
             type: string
         isPublic:
           type: boolean
+        kind:
+          type: string
+          description: "collection for curated sets; saved for bookmarks"
+        priceCents:
+          type: ["integer", "null"]
+          description: Collection price override in cents. Null means use the author's default.
         createdAt:
           type: string
         updatedAt:
@@ -847,6 +861,10 @@ components:
           type: string
         isPublic:
           type: boolean
+        kind:
+          type: string
+        priceCents:
+          type: ["integer", "null"]
         prompts:
           type: array
           items:
@@ -877,6 +895,9 @@ components:
           type: string
         isPublic:
           type: boolean
+        kind:
+          type: string
+          enum: [collection, saved]
       required:
         - name
         - authorUsername

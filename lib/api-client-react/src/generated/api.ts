@@ -395,6 +395,7 @@ export const getListPromptsUrl = (params?: ListPromptsParams,) => {
 }
 
 /**
+ * Public catalog. `content` is a truncated preview unless the caller is the author/admin or has purchased the prompt. Full text is also available at GET /prompts/{id}/content after purchase.
  * @summary List prompts with optional filters
  */
 export const listPrompts = async (params?: ListPromptsParams, options?: RequestInit): Promise<PromptListResponse> => {
@@ -550,6 +551,7 @@ export const getGetTrendingPromptsUrl = (params?: GetTrendingPromptsParams,) => 
 }
 
 /**
+ * Public catalog. `content` is a truncated preview unless the caller has access (author, admin, or purchase).
  * @summary Get trending prompts
  */
 export const getTrendingPrompts = async (params?: GetTrendingPromptsParams, options?: RequestInit): Promise<Prompt[]> => {
@@ -627,6 +629,7 @@ export const getGetPromptUrl = (id: number,) => {
 }
 
 /**
+ * Returns metadata plus content. Unpurchased callers receive a truncated preview and isGated=true. Authors, firm admins, and purchasers receive the full body. Use GET /prompts/{id}/content for an explicit paid-content endpoint.
  * @summary Get a prompt by ID
  */
 export const getPrompt = async (id: number, options?: RequestInit): Promise<Prompt> => {

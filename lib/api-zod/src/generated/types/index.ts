@@ -13,6 +13,7 @@ export * from './healthStatus';
 export * from './library';
 export * from './libraryDetail';
 export * from './libraryInput';
+export * from './libraryInputKind';
 export * from './libraryPromptInput';
 export * from './libraryUpdate';
 export * from './listLibrariesParams';

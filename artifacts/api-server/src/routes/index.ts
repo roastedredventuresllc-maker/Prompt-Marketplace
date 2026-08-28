@@ -15,6 +15,7 @@ import mcpRouter from "./mcp";
 import ratingsRouter from "./ratings";
 import analyticsRouter from "./analytics";
 import oauthRouter from "./oauth";
+import adminSalesRouter from "./admin-sales";
 
 const router: IRouter = Router();
 
@@ -34,5 +35,6 @@ router.use(mcpRouter);
 router.use(ratingsRouter);
 router.use(analyticsRouter);
 router.use(oauthRouter);
+router.use(adminSalesRouter);
 
 export default router;

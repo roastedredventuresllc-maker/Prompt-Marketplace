@@ -12,6 +12,7 @@ import {
   useGetMyProfile,
   useGetUserLibraries,
   getGetUserLibrariesQueryKey,
+  getGetMyProfileQueryKey,
   type Prompt,
   type User as ApiUser,
 } from "@workspace/api-client-react";
@@ -190,7 +191,7 @@ export default function Home() {
 
   const { isSignedIn } = useAuth();
   const { data: myProfile } = useGetMyProfile({
-    query: { enabled: !!isSignedIn },
+    query: { enabled: !!isSignedIn, queryKey: getGetMyProfileQueryKey() },
   });
   const { data: myLibraries } = useGetUserLibraries(myProfile?.username ?? "", {
     query: {

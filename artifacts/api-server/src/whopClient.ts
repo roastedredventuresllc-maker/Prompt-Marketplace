@@ -3,6 +3,11 @@ import Whop from '@whop/sdk';
 let clientPromise: Promise<Whop> | null = null;
 
 async function initWhopClient(): Promise<Whop> {
+  const apiKey = process.env.WHOP_API_KEY?.trim();
+  if (apiKey) {
+    return new Whop({ apiKey });
+  }
+
   const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
   const xReplitToken = process.env.REPL_IDENTITY
     ? 'repl ' + process.env.REPL_IDENTITY
@@ -11,9 +16,7 @@ async function initWhopClient(): Promise<Whop> {
       : null;
 
   if (!hostname || !xReplitToken) {
-    throw new Error(
-      'Missing Replit environment variables. Ensure the Whop integration is connected.',
-    );
+    throw new Error('WHOP_API_KEY is not set');
   }
 
   const resp = await fetch(
@@ -32,7 +35,7 @@ async function initWhopClient(): Promise<Whop> {
   const settings = data.items?.[0]?.settings;
 
   if (!settings?.api_key) {
-    throw new Error('Whop integration not connected or missing credentials.');
+    throw new Error('WHOP_API_KEY is not set');
   }
 
   return new Whop({ apiKey: settings.api_key });

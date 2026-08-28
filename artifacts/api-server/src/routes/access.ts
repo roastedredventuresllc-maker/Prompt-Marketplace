@@ -7,39 +7,22 @@ import {
   promptsTable,
   librariesTable,
   libraryPromptsTable,
+  apiKeysTable,
 } from "@workspace/db";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, sql } from "drizzle-orm";
+import { calculateTransactionAmounts } from "../lib/commission";
+import { libraryMembershipUnlocksPrompt } from "../lib/contentGate";
+import { publicAppUrl } from "../lib/publicAppUrl";
+import { whopApi, whopProductId } from "../lib/whopHttp";
 
 const router: Router = Router();
-
-/* ── Whop REST helper (same pattern as whop-api.mjs) ──────────────────── */
-async function whopApi(method: string, path: string, body?: object): Promise<any> {
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  const xReplitToken = process.env.REPL_IDENTITY
-    ? "repl " + process.env.REPL_IDENTITY
-    : process.env.WEB_REPL_RENEWAL
-      ? "depl " + process.env.WEB_REPL_RENEWAL
-      : null;
-  if (!hostname || !xReplitToken) throw new Error("Missing Replit env vars for Whop");
-
-  const resp = await fetch(`https://${hostname}/api/v2/proxy/${path}`, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      "X-Replit-Token": xReplitToken,
-      "Connector-Name": "whop",
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
-  return resp.json();
-}
 
 /* ── Plan resolver: standard prices → pre-created; else dynamic ─────── */
 async function resolvePlanId(priceCents: number): Promise<string> {
   if (priceCents === 500) return process.env.WHOP_PROMPT_PLAN_ID!;
   if (priceCents === 10000) return process.env.WHOP_COLLECTION_PLAN_ID!;
   const plan = await whopApi("POST", "/api/v1/plans", {
-    product_id: "prod_O9RuGmzn0dt7G",
+    product_id: whopProductId(),
     company_id: process.env.WHOP_COMPANY_ID!,
     plan_type: "one_time",
     initial_price: priceCents / 100,
@@ -88,13 +71,23 @@ router.get("/access/prompt/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  // Library purchase covering this prompt
-  const libRows = await db.select({ libraryId: libraryPromptsTable.libraryId }).from(libraryPromptsTable).where(eq(libraryPromptsTable.promptId, promptId));
-  if (libRows.length > 0) {
+  // Library purchase covering this prompt — only if the prompt is by the collection's author
+  const libRows = await db
+    .select({
+      libraryId: libraryPromptsTable.libraryId,
+      libraryAuthor: librariesTable.authorUsername,
+    })
+    .from(libraryPromptsTable)
+    .innerJoin(librariesTable, eq(libraryPromptsTable.libraryId, librariesTable.id))
+    .where(eq(libraryPromptsTable.promptId, promptId));
+  const covering = libRows.filter((row) =>
+    libraryMembershipUnlocksPrompt(promptForAuth?.authorUsername ?? "", row.libraryAuthor),
+  );
+  if (covering.length > 0) {
     const libPurchases = await db
       .select()
       .from(purchasesTable)
-      .where(and(eq(purchasesTable.clerkUserId, clerkUserId), eq(purchasesTable.itemType, "library"), inArray(purchasesTable.itemId, libRows.map((l) => l.libraryId))));
+      .where(and(eq(purchasesTable.clerkUserId, clerkUserId), eq(purchasesTable.itemType, "library"), inArray(purchasesTable.itemId, covering.map((l) => l.libraryId))));
     if (libPurchases.length > 0) {
       res.json({ hasAccess: true, reason: "library", freePromptsRemaining: Math.max(0, 3 - user.freePromptsUsed), priceCents: 0 });
       return;
@@ -134,7 +127,15 @@ router.post("/access/free-use/:id", async (req, res): Promise<void> => {
 
   if (user.freePromptsUsed >= 3) { res.status(403).json({ error: "Free prompt limit reached" }); return; }
 
-  await db.insert(purchasesTable).values({ clerkUserId, itemType: "prompt", itemId: promptId, priceCents: 0 });
+  await db.insert(purchasesTable).values({
+    clerkUserId,
+    itemType: "prompt",
+    transactionType: "prompt_purchase",
+    itemId: promptId,
+    priceCents: 0,
+    commissionCents: 0,
+    netCents: 0,
+  });
   await db.update(usersTable).set({ freePromptsUsed: user.freePromptsUsed + 1 }).where(eq(usersTable.clerkUserId, clerkUserId));
 
   res.json({ success: true, freePromptsRemaining: Math.max(0, 2 - user.freePromptsUsed) });
@@ -181,7 +182,7 @@ router.post("/checkout/prompt/:id", async (req, res): Promise<void> => {
   const priceCents = author?.promptPriceCents ?? 500;
 
   const planId = await resolvePlanId(priceCents);
-  const baseUrl = `https://${(process.env.REPLIT_DOMAINS ?? "localhost").split(",")[0]}`;
+  const baseUrl = publicAppUrl(req);
   const redirectUrl = `${baseUrl}/payment-success?item_type=prompt&item_id=${promptId}`;
 
   const config = await whopApi("POST", "/api/v1/checkout_configurations", {
@@ -206,7 +207,7 @@ router.post("/checkout/library/:id", async (req, res): Promise<void> => {
   const priceCents = library?.priceCents ?? author?.collectionPriceCents ?? 10000;
 
   const planId = await resolvePlanId(priceCents);
-  const baseUrl = `https://${(process.env.REPLIT_DOMAINS ?? "localhost").split(",")[0]}`;
+  const baseUrl = publicAppUrl(req);
   const redirectUrl = `${baseUrl}/payment-success?item_type=library&item_id=${libraryId}`;
 
   const config = await whopApi("POST", "/api/v1/checkout_configurations", {
@@ -217,6 +218,48 @@ router.post("/checkout/library/:id", async (req, res): Promise<void> => {
 
   if (!config?.purchase_url) { res.status(500).json({ error: "Failed to create checkout" }); return; }
   res.json({ purchaseUrl: config.purchase_url, checkoutConfigId: config.id, priceCents });
+});
+
+/* ── POST /api/checkout/topup/:id ───────────────────────────────────── */
+router.post("/checkout/topup/:id", async (req, res): Promise<void> => {
+  const keyId = parseInt(req.params.id as string, 10);
+  const { userId: clerkUserId } = getAuth(req);
+  const amountDollars = Number(req.body?.amountDollars);
+  if (!clerkUserId) { res.status(401).json({ error: "Authentication required" }); return; }
+  if (!Number.isFinite(amountDollars) || amountDollars < 1) {
+    res.status(400).json({ error: "Top-up must be at least $1.00" }); return;
+  }
+
+  const [key] = await db.select({ id: apiKeysTable.id }).from(apiKeysTable)
+    .where(and(eq(apiKeysTable.id, keyId), eq(apiKeysTable.ownerClerkUserId, clerkUserId), eq(apiKeysTable.isActive, true)));
+  if (!key) { res.status(404).json({ error: "Active API key not found" }); return; }
+
+  const priceCents = Math.round(amountDollars * 100);
+  const amounts = calculateTransactionAmounts(priceCents);
+  const planId = await resolvePlanId(priceCents);
+  const baseUrl = publicAppUrl(req);
+  const redirectUrl = `${baseUrl}/payment-success?item_type=credit_topup&item_id=${keyId}`;
+  const config = await whopApi("POST", "/api/v1/checkout_configurations", {
+    plan_id: planId,
+    redirect_url: redirectUrl,
+    metadata: {
+      clerk_user_id: clerkUserId,
+      item_type: "credit_topup",
+      item_id: String(keyId),
+      price_cents: String(priceCents),
+      commission_cents: String(amounts.commissionCents),
+      net_cents: String(amounts.netCents),
+    },
+  });
+
+  if (!config?.purchase_url) { res.status(500).json({ error: "Failed to create checkout" }); return; }
+  res.json({
+    purchaseUrl: config.purchase_url,
+    checkoutConfigId: config.id,
+    grossCents: amounts.grossCents,
+    commissionCents: amounts.commissionCents,
+    creditsCents: amounts.netCents,
+  });
 });
 
 /* ── POST /api/whop/verify ───────────────────────────────────────────── */
@@ -235,6 +278,7 @@ router.post("/whop/verify", async (req, res): Promise<void> => {
   const itemType: string = metadata.item_type ?? "";
   const itemId = parseInt(metadata.item_id ?? "0", 10);
   const priceCents = parseInt(metadata.price_cents ?? "0", 10);
+  const amounts = calculateTransactionAmounts(priceCents);
 
   if (!storedClerkUserId || !itemType || !itemId) {
     res.status(400).json({ error: "Invalid checkout metadata" });
@@ -258,12 +302,46 @@ router.post("/whop/verify", async (req, res): Promise<void> => {
   }
 
   // Idempotent: skip if already recorded for this checkout
-  const [existing] = await db.select().from(purchasesTable).where(and(eq(purchasesTable.clerkUserId, storedClerkUserId), eq(purchasesTable.itemType, itemType), eq(purchasesTable.itemId, itemId), eq(purchasesTable.whopCheckoutConfigId, checkoutConfigId)));
-  if (!existing) {
-    await db.insert(purchasesTable).values({ clerkUserId: storedClerkUserId, itemType, itemId, whopCheckoutConfigId: checkoutConfigId, priceCents });
+  if (itemType === "credit_topup") {
+    const [key] = await db.select().from(apiKeysTable)
+      .where(and(eq(apiKeysTable.id, itemId), eq(apiKeysTable.ownerClerkUserId, storedClerkUserId), eq(apiKeysTable.isActive, true)));
+    if (!key) { res.status(404).json({ error: "Active API key not found" }); return; }
   }
 
-  res.json({ success: true, itemType, itemId });
+  const transactionType = itemType === "credit_topup"
+    ? "credit_topup"
+    : itemType === "library" ? "library_purchase" : "prompt_purchase";
+
+  const wasInserted = await db.transaction(async (tx) => {
+    const inserted = await tx.insert(purchasesTable).values({
+      clerkUserId: storedClerkUserId,
+      itemType,
+      transactionType,
+      itemId,
+      whopCheckoutConfigId: checkoutConfigId,
+      priceCents: amounts.grossCents,
+      commissionCents: amounts.commissionCents,
+      netCents: amounts.netCents,
+    }).onConflictDoNothing().returning({ id: purchasesTable.id });
+
+    if (inserted.length === 0) return false;
+    if (itemType === "credit_topup") {
+      await tx.update(apiKeysTable)
+        .set({ creditsCents: sql`${apiKeysTable.creditsCents} + ${amounts.netCents}` })
+        .where(and(eq(apiKeysTable.id, itemId), eq(apiKeysTable.ownerClerkUserId, storedClerkUserId)));
+    }
+    return true;
+  });
+
+  res.json({
+    success: true,
+    itemType,
+    itemId,
+    grossCents: amounts.grossCents,
+    commissionCents: amounts.commissionCents,
+    netCents: amounts.netCents,
+    alreadyRecorded: !wasInserted,
+  });
 });
 
 

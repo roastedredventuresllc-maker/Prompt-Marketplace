@@ -1,0 +1,172 @@
+import type { Request } from "express";
+import { getAuth } from "@clerk/express";
+import {
+  db,
+  promptsTable,
+  usersTable,
+  purchasesTable,
+  libraryPromptsTable,
+  librariesTable,
+} from "@workspace/db";
+import { eq, and, inArray } from "drizzle-orm";
+import { libraryMembershipUnlocksPrompt } from "./contentGate";
+
+/** Clerk user id from a session cookie or from a Bearer API key. */
+export function getCallerClerkUserId(req: Request): string | null {
+  const fromKey = req.apiKey?.ownerClerkUserId;
+  if (fromKey) return fromKey;
+  const { userId } = getAuth(req);
+  return userId ?? null;
+}
+
+function isAuthorOrAdmin(
+  author: typeof usersTable.$inferSelect | undefined,
+  clerkUserId: string,
+): boolean {
+  if (!author) return false;
+  if (author.clerkUserId === clerkUserId || author.ownerClerkUserId === clerkUserId) return true;
+  return (author.adminClerkUserIds ?? []).includes(clerkUserId);
+}
+
+/**
+ * Batch access check for prompt bodies.
+ * Access if the caller is the author / firm owner / firm admin,
+ * has a direct prompt purchase, or purchased a library whose author
+ * also authored the prompt (stuffed third-party members stay gated).
+ */
+export async function getAccessiblePromptIds(
+  clerkUserId: string | null,
+  promptIds: number[],
+): Promise<Set<number>> {
+  const accessible = new Set<number>();
+  if (!clerkUserId || promptIds.length === 0) return accessible;
+
+  const uniqueIds = [...new Set(promptIds)];
+
+  const promptRows = await db
+    .select({ id: promptsTable.id, authorUsername: promptsTable.authorUsername })
+    .from(promptsTable)
+    .where(inArray(promptsTable.id, uniqueIds));
+
+  const usernames = [...new Set(promptRows.map((p) => p.authorUsername))];
+  const authors = usernames.length
+    ? await db.select().from(usersTable).where(inArray(usersTable.username, usernames))
+    : [];
+  const authorByUsername = new Map(authors.map((a) => [a.username, a]));
+
+  for (const p of promptRows) {
+    if (isAuthorOrAdmin(authorByUsername.get(p.authorUsername), clerkUserId)) {
+      accessible.add(p.id);
+    }
+  }
+
+  const remaining = uniqueIds.filter((id) => !accessible.has(id));
+  if (remaining.length === 0) return accessible;
+
+  const direct = await db
+    .select({ itemId: purchasesTable.itemId })
+    .from(purchasesTable)
+    .where(
+      and(
+        eq(purchasesTable.clerkUserId, clerkUserId),
+        eq(purchasesTable.itemType, "prompt"),
+        inArray(purchasesTable.itemId, remaining),
+      ),
+    );
+  for (const row of direct) accessible.add(row.itemId);
+
+  const stillRemaining = remaining.filter((id) => !accessible.has(id));
+  if (stillRemaining.length === 0) return accessible;
+
+  const libRows = await db
+    .select({
+      libraryId: libraryPromptsTable.libraryId,
+      promptId: libraryPromptsTable.promptId,
+      libraryAuthor: librariesTable.authorUsername,
+    })
+    .from(libraryPromptsTable)
+    .innerJoin(librariesTable, eq(libraryPromptsTable.libraryId, librariesTable.id))
+    .where(inArray(libraryPromptsTable.promptId, stillRemaining));
+
+  if (libRows.length === 0) return accessible;
+
+  const libraryIds = [...new Set(libRows.map((l) => l.libraryId))];
+  const libPurchases = await db
+    .select({ itemId: purchasesTable.itemId })
+    .from(purchasesTable)
+    .where(
+      and(
+        eq(purchasesTable.clerkUserId, clerkUserId),
+        eq(purchasesTable.itemType, "library"),
+        inArray(purchasesTable.itemId, libraryIds),
+      ),
+    );
+  const purchasedLibs = new Set(libPurchases.map((p) => p.itemId));
+  const promptAuthorById = new Map(promptRows.map((p) => [p.id, p.authorUsername]));
+  for (const row of libRows) {
+    const promptAuthor = promptAuthorById.get(row.promptId) ?? "";
+    if (
+      purchasedLibs.has(row.libraryId) &&
+      libraryMembershipUnlocksPrompt(promptAuthor, row.libraryAuthor)
+    ) {
+      accessible.add(row.promptId);
+    }
+  }
+
+  return accessible;
+}
+
+export async function checkPromptAccess(
+  clerkUserId: string | null,
+  promptId: number,
+): Promise<boolean> {
+  const set = await getAccessiblePromptIds(clerkUserId, [promptId]);
+  return set.has(promptId);
+}
+
+/**
+ * Signed-in user (Clerk session or API key) who may publish as `requestedUsername`
+ * (their profile, or a firm they own/admin). Invite-only publishing starts here:
+ * unauthenticated callers cannot create prompts or libraries.
+ */
+export async function requirePublisher(
+  clerkUserId: string | null,
+  requestedUsername?: string | null,
+): Promise<
+  | { ok: true; authorUsername: string }
+  | { ok: false; status: 401 | 403; error: string }
+> {
+  if (!clerkUserId) return { ok: false, status: 401, error: "Unauthorized" };
+
+  let username = requestedUsername?.trim() || null;
+  if (!username) {
+    const [self] = await db.select().from(usersTable).where(eq(usersTable.clerkUserId, clerkUserId));
+    if (!self) return { ok: false, status: 401, error: "Unauthorized" };
+    username = self.username;
+  }
+
+  const [profile] = await db.select().from(usersTable).where(eq(usersTable.username, username));
+  if (!profile || !isAuthorOrAdmin(profile, clerkUserId)) {
+    return { ok: false, status: 403, error: "Forbidden" };
+  }
+  return { ok: true, authorUsername: profile.username };
+}
+
+export async function loadOwnedLibrary(
+  clerkUserId: string | null,
+  libraryId: number,
+): Promise<
+  | { ok: true; library: typeof librariesTable.$inferSelect }
+  | { ok: false; status: 401 | 403 | 404; error: string }
+> {
+  if (!clerkUserId) return { ok: false, status: 401, error: "Unauthorized" };
+
+  const [library] = await db.select().from(librariesTable).where(eq(librariesTable.id, libraryId));
+  if (!library) return { ok: false, status: 404, error: "Library not found" };
+
+  const [author] = await db.select().from(usersTable).where(eq(usersTable.username, library.authorUsername));
+  if (!isAuthorOrAdmin(author, clerkUserId)) {
+    return { ok: false, status: 403, error: "Forbidden" };
+  }
+  return { ok: true, library };
+}

@@ -50,7 +50,9 @@ export default function PaymentSuccess() {
   }, []);
 
   const returnHref = itemType && itemId
-    ? itemType === "prompt" ? `/prompt/${itemId}` : `/library/${itemId}`
+    ? itemType === "prompt"
+      ? `/prompt/${itemId}`
+      : itemType === "library" ? `/library/${itemId}` : "/settings"
     : "/explore";
 
   return (
@@ -74,16 +76,18 @@ export default function PaymentSuccess() {
               </div>
               <h1 className="text-[22px] font-bold mb-2">You're in!</h1>
               <p className="text-[14px] text-foreground/55 mb-8">
-                {itemType === "library"
+                 {itemType === "library"
                   ? "Your collection is now unlocked. All prompts inside are yours."
-                  : "Your prompt is now unlocked and ready to copy."}
+                   : itemType === "credit_topup"
+                     ? "Your verified credit balance has been updated after the 5% platform fee."
+                     : "Your prompt is now unlocked and ready to copy."}
               </p>
               <Link
                 href={returnHref}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-[14px] text-white hover:opacity-80 transition-opacity"
                 style={{ background: "var(--orange)" }}
               >
-                {itemType === "library" ? "View collection" : "View prompt"}
+                 {itemType === "library" ? "View collection" : itemType === "credit_topup" ? "View API keys" : "View prompt"}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </>

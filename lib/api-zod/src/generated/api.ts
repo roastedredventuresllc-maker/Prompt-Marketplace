@@ -68,6 +68,7 @@ export const GetMyProfileResponse = zod.object({
 
 
 /**
+ * Public catalog. `content` is a truncated preview unless the caller is the author/admin or has purchased the prompt. Full text is also available at GET /prompts/{id}/content after purchase.
  * @summary List prompts with optional filters
  */
 export const ListPromptsQueryParams = zod.object({
@@ -84,7 +85,8 @@ export const ListPromptsResponse = zod.object({
   "prompts": zod.array(zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "content": zod.string(),
+  "content": zod.string().describe('Full prompt body when the caller has access (author, admin, or purchase). Otherwise a ~120 character preview.'),
+  "isGated": zod.boolean().describe('True when content is a truncated preview because the caller has not purchased and is not the author\/admin.'),
   "description": zod.string().nullish(),
   "categoryId": zod.number(),
   "categoryName": zod.string(),
@@ -127,7 +129,8 @@ export const CreatePromptBody = zod.object({
 export const CreatePromptResponse = zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "content": zod.string(),
+  "content": zod.string().describe('Full prompt body when the caller has access (author, admin, or purchase). Otherwise a ~120 character preview.'),
+  "isGated": zod.boolean().describe('True when content is a truncated preview because the caller has not purchased and is not the author\/admin.'),
   "description": zod.string().nullish(),
   "categoryId": zod.number(),
   "categoryName": zod.string(),
@@ -148,6 +151,7 @@ export const CreatePromptResponse = zod.object({
 
 
 /**
+ * Public catalog. `content` is a truncated preview unless the caller has access (author, admin, or purchase).
  * @summary Get trending prompts
  */
 export const GetTrendingPromptsQueryParams = zod.object({
@@ -157,7 +161,8 @@ export const GetTrendingPromptsQueryParams = zod.object({
 export const GetTrendingPromptsResponseItem = zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "content": zod.string(),
+  "content": zod.string().describe('Full prompt body when the caller has access (author, admin, or purchase). Otherwise a ~120 character preview.'),
+  "isGated": zod.boolean().describe('True when content is a truncated preview because the caller has not purchased and is not the author\/admin.'),
   "description": zod.string().nullish(),
   "categoryId": zod.number(),
   "categoryName": zod.string(),
@@ -179,6 +184,7 @@ export const GetTrendingPromptsResponse = zod.array(GetTrendingPromptsResponseIt
 
 
 /**
+ * Returns metadata plus content. Unpurchased callers receive a truncated preview and isGated=true. Authors, firm admins, and purchasers receive the full body. Use GET /prompts/{id}/content for an explicit paid-content endpoint.
  * @summary Get a prompt by ID
  */
 export const GetPromptParams = zod.object({
@@ -188,7 +194,8 @@ export const GetPromptParams = zod.object({
 export const GetPromptResponse = zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "content": zod.string(),
+  "content": zod.string().describe('Full prompt body when the caller has access (author, admin, or purchase). Otherwise a ~120 character preview.'),
+  "isGated": zod.boolean().describe('True when content is a truncated preview because the caller has not purchased and is not the author\/admin.'),
   "description": zod.string().nullish(),
   "categoryId": zod.number(),
   "categoryName": zod.string(),
@@ -231,7 +238,8 @@ export const UpdatePromptBody = zod.object({
 export const UpdatePromptResponse = zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "content": zod.string(),
+  "content": zod.string().describe('Full prompt body when the caller has access (author, admin, or purchase). Otherwise a ~120 character preview.'),
+  "isGated": zod.boolean().describe('True when content is a truncated preview because the caller has not purchased and is not the author\/admin.'),
   "description": zod.string().nullish(),
   "categoryId": zod.number(),
   "categoryName": zod.string(),
@@ -409,8 +417,8 @@ export const GetUserLibrariesResponseItem = zod.object({
   "promptCount": zod.number(),
   "previewTitles": zod.array(zod.string()),
   "isPublic": zod.boolean(),
-  "kind": zod.string().optional().default("collection"),
-  "priceCents": zod.number().nullish(),
+  "kind": zod.string().optional().describe('collection for curated sets; saved for bookmarks'),
+  "priceCents": zod.number().nullish().describe('Collection price override in cents. Null means use the author\'s default.'),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -434,6 +442,8 @@ export const ListLibrariesResponseItem = zod.object({
   "promptCount": zod.number(),
   "previewTitles": zod.array(zod.string()),
   "isPublic": zod.boolean(),
+  "kind": zod.string().optional().describe('collection for curated sets; saved for bookmarks'),
+  "priceCents": zod.number().nullish().describe('Collection price override in cents. Null means use the author\'s default.'),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -451,7 +461,7 @@ export const CreateLibraryBody = zod.object({
   "description": zod.string().optional(),
   "authorUsername": zod.string(),
   "isPublic": zod.boolean().optional(),
-  "kind": zod.enum(["collection", "saved"]).optional()
+  "kind": zod.enum(['collection', 'saved']).optional()
 })
 
 export const CreateLibraryResponse = zod.object({
@@ -463,8 +473,8 @@ export const CreateLibraryResponse = zod.object({
   "promptCount": zod.number(),
   "previewTitles": zod.array(zod.string()),
   "isPublic": zod.boolean(),
-  "kind": zod.string().optional().default("collection"),
-  "priceCents": zod.number().nullish(),
+  "kind": zod.string().optional().describe('collection for curated sets; saved for bookmarks'),
+  "priceCents": zod.number().nullish().describe('Collection price override in cents. Null means use the author\'s default.'),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -484,12 +494,13 @@ export const GetLibraryResponse = zod.object({
   "authorUsername": zod.string(),
   "authorDisplayName": zod.string(),
   "isPublic": zod.boolean(),
-  "kind": zod.string().optional().default("collection"),
+  "kind": zod.string().optional(),
   "priceCents": zod.number().nullish(),
   "prompts": zod.array(zod.object({
   "id": zod.number(),
   "title": zod.string(),
-  "content": zod.string(),
+  "content": zod.string().describe('Full prompt body when the caller has access (author, admin, or purchase). Otherwise a ~120 character preview.'),
+  "isGated": zod.boolean().describe('True when content is a truncated preview because the caller has not purchased and is not the author\/admin.'),
   "description": zod.string().nullish(),
   "categoryId": zod.number(),
   "categoryName": zod.string(),
@@ -537,8 +548,8 @@ export const UpdateLibraryResponse = zod.object({
   "promptCount": zod.number(),
   "previewTitles": zod.array(zod.string()),
   "isPublic": zod.boolean(),
-  "kind": zod.string().optional().default("collection"),
-  "priceCents": zod.number().nullish(),
+  "kind": zod.string().optional().describe('collection for curated sets; saved for bookmarks'),
+  "priceCents": zod.number().nullish().describe('Collection price override in cents. Null means use the author\'s default.'),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -574,8 +585,8 @@ export const AddPromptToLibraryResponse = zod.object({
   "promptCount": zod.number(),
   "previewTitles": zod.array(zod.string()),
   "isPublic": zod.boolean(),
-  "kind": zod.string().optional().default("collection"),
-  "priceCents": zod.number().nullish(),
+  "kind": zod.string().optional().describe('collection for curated sets; saved for bookmarks'),
+  "priceCents": zod.number().nullish().describe('Collection price override in cents. Null means use the author\'s default.'),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -598,8 +609,8 @@ export const RemovePromptFromLibraryResponse = zod.object({
   "promptCount": zod.number(),
   "previewTitles": zod.array(zod.string()),
   "isPublic": zod.boolean(),
-  "kind": zod.string().optional().default("collection"),
-  "priceCents": zod.number().nullish(),
+  "kind": zod.string().optional().describe('collection for curated sets; saved for bookmarks'),
+  "priceCents": zod.number().nullish().describe('Collection price override in cents. Null means use the author\'s default.'),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })

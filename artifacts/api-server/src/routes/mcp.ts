@@ -6,6 +6,9 @@
  *   Body: JSON-RPC 2.0 request
  *   Response: JSON-RPC 2.0 response
  *
+ * GET  /api/mcp
+ *   Discovery document (no auth). Tool calls are POST only.
+ *
  * ── Tools ─────────────────────────────────────────────────────────────────
  * Browse & orient (no auth)
  *   whoami                  Who am I? (auth)
@@ -14,7 +17,7 @@
  *   list_authors            Top authors sorted by prompt count or saves
  *   get_author              Full author profile by handle
  *   search_prompts          Full-text search + filter + sort + pagination
- *   get_prompt              Metadata + 300-char preview for one prompt
+ *   get_prompt              Metadata + preview; full text if owned/purchased
  *   get_similar             Related prompts by tag overlap
  *   get_prompt_stats        Purchase count, save-to-purchase rate, last sale
  *   list_reviews            All ratings/reviews for a prompt
@@ -36,8 +39,8 @@
  *
  * Authoring (auth required)
  *   list_my_prompts         Your published/draft prompts
- *   create_prompt           Publish a new prompt
- *   create_prompts_bulk     Publish multiple prompts in one call
+ *   create_prompt           Publish a new prompt (invite-only)
+ *   create_prompts_bulk     Publish multiple prompts (invite-only)
  *   update_prompt           Edit a prompt you own
  *   delete_prompt           Soft-delete a prompt you own
  *   fork_prompt             Clone a prompt you own or purchased into a draft
@@ -59,6 +62,10 @@ import {
   savesTable, ratingsTable,
 } from "@workspace/db";
 import { eq, and, desc, asc, sql, isNull, ilike, or } from "drizzle-orm";
+import { calculateTransactionAmounts } from "../lib/commission";
+import { checkPromptAccess } from "../lib/promptAccess";
+import { AUTH_REQUIRED, MCP_SURFACES, sendMcpDiscovery } from "../lib/mcpDiscovery";
+import { canAddPromptToLibrary } from "../lib/contentGate";
 
 const router: Router = Router();
 
@@ -146,7 +153,7 @@ const TOOLS = [
   },
   {
     name: "get_prompt",
-    description: "Metadata + 300-char content preview for one prompt. Call purchase_prompt to unlock full text.",
+    description: "Metadata + content preview for one prompt (300-char preview). Authenticated owners and purchasers receive full `content`. Otherwise call purchase_prompt to unlock.",
     inputSchema: {
       type: "object",
       properties: {
@@ -316,7 +323,7 @@ const TOOLS = [
   },
   {
     name: "create_prompt",
-    description: "Publish a new prompt to the Promptly marketplace under your account.",
+    description: "Publish a new prompt to the Promptly marketplace under your account. Invite-only — not a public free-for-all. An API key does not grant open publishing.",
     inputSchema: {
       type: "object",
       properties: {
@@ -334,7 +341,7 @@ const TOOLS = [
   },
   {
     name: "create_prompts_bulk",
-    description: "Publish multiple prompts in one call. Each item uses the same schema as create_prompt. Returns results per prompt including any per-item errors.",
+    description: "Publish multiple prompts in one call. Invite-only — not a public free-for-all. Each item uses the same schema as create_prompt. Returns results per prompt including any per-item errors.",
     inputSchema: {
       type: "object",
       properties: {
@@ -445,6 +452,15 @@ const TOOLS = [
     },
   },
 ];
+
+export { TOOLS };
+export { AUTH_REQUIRED, MCP_SURFACES };
+
+const advertisedTools = new Set<string>(Object.values(MCP_SURFACES).flatMap((names) => [...names]));
+const definedTools = new Set<string>(TOOLS.map((t) => t.name));
+if (advertisedTools.size !== definedTools.size || [...definedTools].some((n) => !advertisedTools.has(n))) {
+  throw new Error("MCP_SURFACES is out of date with TOOLS — update discovery surfaces when adding MCP tools");
+}
 
 // ── Shared helpers ─────────────────────────────────────────────────────────
 
@@ -699,7 +715,7 @@ async function searchPrompts(args: Record<string, any>) {
   };
 }
 
-async function getPrompt(args: Record<string, any>) {
+async function getPrompt(args: Record<string, any>, apiKey?: ApiKey) {
   const id = parseInt(args.id, 10);
   if (isNaN(id)) throw new Error("id must be a number");
 
@@ -730,6 +746,28 @@ async function getPrompt(args: Record<string, any>) {
     .from(usersTable).where(eq(usersTable.username, row.authorUsername));
 
   const preview = row.content.slice(0, 300) + (row.content.length > 300 ? "…" : "");
+  const hasAccess = apiKey ? await checkPromptAccess(apiKey.ownerClerkUserId, id) : false;
+
+  if (hasAccess) {
+    return {
+      id: row.id,
+      title: row.title,
+      description: row.description ?? "",
+      content: row.content,
+      contentPreview: preview,
+      tags: row.tags,
+      author: row.authorUsername,
+      category: row.categoryName ?? null,
+      categorySlug: row.categorySlug ?? null,
+      saves: row.saveCount,
+      avgRating: Number(row.avgRating),
+      ratingCount: row.ratingCount,
+      priceCents: row.priceCents ?? author?.promptPriceCents ?? 500,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      isGated: false,
+    };
+  }
 
   return {
     id: row.id,
@@ -746,6 +784,7 @@ async function getPrompt(args: Record<string, any>) {
     priceCents: row.priceCents ?? author?.promptPriceCents ?? 500,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+    isGated: true,
     note: "Use purchase_prompt to unlock full content.",
   };
 }
@@ -929,6 +968,13 @@ async function addToCollection(args: Record<string, any>, apiKey: ApiKey) {
   const [lib] = await db.select().from(librariesTable).where(eq(librariesTable.id, collectionId));
   if (!lib) throw new Error(`Collection ${collectionId} not found`);
   if (lib.authorUsername !== user.username) throw new Error("Forbidden — you do not own this collection");
+
+  const [prompt] = await db.select().from(promptsTable)
+    .where(and(eq(promptsTable.id, promptId), isNull(promptsTable.deletedAt)));
+  if (!prompt) throw new Error(`Prompt ${promptId} not found`);
+  if (!canAddPromptToLibrary(lib.kind, prompt.authorUsername, lib.authorUsername)) {
+    throw new Error("Forbidden — collections may only include prompts from this collection's author");
+  }
 
   const [existing] = await db.select().from(libraryPromptsTable)
     .where(and(eq(libraryPromptsTable.libraryId, collectionId), eq(libraryPromptsTable.promptId, promptId)));
@@ -1222,13 +1268,12 @@ async function forkPrompt(args: Record<string, any>, apiKey: ApiKey) {
   const [source] = await db.select().from(promptsTable).where(and(eq(promptsTable.id, id), isNull(promptsTable.deletedAt)));
   if (!source) throw new Error(`Prompt ${id} not found`);
 
-  // Must own or have purchased
+  // Must own, have purchased, or have unlocked via a library purchase
   const [sourceAuthor] = await db.select().from(usersTable).where(eq(usersTable.username, source.authorUsername));
   const owns = sourceAuthor && isOwner(sourceAuthor, apiKey.ownerClerkUserId);
   if (!owns) {
-    const [purchased] = await db.select().from(purchasesTable)
-      .where(and(eq(purchasesTable.clerkUserId, apiKey.ownerClerkUserId), eq(purchasesTable.itemType, "prompt"), eq(purchasesTable.itemId, id)));
-    if (!purchased) throw new Error("You must own or have purchased this prompt to fork it.");
+    const hasAccess = await checkPromptAccess(apiKey.ownerClerkUserId, id);
+    if (!hasAccess) throw new Error("You must own or have purchased this prompt to fork it.");
   }
 
   const [forked] = await db.insert(promptsTable).values({
@@ -1277,6 +1322,7 @@ async function purchasePrompt(args: Record<string, any>, apiKey: ApiKey) {
   }
 
   const priceCents = prompt.priceCents ?? author?.promptPriceCents ?? 500;
+  const amounts = calculateTransactionAmounts(priceCents);
   if (priceCents > 0 && apiKey.creditsCents < priceCents) {
     throw new Error(`Insufficient credits. Need $${(priceCents / 100).toFixed(2)}, have $${(apiKey.creditsCents / 100).toFixed(2)}. Top up in Settings → API Keys.`);
   }
@@ -1284,9 +1330,24 @@ async function purchasePrompt(args: Record<string, any>, apiKey: ApiKey) {
   if (priceCents > 0) {
     await db.update(apiKeysTable).set({ creditsCents: apiKey.creditsCents - priceCents }).where(eq(apiKeysTable.id, apiKey.id));
   }
-  await db.insert(purchasesTable).values({ clerkUserId: apiKey.ownerClerkUserId, itemType: "prompt", itemId: promptId, priceCents });
+  await db.insert(purchasesTable).values({
+    clerkUserId: apiKey.ownerClerkUserId,
+    itemType: "prompt",
+    transactionType: "prompt_purchase",
+    itemId: promptId,
+    priceCents,
+    commissionCents: amounts.commissionCents,
+    netCents: amounts.netCents,
+  });
 
-  return { success: true, charged: priceCents, remainingCreditsCents: apiKey.creditsCents - priceCents, prompt: { id: prompt.id, title: prompt.title, content: prompt.content } };
+  return {
+    success: true,
+    charged: priceCents,
+    commissionCents: amounts.commissionCents,
+    creatorNetCents: amounts.netCents,
+    remainingCreditsCents: apiKey.creditsCents - priceCents,
+    prompt: { id: prompt.id, title: prompt.title, content: prompt.content },
+  };
 }
 
 async function listPurchased(args: Record<string, any>, apiKey: ApiKey) {
@@ -1317,28 +1378,36 @@ async function getEarnings(apiKey: ApiKey) {
       p.item_id AS prompt_id,
       pr.title,
       count(p.id)::int AS sale_count,
-      coalesce(sum(p.price_cents), 0)::int AS revenue_cents
+      coalesce(sum(p.price_cents), 0)::int AS gross_cents,
+      coalesce(sum(p.commission_cents), 0)::int AS commission_cents,
+      coalesce(sum(p.net_cents), 0)::int AS net_cents
     FROM purchases p
     JOIN prompts pr ON pr.id = p.item_id
     WHERE p.item_type = 'prompt'
       AND pr.author_username = ${user.username}
     GROUP BY p.item_id, pr.title
-    ORDER BY revenue_cents DESC
+    ORDER BY net_cents DESC
   `);
 
   const perPrompt = (rows.rows as any[]).map((r) => ({
     promptId: r.prompt_id,
     title: r.title,
     saleCount: r.sale_count,
-    revenueCents: r.revenue_cents,
-    revenueDollars: (r.revenue_cents / 100).toFixed(2),
+    grossCents: r.gross_cents,
+    commissionCents: r.commission_cents,
+    netCents: r.net_cents,
+    netDollars: (r.net_cents / 100).toFixed(2),
   }));
 
-  const totalCents = perPrompt.reduce((s, r) => s + r.revenueCents, 0);
+  const grossCents = perPrompt.reduce((s, r) => s + r.grossCents, 0);
+  const commissionCents = perPrompt.reduce((s, r) => s + r.commissionCents, 0);
+  const netCents = perPrompt.reduce((s, r) => s + r.netCents, 0);
 
   return {
-    totalRevenueCents: totalCents,
-    totalRevenueDollars: (totalCents / 100).toFixed(2),
+    grossRevenueCents: grossCents,
+    platformCommissionCents: commissionCents,
+    netEarningsCents: netCents,
+    netEarningsDollars: (netCents / 100).toFixed(2),
     promptCount: perPrompt.length,
     perPrompt,
     note: "Payout processing is handled via Whop. Check your Whop dashboard for payout status.",
@@ -1356,6 +1425,8 @@ async function listTransactions(args: Record<string, any>, apiKey: ApiKey) {
       p.item_id AS prompt_id,
       pr.title,
       p.price_cents,
+      p.commission_cents,
+      p.net_cents,
       p.created_at,
       CASE WHEN pr.author_username = ${user.username} THEN 'earning' ELSE 'spending' END AS direction
     FROM purchases p
@@ -1374,6 +1445,8 @@ async function listTransactions(args: Record<string, any>, apiKey: ApiKey) {
     promptId: r.prompt_id,
     title: r.title,
     priceCents: r.price_cents,
+    commissionCents: r.commission_cents,
+    netCents: r.net_cents,
     direction: r.direction as "earning" | "spending",
     date: r.created_at,
   }));
@@ -1393,15 +1466,7 @@ function jsonrpcOk(id: any, result: unknown) {
   return { jsonrpc: "2.0", id, result };
 }
 
-const AUTH_REQUIRED = new Set([
-  "whoami",
-  "create_category",
-  "save_prompt", "unsave_prompt", "list_saved",
-  "create_collection", "add_to_collection", "list_collections",
-  "create_review",
-  "list_my_prompts", "create_prompt", "create_prompts_bulk", "update_prompt", "delete_prompt", "fork_prompt",
-  "get_balance", "purchase_prompt", "list_purchased", "get_earnings", "list_transactions",
-]);
+router.get("/mcp", sendMcpDiscovery);
 
 router.post("/mcp", async (req, res): Promise<void> => {
   const apiKey = (req as any).apiKey as ApiKey | undefined;
@@ -1453,7 +1518,7 @@ router.post("/mcp", async (req, res): Promise<void> => {
         case "list_authors": result = await listAuthors(args); break;
         case "get_author": result = await getAuthor(args); break;
         case "search_prompts": result = await searchPrompts(args); break;
-        case "get_prompt": result = await getPrompt(args); break;
+        case "get_prompt": result = await getPrompt(args, apiKey); break;
         case "get_similar": result = await getSimilar(args); break;
         case "get_prompt_stats": result = await getPromptStats(args); break;
         case "list_reviews": result = await listReviews(args); break;

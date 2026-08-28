@@ -16,6 +16,13 @@ export interface Library {
   promptCount: number;
   previewTitles: string[];
   isPublic: boolean;
+  /** collection for curated sets; saved for bookmarks */
+  kind?: string;
+  /**
+     * Collection price override in cents. Null means use the author's default.
+     * @nullable
+     */
+  priceCents?: number | null;
   createdAt: string;
   updatedAt: string;
 }

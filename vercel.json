@@ -1,0 +1,16 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm --filter @workspace/prompt-marketplace run build && pnpm --filter @workspace/api-server run build",
+  "outputDirectory": "artifacts/prompt-marketplace/dist/public",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api?__path=:path*" },
+    { "source": "/.well-known/:path*", "destination": "/api?__orig=/.well-known/:path*" },
+    { "source": "/oauth/:path*", "destination": "/api?__orig=/oauth/:path*" },
+    { "source": "/llms.txt", "destination": "/api?__orig=/llms.txt" },
+    { "source": "/openapi.json", "destination": "/api?__orig=/openapi.json" },
+    { "source": "/sitemap.xml", "destination": "/api?__orig=/sitemap.xml" },
+    { "source": "/:path*", "destination": "/index.html" }
+  ]
+}

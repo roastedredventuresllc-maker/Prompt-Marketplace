@@ -38,7 +38,10 @@ export const PromptAuthorOrgType = {
 export interface Prompt {
   id: number;
   title: string;
+  /** Full prompt body when the caller has access (author, admin, or purchase). Otherwise a ~120 character preview. */
   content: string;
+  /** True when content is a truncated preview because the caller has not purchased and is not the author/admin. */
+  isGated: boolean;
   /** @nullable */
   description?: string | null;
   categoryId: number;
@@ -166,6 +169,13 @@ export interface Library {
   promptCount: number;
   previewTitles: string[];
   isPublic: boolean;
+  /** collection for curated sets; saved for bookmarks */
+  kind?: string;
+  /**
+     * Collection price override in cents. Null means use the author's default.
+     * @nullable
+     */
+  priceCents?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -178,10 +188,21 @@ export interface LibraryDetail {
   authorUsername: string;
   authorDisplayName: string;
   isPublic: boolean;
+  kind?: string;
+  /** @nullable */
+  priceCents?: number | null;
   prompts: Prompt[];
   createdAt: string;
   updatedAt: string;
 }
+
+export type LibraryInputKind = typeof LibraryInputKind[keyof typeof LibraryInputKind];
+
+
+export const LibraryInputKind = {
+  collection: 'collection',
+  saved: 'saved',
+} as const;
 
 export interface LibraryInput {
   /** @minLength 1 */
@@ -189,6 +210,7 @@ export interface LibraryInput {
   description?: string;
   authorUsername: string;
   isPublic?: boolean;
+  kind?: LibraryInputKind;
 }
 
 export interface LibraryUpdate {

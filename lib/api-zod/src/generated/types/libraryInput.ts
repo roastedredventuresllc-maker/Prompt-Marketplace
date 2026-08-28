@@ -5,6 +5,7 @@
  * Prompt Marketplace API
  * OpenAPI spec version: 0.1.0
  */
+import type { LibraryInputKind } from './libraryInputKind';
 
 export interface LibraryInput {
   /** @minLength 1 */
@@ -12,4 +13,5 @@ export interface LibraryInput {
   description?: string;
   authorUsername: string;
   isPublic?: boolean;
+  kind?: LibraryInputKind;
 }

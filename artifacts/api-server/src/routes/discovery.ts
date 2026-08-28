@@ -9,6 +9,7 @@
  */
 
 import { Router, type Request, type Response } from "express";
+import { sendMcpDiscovery, MCP_SURFACES, AUTH_REQUIRED, advertisedMcpTools } from "../lib/mcpDiscovery";
 
 const router: Router = Router();
 
@@ -47,68 +48,71 @@ router.get("/.well-known/ai-plugin.json", (req: Request, res: Response) => {
 
 // ── /.well-known/mcp.json ─────────────────────────────────────────────────
 
-router.get("/.well-known/mcp.json", (req: Request, res: Response) => {
-  const base = baseUrl(req);
-  res.json({
-    mcpVersion: "2024-11-05",
-    name: "Promptly",
-    description: "AI prompt marketplace — search, preview, and purchase prompts programmatically.",
-    endpoint: `${base}/api/mcp`,
-    authentication: {
-      type: "bearer",
-      description: "Generate an API key at /settings on the Promptly site. Include it as: Authorization: Bearer sk_...",
-    },
-    tools: [
-      "search_prompts",
-      "get_prompt",
-      "get_balance",
-      "purchase_prompt",
-      "list_purchased",
-    ],
-  });
-});
+router.get("/.well-known/mcp.json", sendMcpDiscovery);
 
 // ── /llms.txt ─────────────────────────────────────────────────────────────
 
 router.get("/llms.txt", (req: Request, res: Response) => {
   const base = baseUrl(req);
+  const browse = MCP_SURFACES.browse.map((n) => `  ${n}`).join("\n");
+  const buy = MCP_SURFACES.buy.map((n) => `  ${n}`).join("\n");
+  const publish = MCP_SURFACES.publish.map((n) => `  ${n}`).join("\n");
+  const collect = MCP_SURFACES.collect.map((n) => `  ${n}`).join("\n");
+  const utilities = MCP_SURFACES.utilities.map((n) => `  ${n}`).join("\n");
   res.type("text/plain").send(`# Promptly — AI Prompt Marketplace
-> A marketplace where AI creators publish ready-to-use prompts across finance, law, marketing, writing, design, and more. AI agents can browse, preview, and purchase prompts programmatically.
+> A marketplace where AI creators publish ready-to-use prompts across finance, law, marketing, writing, design, and more. AI agents can browse, preview, buy, and publish prompts programmatically.
 
 ## What Promptly offers
-- 160+ curated prompts across 10+ categories
+- Curated prompts across 10+ categories
 - Individual prompts (typically $5) and curated collections (typically $100)
 - Programmatic access via REST API and MCP server
+- Full prompt text is gated until purchase (or you are the author)
 
 ## MCP Server (recommended for agents)
 Endpoint: ${base}/api/mcp
 Protocol: JSON-RPC 2.0, HTTP stateless transport
-Auth: Authorization: Bearer sk_...
+Discovery: GET ${base}/api/mcp  or  GET ${base}/.well-known/mcp.json
+Auth: Authorization: Bearer sk_...  (or ?key=sk_...)
+Note: GET /api/mcp is discovery only. Tool calls use POST.
 
-### Tools available (no auth required)
-- search_prompts(query?, category?, limit?)  — browse the catalog
-- get_prompt(id)                             — metadata + 300-char preview
+There are ${advertisedMcpTools().length} tools. Buy tools unlock others' prompts. Publish tools exist but are invite-only — not a public free-for-all.
 
-### Tools available (requires API key)
-- get_balance()                              — check remaining credits
-- purchase_prompt(id)                        — buy and immediately receive full text
-- list_purchased(limit?)                     — prompts you already own
+### Browse (no auth) — metadata + preview only
+${browse}
+
+### Utilities (no auth)
+${utilities}
+
+### Buy (API key) — spend credits, retrieve full text
+${buy}
+
+### Publish (API key, invite-only — not a public free-for-all)
+${publish}
+
+### Collect (API key)
+${collect}
+
+### Evaluate (API key)
+  create_review
+
+Tools that require a key: ${[...AUTH_REQUIRED].join(", ")}
 
 ## REST API (alternative)
 Base: ${base}/api
 Content-Type: application/json
 Auth: Authorization: Bearer sk_...  (same key as MCP)
 
-GET  /api/prompts                    List / search prompts
-GET  /api/prompts/:id               Single prompt (metadata + truncated content)
-GET  /api/prompts/:id/content       Full text (requires purchase)
+GET  /api/prompts                    List / search prompts (content is a preview unless purchased)
+GET  /api/prompts/:id               Single prompt (preview unless purchased / author)
+GET  /api/prompts/:id/content       Full text (requires purchase or ownership)
 GET  /api/categories                List categories
 POST /api/agent/purchase            { promptId } — buy with credits
 GET  /api/agent/balance             Check credits
 GET  /api/agent/purchased           Purchased prompt history
+GET  /api/mcp                       MCP discovery document (POST for JSON-RPC)
 
 ## Getting an API key
-1. Create an account at ${base.replace("api-server", "prompt-marketplace") || base}
+1. Create an account at ${base}
 2. Go to Settings → API Keys
 3. Click "Generate key" — copy the key immediately (shown once)
 4. Optionally top up credits from the same page
@@ -116,7 +120,7 @@ GET  /api/agent/purchased           Purchased prompt history
 ## Pricing
 - Individual prompts: set by creator, default $5
 - Credits are pre-loaded and deducted per purchase
-- Free preview (first 300 chars) available without authentication
+- Free preview (first ~120 chars on REST, 300 chars on MCP get_prompt) without authentication
 
 ## Crawler guidance
 - All public prompts are indexable
@@ -128,6 +132,7 @@ ${base}/openapi.json
 
 ## MCP discovery
 ${base}/.well-known/mcp.json
+${base}/api/mcp
 `);
 });
 
@@ -228,6 +233,12 @@ router.get("/openapi.json", (req: Request, res: Response) => {
         },
       },
       "/mcp": {
+        get: {
+          operationId: "mcpDiscover",
+          summary: "MCP discovery document (JSON-RPC is POST)",
+          responses: { "200": { description: "Endpoint, auth, and full tool/surface list" } },
+          security: [],
+        },
         post: {
           operationId: "mcpCall",
           summary: "MCP JSON-RPC 2.0 endpoint",

@@ -40,7 +40,9 @@ router.get("/analytics", async (req, res): Promise<void> => {
       SELECT
         item_id,
         COUNT(*)::int AS purchase_count,
-        COALESCE(SUM(price_cents), 0)::int AS revenue_cents
+        COALESCE(SUM(price_cents), 0)::int AS gross_cents,
+        COALESCE(SUM(commission_cents), 0)::int AS commission_cents,
+        COALESCE(SUM(net_cents), 0)::int AS net_cents
       FROM purchases
       WHERE item_type = 'prompt'
         AND item_id = ANY(ARRAY[${idList}]::int[])
@@ -52,7 +54,9 @@ router.get("/analytics", async (req, res): Promise<void> => {
       SELECT
         to_char(created_at, 'YYYY-MM') AS month,
         COUNT(*)::int AS purchases,
-        COALESCE(SUM(price_cents), 0)::int AS revenue_cents
+        COALESCE(SUM(price_cents), 0)::int AS gross_cents,
+        COALESCE(SUM(commission_cents), 0)::int AS commission_cents,
+        COALESCE(SUM(net_cents), 0)::int AS net_cents
       FROM purchases
       WHERE item_type = 'prompt'
         AND item_id = ANY(ARRAY[${idList}]::int[])
@@ -63,11 +67,13 @@ router.get("/analytics", async (req, res): Promise<void> => {
     monthlyRows = monthlyResult.rows as any[];
   }
 
-  const purchaseMap: Record<number, { count: number; revenue: number }> = {};
+  const purchaseMap: Record<number, { count: number; gross: number; commission: number; net: number }> = {};
   for (const row of purchaseRows) {
     purchaseMap[Number(row.item_id)] = {
       count: Number(row.purchase_count),
-      revenue: Number(row.revenue_cents),
+      gross: Number(row.gross_cents),
+      commission: Number(row.commission_cents),
+      net: Number(row.net_cents),
     };
   }
 
@@ -80,14 +86,18 @@ router.get("/analytics", async (req, res): Promise<void> => {
     ratingCount: p.ratingCount,
     isPublic: p.isPublic,
     purchaseCount: purchaseMap[p.id]?.count ?? 0,
-    revenueCents: purchaseMap[p.id]?.revenue ?? 0,
-  })).sort((a, b) => b.revenueCents - a.revenueCents);
+    grossRevenueCents: purchaseMap[p.id]?.gross ?? 0,
+    commissionCents: purchaseMap[p.id]?.commission ?? 0,
+    netRevenueCents: purchaseMap[p.id]?.net ?? 0,
+  })).sort((a, b) => b.netRevenueCents - a.netRevenueCents);
 
   const totals = {
     totalViews: enriched.reduce((s, p) => s + p.viewCount, 0),
     totalSaves: enriched.reduce((s, p) => s + p.saveCount, 0),
     totalPurchases: enriched.reduce((s, p) => s + p.purchaseCount, 0),
-    totalRevenueCents: enriched.reduce((s, p) => s + p.revenueCents, 0),
+    totalGrossRevenueCents: enriched.reduce((s, p) => s + p.grossRevenueCents, 0),
+    totalCommissionCents: enriched.reduce((s, p) => s + p.commissionCents, 0),
+    totalNetRevenueCents: enriched.reduce((s, p) => s + p.netRevenueCents, 0),
   };
 
   res.json({
@@ -96,7 +106,9 @@ router.get("/analytics", async (req, res): Promise<void> => {
     monthly: monthlyRows.map(r => ({
       month: r.month,
       purchases: Number(r.purchases),
-      revenueCents: Number(r.revenue_cents),
+      grossRevenueCents: Number(r.gross_cents),
+      commissionCents: Number(r.commission_cents),
+      netRevenueCents: Number(r.net_cents),
     })),
   });
 });

@@ -326,15 +326,14 @@ function ApiKeysPanel() {
     const amount = parseFloat(topupAmount);
     if (isNaN(amount) || amount <= 0) return;
     setTopupSaving(true);
-    const r = await fetch(`${basePath}/api/agent/keys/${id}/topup`, {
+    const r = await fetch(`${basePath}/api/checkout/topup/${id}`, {
       method: "POST", credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ amountDollars: amount }),
     });
-    if (r.ok) {
-      const data = await r.json();
-      setKeys((prev) => prev.map((k) => k.id === id ? { ...k, creditsCents: data.creditsCents } : k));
-    }
+    const data = await r.json();
+    if (r.ok && data.purchaseUrl) window.location.href = data.purchaseUrl;
+    else setError(data.error ?? "Unable to start credit checkout");
     setTopupSaving(false);
     setTopupId(null);
     setTopupAmount("");
@@ -431,6 +430,7 @@ function ApiKeysPanel() {
                     placeholder="10"
                     className="w-24 pl-7 pr-3 py-1.5 border border-black/[0.10] rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-foreground/20"
                   />
+                  <p className="absolute top-full left-0 mt-1 text-[10px] text-foreground/35 whitespace-nowrap">5% platform fee; 95% becomes credits</p>
                 </div>
                 <button type="submit" disabled={topupSaving}
                   className="px-3 py-1.5 bg-foreground text-background text-[12px] font-medium rounded-lg hover:opacity-80 disabled:opacity-50">
