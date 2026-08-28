@@ -13,12 +13,12 @@ A single Vercel project **can** serve both the frontend and the API when Root Di
 | Framework | Other (`vercel.json` sets `framework: null`) |
 | Root Directory | `.` (empty / repository root). **Not** `artifacts/api-server`. **Not** `artifacts/prompt-marketplace`. |
 | Install Command | `pnpm install` |
-| Build Command | `pnpm --filter @workspace/prompt-marketplace run build` |
+| Build Command | `pnpm --filter @workspace/prompt-marketplace run build && pnpm --filter @workspace/api-server run build` |
 | Output Directory | `artifacts/prompt-marketplace/dist/public` |
 | Node | `22.x` (`package.json` `engines` + `packageManager: pnpm@10.33.3`) |
-| Rewrites | `/api/:path*` → `/api?__path=:path*` (Express). SPA fallback → `/index.html`. |
+| Rewrites | `/api/:path*` → `/api?__path=:path*` (Express). SPA fallback `/:path*` → `/index.html`. |
 
-`api/index.ts` default-exports a Node handler that wraps `artifacts/api-server` Express. No `@replit/connectors-sdk`. Neon (`DATABASE_URL`), Clerk, and Whop (`WHOP_API_KEY`) are env vars.
+`api/index.ts` re-exports the pre-bundled Express handler (`dist/vercelHandler.mjs`). The Vite step is required; the api-server step is so Vercel does not compile the TS workspace graph (and does not need `DATABASE_URL`) while packing `/api`. No `@replit/connectors-sdk`.
 
 Do not use root `pnpm build` (typechecks Replit-only packages).
 

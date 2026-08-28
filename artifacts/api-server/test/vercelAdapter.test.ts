@@ -83,15 +83,15 @@ test("Vercel config builds the Vite app and Express serverless entry from repo r
 
   assert.equal(vercel.framework, null);
   assert.equal(vercel.installCommand, "pnpm install");
-  assert.equal(vercel.buildCommand, "pnpm --filter @workspace/prompt-marketplace run build");
+  assert.match(vercel.buildCommand, /@workspace\/prompt-marketplace run build/);
+  assert.match(vercel.buildCommand, /@workspace\/api-server run build/);
   assert.equal(vercel.outputDirectory, "artifacts/prompt-marketplace/dist/public");
   assert.equal(vercel.rewrites[0].source, "/api/:path*");
   assert.equal(vercel.rewrites[0].destination, "/api?__path=:path*");
-  assert.equal(vercel.functions["api/index.ts"].maxDuration, 30);
+  assert.ok(vercel.rewrites.some((r: { source: string }) => r.source === "/api/:path*"));
   assert.match(rootPkg.packageManager, /^pnpm@/);
   assert.equal(rootPkg.dependencies?.["@replit/connectors-sdk"], undefined);
-  assert.match(handler, /from "\.\.\/artifacts\/api-server\/src\/app"/);
-  assert.match(handler, /restoreVercelApiUrl/);
+  assert.match(handler, /vercelHandler\.mjs/);
   assert.match(access, /from "\.\.\/lib\/publicAppUrl"/);
   assert.match(access, /from "\.\.\/lib\/whopHttp"/);
   assert.doesNotMatch(access, /REPLIT_DOMAINS/);

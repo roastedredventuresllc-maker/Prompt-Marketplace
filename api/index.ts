@@ -1,14 +1,5 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
-import app from "../artifacts/api-server/src/app";
-import { restoreVercelApiUrl } from "../artifacts/api-server/src/lib/vercelRequestUrl";
-
 /**
- * Single Vercel Node function for the Express app.
- * vercel.json rewrites /api/:path* here and passes the rest as ?__path=.
+ * Vercel Node entry. Express is pre-bundled during buildCommand so packing
+ * this file does not typecheck the workspace graph or require DATABASE_URL.
  */
-export default function handler(req: IncomingMessage, res: ServerResponse) {
-  if (typeof req.url === "string") {
-    req.url = restoreVercelApiUrl(req.url);
-  }
-  return app(req, res);
-}
+export { default } from "../artifacts/api-server/dist/vercelHandler.mjs";

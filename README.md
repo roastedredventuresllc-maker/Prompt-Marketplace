@@ -11,9 +11,9 @@ Full settings, rewrites, and the two-project fallback: [VERCEL.md](./VERCEL.md).
 | Setting | Value |
 | --- | --- |
 | Install | `pnpm install` |
-| Build | `pnpm --filter @workspace/prompt-marketplace run build` |
+| Build | `pnpm --filter @workspace/prompt-marketplace run build && pnpm --filter @workspace/api-server run build` |
 | Output | `artifacts/prompt-marketplace/dist/public` |
-| API | `api/index.ts` wraps Express; `/api/:path*` rewrites to it |
+| API | `api/index.ts` re-exports the pre-bundled Express handler; `/api/:path*` rewrites to it |
 
 Do not use root `pnpm build` on Vercel.
 
