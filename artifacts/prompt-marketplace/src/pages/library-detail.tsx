@@ -260,10 +260,12 @@ export default function LibraryDetail() {
   const handleCopy = useCallback((e: React.MouseEvent, content: string, promptId: number) => {
     e.preventDefault();
     e.stopPropagation();
+    const item = library?.prompts?.find((p) => p.id === promptId) as PromptItem | undefined;
+    if (!item || item.isGated !== false) return;
     navigator.clipboard.writeText(content);
     setCopiedId(promptId);
     setTimeout(() => setCopiedId(null), 2000);
-  }, []);
+  }, [library]);
 
   async function handleBuyCollection() {
     if (!isSignedIn) return;

@@ -21,7 +21,7 @@ import {
   GetUserLibrariesParams,
   GetUserLibrariesResponse,
 } from "@workspace/api-zod";
-import { applyContentGate } from "../lib/contentGate";
+import { applyContentGate, gatePromptCollection, libraryMembershipUnlocksPrompt } from "../lib/contentGate";
 import { getAccessiblePromptIds, getCallerClerkUserId, loadOwnedLibrary } from "../lib/promptAccess";
 
 const router: IRouter = Router();
@@ -183,7 +183,8 @@ router.get("/libraries/:id", async (req, res): Promise<void> => {
   }
 
   const accessible = await getAccessiblePromptIds(getCallerClerkUserId(req), prompts.map((p) => p.id));
-  const promptItems = await Promise.all(prompts.map((p) => buildPromptItem(p, accessible.has(p.id))));
+  const built = await Promise.all(prompts.map((p) => buildPromptItem(p, true)));
+  const promptItems = gatePromptCollection(built, accessible);
 
   const result = {
     id: library.id,
@@ -285,10 +286,14 @@ router.post("/libraries/:id/prompts", async (req, res): Promise<void> => {
     return;
   }
 
-  const [promptExists] = await db.select({ id: promptsTable.id }).from(promptsTable)
+  const [promptRow] = await db.select().from(promptsTable)
     .where(and(eq(promptsTable.id, parsed.data.promptId), isNull(promptsTable.deletedAt)));
-  if (!promptExists) {
+  if (!promptRow) {
     res.status(404).json({ error: "Prompt not found" });
+    return;
+  }
+  if (!libraryMembershipUnlocksPrompt(promptRow.authorUsername, owned.library.authorUsername)) {
+    res.status(403).json({ error: "Collections may only include prompts from this collection's author" });
     return;
   }
 

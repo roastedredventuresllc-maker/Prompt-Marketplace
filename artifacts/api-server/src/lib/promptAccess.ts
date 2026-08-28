@@ -9,6 +9,7 @@ import {
   librariesTable,
 } from "@workspace/db";
 import { eq, and, inArray } from "drizzle-orm";
+import { libraryMembershipUnlocksPrompt } from "./contentGate";
 
 /** Clerk user id from a session cookie or from a Bearer API key. */
 export function getCallerClerkUserId(req: Request): string | null {
@@ -30,7 +31,8 @@ function isAuthorOrAdmin(
 /**
  * Batch access check for prompt bodies.
  * Access if the caller is the author / firm owner / firm admin,
- * has a direct prompt purchase, or purchased a library that contains the prompt.
+ * has a direct prompt purchase, or purchased a library whose author
+ * also authored the prompt (stuffed third-party members stay gated).
  */
 export async function getAccessiblePromptIds(
   clerkUserId: string | null,
@@ -80,8 +82,10 @@ export async function getAccessiblePromptIds(
     .select({
       libraryId: libraryPromptsTable.libraryId,
       promptId: libraryPromptsTable.promptId,
+      libraryAuthor: librariesTable.authorUsername,
     })
     .from(libraryPromptsTable)
+    .innerJoin(librariesTable, eq(libraryPromptsTable.libraryId, librariesTable.id))
     .where(inArray(libraryPromptsTable.promptId, stillRemaining));
 
   if (libRows.length === 0) return accessible;
@@ -98,8 +102,15 @@ export async function getAccessiblePromptIds(
       ),
     );
   const purchasedLibs = new Set(libPurchases.map((p) => p.itemId));
+  const promptAuthorById = new Map(promptRows.map((p) => [p.id, p.authorUsername]));
   for (const row of libRows) {
-    if (purchasedLibs.has(row.libraryId)) accessible.add(row.promptId);
+    const promptAuthor = promptAuthorById.get(row.promptId) ?? "";
+    if (
+      purchasedLibs.has(row.libraryId) &&
+      libraryMembershipUnlocksPrompt(promptAuthor, row.libraryAuthor)
+    ) {
+      accessible.add(row.promptId);
+    }
   }
 
   return accessible;

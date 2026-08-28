@@ -39,8 +39,8 @@
  *
  * Authoring (auth required)
  *   list_my_prompts         Your published/draft prompts
- *   create_prompt           Publish a new prompt
- *   create_prompts_bulk     Publish multiple prompts in one call
+ *   create_prompt           Publish a new prompt (invite-only)
+ *   create_prompts_bulk     Publish multiple prompts (invite-only)
  *   update_prompt           Edit a prompt you own
  *   delete_prompt           Soft-delete a prompt you own
  *   fork_prompt             Clone a prompt you own or purchased into a draft
@@ -64,6 +64,8 @@ import {
 import { eq, and, desc, asc, sql, isNull, ilike, or } from "drizzle-orm";
 import { calculateTransactionAmounts } from "../lib/commission";
 import { checkPromptAccess } from "../lib/promptAccess";
+import { AUTH_REQUIRED, MCP_SURFACES, sendMcpDiscovery } from "../lib/mcpDiscovery";
+import { libraryMembershipUnlocksPrompt } from "../lib/contentGate";
 
 const router: Router = Router();
 
@@ -321,7 +323,7 @@ const TOOLS = [
   },
   {
     name: "create_prompt",
-    description: "Publish a new prompt to the Promptly marketplace under your account.",
+    description: "Publish a new prompt to the Promptly marketplace under your account. Invite-only — not a public free-for-all. An API key does not grant open publishing.",
     inputSchema: {
       type: "object",
       properties: {
@@ -339,7 +341,7 @@ const TOOLS = [
   },
   {
     name: "create_prompts_bulk",
-    description: "Publish multiple prompts in one call. Each item uses the same schema as create_prompt. Returns results per prompt including any per-item errors.",
+    description: "Publish multiple prompts in one call. Invite-only — not a public free-for-all. Each item uses the same schema as create_prompt. Returns results per prompt including any per-item errors.",
     inputSchema: {
       type: "object",
       properties: {
@@ -452,77 +454,12 @@ const TOOLS = [
 ];
 
 export { TOOLS };
-
-export const AUTH_REQUIRED = new Set([
-  "whoami",
-  "create_category",
-  "save_prompt", "unsave_prompt", "list_saved",
-  "create_collection", "add_to_collection", "list_collections",
-  "create_review",
-  "list_my_prompts", "create_prompt", "create_prompts_bulk", "update_prompt", "delete_prompt", "fork_prompt",
-  "get_balance", "purchase_prompt", "list_purchased", "get_earnings", "list_transactions",
-]);
-
-/** Buy vs publish vs browse groupings advertised in discovery docs. */
-export const MCP_SURFACES = {
-  browse: [
-    "list_categories", "list_tags", "list_authors", "get_author",
-    "search_prompts", "get_prompt", "get_similar", "get_prompt_stats", "list_reviews",
-  ],
-  utilities: ["validate_prompt", "extract_variables"],
-  collect: [
-    "save_prompt", "unsave_prompt", "list_saved",
-    "create_collection", "add_to_collection", "list_collections",
-  ],
-  evaluate: ["create_review"],
-  publish: [
-    "whoami", "create_category", "list_my_prompts", "create_prompt", "create_prompts_bulk",
-    "update_prompt", "delete_prompt", "fork_prompt",
-  ],
-  buy: ["get_balance", "purchase_prompt", "list_purchased", "get_earnings", "list_transactions"],
-} as const;
+export { AUTH_REQUIRED, MCP_SURFACES };
 
 const advertisedTools = new Set<string>(Object.values(MCP_SURFACES).flatMap((names) => [...names]));
 const definedTools = new Set<string>(TOOLS.map((t) => t.name));
 if (advertisedTools.size !== definedTools.size || [...definedTools].some((n) => !advertisedTools.has(n))) {
   throw new Error("MCP_SURFACES is out of date with TOOLS — update discovery surfaces when adding MCP tools");
-}
-
-export function mcpDiscoveryPayload(endpoint: string) {
-  return {
-    mcpVersion: "2024-11-05",
-    name: "Promptly",
-    description: "AI prompt marketplace — browse, buy, and publish prompts programmatically.",
-    endpoint,
-    protocol: "JSON-RPC 2.0",
-    transport: "http",
-    usage: "POST a JSON-RPC 2.0 body to this URL. GET returns this discovery document.",
-    authentication: {
-      type: "bearer",
-      description: "Generate an API key at /settings. Include it as Authorization: Bearer sk_... or ?key=sk_...",
-    },
-    surfaces: {
-      browse: {
-        auth: "none",
-        description: "Catalog search and metadata. Prompt bodies are previews only — call purchase_prompt (buy) to unlock full text.",
-        tools: [...MCP_SURFACES.browse],
-      },
-      buy: {
-        auth: "bearer",
-        description: "Spend credits to purchase prompts and retrieve full text.",
-        tools: [...MCP_SURFACES.buy],
-      },
-      publish: {
-        auth: "bearer",
-        description: "Create and manage prompts you own. Distinct from buying others' prompts.",
-        tools: [...MCP_SURFACES.publish],
-      },
-      collect: { auth: "bearer", tools: [...MCP_SURFACES.collect] },
-      evaluate: { auth: "bearer", tools: [...MCP_SURFACES.evaluate] },
-      utilities: { auth: "none", tools: [...MCP_SURFACES.utilities] },
-    },
-    tools: TOOLS.map((t) => t.name),
-  };
 }
 
 // ── Shared helpers ─────────────────────────────────────────────────────────
@@ -1032,6 +969,13 @@ async function addToCollection(args: Record<string, any>, apiKey: ApiKey) {
   if (!lib) throw new Error(`Collection ${collectionId} not found`);
   if (lib.authorUsername !== user.username) throw new Error("Forbidden — you do not own this collection");
 
+  const [prompt] = await db.select().from(promptsTable)
+    .where(and(eq(promptsTable.id, promptId), isNull(promptsTable.deletedAt)));
+  if (!prompt) throw new Error(`Prompt ${promptId} not found`);
+  if (!libraryMembershipUnlocksPrompt(prompt.authorUsername, lib.authorUsername)) {
+    throw new Error("Forbidden — collections may only include prompts from this collection's author");
+  }
+
   const [existing] = await db.select().from(libraryPromptsTable)
     .where(and(eq(libraryPromptsTable.libraryId, collectionId), eq(libraryPromptsTable.promptId, promptId)));
   if (existing) return { alreadyAdded: true };
@@ -1522,12 +1466,7 @@ function jsonrpcOk(id: any, result: unknown) {
   return { jsonrpc: "2.0", id, result };
 }
 
-router.get("/mcp", (req, res): void => {
-  const proto = (req.headers["x-forwarded-proto"] as string) || req.protocol || "https";
-  const host = (req.headers["x-forwarded-host"] as string)?.split(",")[0]?.trim() || req.headers.host || "";
-  const endpoint = `${proto}://${host}/api/mcp`;
-  res.json(mcpDiscoveryPayload(endpoint));
-});
+router.get("/mcp", sendMcpDiscovery);
 
 router.post("/mcp", async (req, res): Promise<void> => {
   const apiKey = (req as any).apiKey as ApiKey | undefined;

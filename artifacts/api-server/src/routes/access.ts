@@ -9,8 +9,13 @@ import {
   libraryPromptsTable,
   apiKeysTable,
 } from "@workspace/db";
+<<<<<<< HEAD
 import { eq, and, inArray, sql } from "drizzle-orm";
 import { calculateTransactionAmounts } from "../lib/commission";
+=======
+import { eq, and, inArray } from "drizzle-orm";
+import { libraryMembershipUnlocksPrompt } from "../lib/contentGate";
+>>>>>>> 87a4a4a (Close catalog, copy, and MCP discovery holes.)
 
 const router: Router = Router();
 
@@ -90,13 +95,23 @@ router.get("/access/prompt/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  // Library purchase covering this prompt
-  const libRows = await db.select({ libraryId: libraryPromptsTable.libraryId }).from(libraryPromptsTable).where(eq(libraryPromptsTable.promptId, promptId));
-  if (libRows.length > 0) {
+  // Library purchase covering this prompt — only if the prompt is by the collection's author
+  const libRows = await db
+    .select({
+      libraryId: libraryPromptsTable.libraryId,
+      libraryAuthor: librariesTable.authorUsername,
+    })
+    .from(libraryPromptsTable)
+    .innerJoin(librariesTable, eq(libraryPromptsTable.libraryId, librariesTable.id))
+    .where(eq(libraryPromptsTable.promptId, promptId));
+  const covering = libRows.filter((row) =>
+    libraryMembershipUnlocksPrompt(promptForAuth?.authorUsername ?? "", row.libraryAuthor),
+  );
+  if (covering.length > 0) {
     const libPurchases = await db
       .select()
       .from(purchasesTable)
-      .where(and(eq(purchasesTable.clerkUserId, clerkUserId), eq(purchasesTable.itemType, "library"), inArray(purchasesTable.itemId, libRows.map((l) => l.libraryId))));
+      .where(and(eq(purchasesTable.clerkUserId, clerkUserId), eq(purchasesTable.itemType, "library"), inArray(purchasesTable.itemId, covering.map((l) => l.libraryId))));
     if (libPurchases.length > 0) {
       res.json({ hasAccess: true, reason: "library", freePromptsRemaining: Math.max(0, 3 - user.freePromptsUsed), priceCents: 0 });
       return;

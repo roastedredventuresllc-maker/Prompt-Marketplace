@@ -19,7 +19,7 @@ import {
   GetTrendingPromptsQueryParams,
   GetTrendingPromptsResponse,
 } from "@workspace/api-zod";
-import { applyContentGate } from "../lib/contentGate";
+import { applyContentGate, gatePromptCollection } from "../lib/contentGate";
 import { checkPromptAccess, getAccessiblePromptIds, getCallerClerkUserId } from "../lib/promptAccess";
 
 const router: IRouter = Router();
@@ -69,8 +69,8 @@ router.get("/prompts/trending", async (req, res): Promise<void> => {
     .limit(limit);
 
   const accessible = await getAccessiblePromptIds(getCallerClerkUserId(req), prompts.map((p) => p.id));
-  const results = await Promise.all(prompts.map((p) => buildPromptResponse(p, accessible.has(p.id))));
-  res.json(GetTrendingPromptsResponse.parse(results));
+  const built = await Promise.all(prompts.map((p) => buildPromptResponse(p, true)));
+  res.json(GetTrendingPromptsResponse.parse(gatePromptCollection(built, accessible)));
 });
 
 router.get("/prompts", async (req, res): Promise<void> => {
@@ -109,8 +109,8 @@ router.get("/prompts", async (req, res): Promise<void> => {
     .offset(offset);
 
   const accessible = await getAccessiblePromptIds(getCallerClerkUserId(req), prompts.map((p) => p.id));
-  const results = await Promise.all(prompts.map((p) => buildPromptResponse(p, accessible.has(p.id))));
-  res.json(ListPromptsResponse.parse({ prompts: results, total: countResult?.total ?? 0 }));
+  const built = await Promise.all(prompts.map((p) => buildPromptResponse(p, true)));
+  res.json(ListPromptsResponse.parse({ prompts: gatePromptCollection(built, accessible), total: countResult?.total ?? 0 }));
 });
 
 router.post("/prompts", async (req, res): Promise<void> => {

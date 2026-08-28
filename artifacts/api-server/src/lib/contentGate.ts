@@ -19,14 +19,38 @@ export function applyContentGate<T extends { content: string }>(
   return { ...prompt, content: truncateContent(prompt.content), isGated: true };
 }
 
-/** Contract for anonymous/unpurchased catalog payloads (GET /api/prompts). */
-export function assertAnonymousPromptListGated(body: {
-  prompts: Array<{ content: string; isGated: boolean }>;
-}): void {
-  if (!Array.isArray(body.prompts)) {
-    throw new Error("expected prompts array");
+/** Same gating used by list, trending, and nested library prompt payloads. */
+export function gatePromptCollection<T extends { id: number; content: string }>(
+  prompts: T[],
+  accessibleIds: ReadonlySet<number>,
+): Array<T & { isGated: boolean }> {
+  return prompts.map((p) => applyContentGate(p, accessibleIds.has(p.id)));
+}
+
+/** Copy UI must fail closed unless the API marked the body as ungated. */
+export function mayCopyPromptContent(isGated: boolean | undefined): boolean {
+  return isGated === false;
+}
+
+/**
+ * Buying or owning a collection must not unlock other people's prompt bodies.
+ * A library purchase/membership only covers prompts authored by that library's creator.
+ */
+export function libraryMembershipUnlocksPrompt(
+  promptAuthorUsername: string,
+  libraryAuthorUsername: string,
+): boolean {
+  return promptAuthorUsername === libraryAuthorUsername;
+}
+
+/** Contract for anonymous/unpurchased catalog payloads. */
+export function assertAnonymousCatalogGated(
+  prompts: Array<{ content: string; isGated: boolean }>,
+): void {
+  if (!Array.isArray(prompts) || prompts.length === 0) {
+    throw new Error("expected a non-empty prompts array");
   }
-  for (const prompt of body.prompts) {
+  for (const prompt of prompts) {
     if (prompt.isGated !== true) {
       throw new Error("expected isGated: true for anonymous catalog items");
     }
@@ -36,4 +60,11 @@ export function assertAnonymousPromptListGated(body: {
       );
     }
   }
+}
+
+/** @deprecated use assertAnonymousCatalogGated */
+export function assertAnonymousPromptListGated(body: {
+  prompts: Array<{ content: string; isGated: boolean }>;
+}): void {
+  assertAnonymousCatalogGated(body.prompts);
 }

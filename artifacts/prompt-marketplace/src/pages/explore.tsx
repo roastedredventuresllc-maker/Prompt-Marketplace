@@ -36,6 +36,7 @@ function PromptCard({ prompt }: { prompt: Prompt }) {
 
   function handleCopy(e: React.MouseEvent) {
     e.preventDefault(); e.stopPropagation();
+    if (prompt.isGated !== false) return;
     navigator.clipboard.writeText(prompt.content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

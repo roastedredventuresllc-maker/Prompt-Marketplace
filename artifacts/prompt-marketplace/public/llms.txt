@@ -12,7 +12,7 @@ Auth: Authorization: Bearer sk_...  (or ?key=sk_...)
 
 GET /api/mcp is discovery only. Tool calls use POST.
 
-Buy tools unlock other creators' prompts. Publish tools create your own. They are not interchangeable.
+Buy tools unlock other creators' prompts. Publish tools exist (`create_prompt`, `create_prompts_bulk`, …) but publishing is invite-only — not a public free-for-all. An API key is required and does not grant open publishing.
 
 ### Browse (no auth) — metadata + preview only
   list_categories, list_tags, list_authors, get_author
@@ -24,7 +24,7 @@ Buy tools unlock other creators' prompts. Publish tools create your own. They ar
 ### Buy (API key) — spend credits, retrieve full text
   get_balance, purchase_prompt, list_purchased, get_earnings, list_transactions
 
-### Publish (API key) — create and manage your prompts
+### Publish (API key, invite-only)
   whoami, create_category, list_my_prompts, create_prompt, create_prompts_bulk
   update_prompt, delete_prompt, fork_prompt
 

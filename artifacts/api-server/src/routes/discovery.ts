@@ -9,7 +9,7 @@
  */
 
 import { Router, type Request, type Response } from "express";
-import { mcpDiscoveryPayload, MCP_SURFACES, TOOLS, AUTH_REQUIRED } from "./mcp";
+import { sendMcpDiscovery, MCP_SURFACES, AUTH_REQUIRED, advertisedMcpTools } from "../lib/mcpDiscovery";
 
 const router: Router = Router();
 
@@ -48,10 +48,7 @@ router.get("/.well-known/ai-plugin.json", (req: Request, res: Response) => {
 
 // ── /.well-known/mcp.json ─────────────────────────────────────────────────
 
-router.get("/.well-known/mcp.json", (req: Request, res: Response) => {
-  const base = baseUrl(req);
-  res.json(mcpDiscoveryPayload(`${base}/api/mcp`));
-});
+router.get("/.well-known/mcp.json", sendMcpDiscovery);
 
 // ── /llms.txt ─────────────────────────────────────────────────────────────
 
@@ -78,7 +75,7 @@ Discovery: GET ${base}/api/mcp  or  GET ${base}/.well-known/mcp.json
 Auth: Authorization: Bearer sk_...  (or ?key=sk_...)
 Note: GET /api/mcp is discovery only. Tool calls use POST.
 
-There are ${TOOLS.length} tools. Buy tools unlock others' prompts; publish tools create your own. They are not interchangeable.
+There are ${advertisedMcpTools().length} tools. Buy tools unlock others' prompts. Publish tools exist but are invite-only — not a public free-for-all.
 
 ### Browse (no auth) — metadata + preview only
 ${browse}
@@ -89,7 +86,7 @@ ${utilities}
 ### Buy (API key) — spend credits, retrieve full text
 ${buy}
 
-### Publish (API key) — create and manage your prompts
+### Publish (API key, invite-only — not a public free-for-all)
 ${publish}
 
 ### Collect (API key)
