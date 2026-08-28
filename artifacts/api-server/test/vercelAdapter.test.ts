@@ -65,21 +65,17 @@ test("Vercel config builds the Vite app and Express serverless entry from repo r
   const rootPkg = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8"));
   const access = readFileSync(join(apiRoot, "src/routes/access.ts"), "utf8");
   const vite = readFileSync(join(repoRoot, "artifacts/prompt-marketplace/vite.config.ts"), "utf8");
-  const handler = readFileSync(join(repoRoot, "api/index.mjs"), "utf8");
-  const catchAll = readFileSync(join(repoRoot, "api/[...path].mjs"), "utf8");
+  const handler = readFileSync(join(repoRoot, "api/index.ts"), "utf8");
 
   assert.equal(vercel.framework, null);
   assert.equal(vercel.installCommand, "pnpm install");
-  assert.equal(vercel.buildCommand, "pnpm run build:vercel");
+  assert.equal(vercel.buildCommand, "pnpm --filter @workspace/prompt-marketplace run build");
   assert.equal(vercel.outputDirectory, "artifacts/prompt-marketplace/dist/public");
-  assert.ok(vercel.functions["api/index.mjs"]);
-  assert.ok(vercel.functions["api/[...path].mjs"]);
+  assert.equal(vercel.rewrites[0].source, "/api/:path*");
+  assert.equal(vercel.rewrites[0].destination, "/api");
   assert.match(rootPkg.packageManager, /^pnpm@/);
-  assert.match(rootPkg.scripts["build:vercel"], /prompt-marketplace/);
-  assert.match(rootPkg.scripts["build:vercel"], /api-server/);
   assert.equal(rootPkg.dependencies?.["@replit/connectors-sdk"], undefined);
-  assert.match(handler, /vercelHandler\.mjs/);
-  assert.match(catchAll, /vercelHandler\.mjs/);
+  assert.match(handler, /from "\.\.\/artifacts\/api-server\/src\/app"/);
   assert.match(access, /from "\.\.\/lib\/publicAppUrl"/);
   assert.match(access, /from "\.\.\/lib\/whopHttp"/);
   assert.doesNotMatch(access, /REPLIT_DOMAINS/);

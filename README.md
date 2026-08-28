@@ -9,9 +9,9 @@ Import this GitHub repo with **Root Directory** `.`. `vercel.json` sets `framewo
 | Setting | Value |
 | --- | --- |
 | Install | `pnpm install` (honors `.npmrc` and the root `preinstall` guard) |
-| Build | `pnpm run build:vercel` |
+| Build | `pnpm --filter @workspace/prompt-marketplace run build` |
 | Output | `artifacts/prompt-marketplace/dist/public` |
-| API | `api/index.mjs` + `api/[...path].mjs` — Express. `/api/*` hits the app. |
+| API | `api/index.ts` — default-exports the Express app. `/api/*` rewrites to it. |
 
 Do not use root `pnpm build` on Vercel (that typechecks the whole monorepo, including Replit-only artifacts).
 
