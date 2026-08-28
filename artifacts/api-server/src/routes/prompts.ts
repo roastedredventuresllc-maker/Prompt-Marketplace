@@ -19,8 +19,8 @@ import {
   GetTrendingPromptsQueryParams,
   GetTrendingPromptsResponse,
 } from "@workspace/api-zod";
-import { applyContentGate, gatePromptCollection } from "../lib/contentGate";
-import { checkPromptAccess, getAccessiblePromptIds, getCallerClerkUserId } from "../lib/promptAccess";
+import { applyContentGate, gatedPromptListResponse, gatedTrendingResponse } from "../lib/contentGate";
+import { checkPromptAccess, getAccessiblePromptIds, getCallerClerkUserId, requirePublisher } from "../lib/promptAccess";
 
 const router: IRouter = Router();
 
@@ -70,7 +70,7 @@ router.get("/prompts/trending", async (req, res): Promise<void> => {
 
   const accessible = await getAccessiblePromptIds(getCallerClerkUserId(req), prompts.map((p) => p.id));
   const built = await Promise.all(prompts.map((p) => buildPromptResponse(p, true)));
-  res.json(GetTrendingPromptsResponse.parse(gatePromptCollection(built, accessible)));
+  res.json(GetTrendingPromptsResponse.parse(gatedTrendingResponse(built, accessible)));
 });
 
 router.get("/prompts", async (req, res): Promise<void> => {
@@ -110,12 +110,18 @@ router.get("/prompts", async (req, res): Promise<void> => {
 
   const accessible = await getAccessiblePromptIds(getCallerClerkUserId(req), prompts.map((p) => p.id));
   const built = await Promise.all(prompts.map((p) => buildPromptResponse(p, true)));
-  res.json(ListPromptsResponse.parse({ prompts: gatePromptCollection(built, accessible), total: countResult?.total ?? 0 }));
+  res.json(ListPromptsResponse.parse(gatedPromptListResponse(built, accessible, countResult?.total ?? 0)));
 });
 
 router.post("/prompts", async (req, res): Promise<void> => {
   const parsed = CreatePromptBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+
+  const publisher = await requirePublisher(getCallerClerkUserId(req), parsed.data.authorUsername);
+  if (!publisher.ok) {
+    res.status(publisher.status).json({ error: publisher.error });
+    return;
+  }
 
   const [prompt] = await db.insert(promptsTable).values({
     title: parsed.data.title,
@@ -124,7 +130,7 @@ router.post("/prompts", async (req, res): Promise<void> => {
     categoryId: parsed.data.categoryId,
     subcategoryId: (parsed.data as any).subcategoryId ?? null,
     tags: parsed.data.tags ?? [],
-    authorUsername: parsed.data.authorUsername,
+    authorUsername: publisher.authorUsername,
     isPublic: parsed.data.isPublic ?? true,
   }).returning();
 

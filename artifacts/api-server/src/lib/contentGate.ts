@@ -27,6 +27,23 @@ export function gatePromptCollection<T extends { id: number; content: string }>(
   return prompts.map((p) => applyContentGate(p, accessibleIds.has(p.id)));
 }
 
+/** Exact JSON body for GET /api/prompts — routes must call this, not emit raw rows. */
+export function gatedPromptListResponse<T extends { id: number; content: string }>(
+  prompts: T[],
+  accessibleIds: ReadonlySet<number>,
+  total: number,
+): { prompts: Array<T & { isGated: boolean }>; total: number } {
+  return { prompts: gatePromptCollection(prompts, accessibleIds), total };
+}
+
+/** Exact JSON body for GET /api/prompts/trending. */
+export function gatedTrendingResponse<T extends { id: number; content: string }>(
+  prompts: T[],
+  accessibleIds: ReadonlySet<number>,
+): Array<T & { isGated: boolean }> {
+  return gatePromptCollection(prompts, accessibleIds);
+}
+
 /** Copy UI must fail closed unless the API marked the body as ungated. */
 export function mayCopyPromptContent(isGated: boolean | undefined): boolean {
   return isGated === false;
@@ -41,6 +58,20 @@ export function libraryMembershipUnlocksPrompt(
   libraryAuthorUsername: string,
 ): boolean {
   return promptAuthorUsername === libraryAuthorUsername;
+}
+
+/**
+ * Bookmark lists (`saved`) may point at any prompt; sellable collections may
+ * only include the author's own work. Buyers never get third-party bodies
+ * either way — see libraryMembershipUnlocksPrompt.
+ */
+export function canAddPromptToLibrary(
+  libraryKind: string | null | undefined,
+  promptAuthorUsername: string,
+  libraryAuthorUsername: string,
+): boolean {
+  if (libraryKind === "saved") return true;
+  return libraryMembershipUnlocksPrompt(promptAuthorUsername, libraryAuthorUsername);
 }
 
 /** Contract for anonymous/unpurchased catalog payloads. */

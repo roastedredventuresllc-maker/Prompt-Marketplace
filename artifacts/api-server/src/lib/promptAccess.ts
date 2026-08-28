@@ -124,6 +124,34 @@ export async function checkPromptAccess(
   return set.has(promptId);
 }
 
+/**
+ * Signed-in user (Clerk session or API key) who may publish as `requestedUsername`
+ * (their profile, or a firm they own/admin). Invite-only publishing starts here:
+ * unauthenticated callers cannot create prompts or libraries.
+ */
+export async function requirePublisher(
+  clerkUserId: string | null,
+  requestedUsername?: string | null,
+): Promise<
+  | { ok: true; authorUsername: string }
+  | { ok: false; status: 401 | 403; error: string }
+> {
+  if (!clerkUserId) return { ok: false, status: 401, error: "Unauthorized" };
+
+  let username = requestedUsername?.trim() || null;
+  if (!username) {
+    const [self] = await db.select().from(usersTable).where(eq(usersTable.clerkUserId, clerkUserId));
+    if (!self) return { ok: false, status: 401, error: "Unauthorized" };
+    username = self.username;
+  }
+
+  const [profile] = await db.select().from(usersTable).where(eq(usersTable.username, username));
+  if (!profile || !isAuthorOrAdmin(profile, clerkUserId)) {
+    return { ok: false, status: 403, error: "Forbidden" };
+  }
+  return { ok: true, authorUsername: profile.username };
+}
+
 export async function loadOwnedLibrary(
   clerkUserId: string | null,
   libraryId: number,

@@ -21,8 +21,8 @@ import {
   GetUserLibrariesParams,
   GetUserLibrariesResponse,
 } from "@workspace/api-zod";
-import { applyContentGate, gatePromptCollection, libraryMembershipUnlocksPrompt } from "../lib/contentGate";
-import { getAccessiblePromptIds, getCallerClerkUserId, loadOwnedLibrary } from "../lib/promptAccess";
+import { applyContentGate, canAddPromptToLibrary, gatePromptCollection } from "../lib/contentGate";
+import { getAccessiblePromptIds, getCallerClerkUserId, loadOwnedLibrary, requirePublisher } from "../lib/promptAccess";
 
 const router: IRouter = Router();
 
@@ -137,12 +137,18 @@ router.post("/libraries", async (req, res): Promise<void> => {
     return;
   }
 
+  const publisher = await requirePublisher(getCallerClerkUserId(req), parsed.data.authorUsername);
+  if (!publisher.ok) {
+    res.status(publisher.status).json({ error: publisher.error });
+    return;
+  }
+
   const [library] = await db
     .insert(librariesTable)
     .values({
       name: parsed.data.name,
       description: parsed.data.description ?? null,
-      authorUsername: parsed.data.authorUsername,
+      authorUsername: publisher.authorUsername,
       isPublic: parsed.data.isPublic ?? true,
     } as any)
     .returning();
@@ -208,6 +214,12 @@ router.patch("/libraries/:id", async (req, res): Promise<void> => {
   const params = UpdateLibraryParams.safeParse({ id: parseInt(rawId, 10) });
   if (!params.success) {
     res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+
+  const owned = await loadOwnedLibrary(getCallerClerkUserId(req), params.data.id);
+  if (!owned.ok) {
+    res.status(owned.status).json({ error: owned.error });
     return;
   }
 
@@ -292,7 +304,7 @@ router.post("/libraries/:id/prompts", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Prompt not found" });
     return;
   }
-  if (!libraryMembershipUnlocksPrompt(promptRow.authorUsername, owned.library.authorUsername)) {
+  if (!canAddPromptToLibrary((owned.library as { kind?: string }).kind, promptRow.authorUsername, owned.library.authorUsername)) {
     res.status(403).json({ error: "Collections may only include prompts from this collection's author" });
     return;
   }

@@ -65,7 +65,7 @@ import { eq, and, desc, asc, sql, isNull, ilike, or } from "drizzle-orm";
 import { calculateTransactionAmounts } from "../lib/commission";
 import { checkPromptAccess } from "../lib/promptAccess";
 import { AUTH_REQUIRED, MCP_SURFACES, sendMcpDiscovery } from "../lib/mcpDiscovery";
-import { libraryMembershipUnlocksPrompt } from "../lib/contentGate";
+import { canAddPromptToLibrary } from "../lib/contentGate";
 
 const router: Router = Router();
 
@@ -972,7 +972,7 @@ async function addToCollection(args: Record<string, any>, apiKey: ApiKey) {
   const [prompt] = await db.select().from(promptsTable)
     .where(and(eq(promptsTable.id, promptId), isNull(promptsTable.deletedAt)));
   if (!prompt) throw new Error(`Prompt ${promptId} not found`);
-  if (!libraryMembershipUnlocksPrompt(prompt.authorUsername, lib.authorUsername)) {
+  if (!canAddPromptToLibrary(lib.kind, prompt.authorUsername, lib.authorUsername)) {
     throw new Error("Forbidden — collections may only include prompts from this collection's author");
   }
 

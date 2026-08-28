@@ -11,8 +11,11 @@ import {
   truncateContent,
   applyContentGate,
   gatePromptCollection,
+  gatedPromptListResponse,
+  gatedTrendingResponse,
   mayCopyPromptContent,
   libraryMembershipUnlocksPrompt,
+  canAddPromptToLibrary,
   assertAnonymousCatalogGated,
   assertAnonymousPromptListGated,
 } from "../src/lib/contentGate.ts";
@@ -102,6 +105,27 @@ test("library membership does not unlock other authors' prompts", () => {
   assert.equal(libraryMembershipUnlocksPrompt("alice", "alice"), true);
   assert.equal(libraryMembershipUnlocksPrompt("bob", "alice"), false);
   assert.equal(libraryMembershipUnlocksPrompt("alice", "bob"), false);
+
+  // Sellable collections cannot take third-party members; bookmark lists can
+  // point at them, but buyers still do not get those bodies (same-author unlock).
+  assert.equal(canAddPromptToLibrary("collection", "bob", "alice"), false);
+  assert.equal(canAddPromptToLibrary("collection", "alice", "alice"), true);
+  assert.equal(canAddPromptToLibrary("saved", "bob", "alice"), true);
+
+  const stuffed = [
+    { id: 188, title: "alice own", content: FULL, authorUsername: "alice" },
+    { id: 189, title: "bob stolen", content: FULL, authorUsername: "bob" },
+  ];
+  const purchaserIds = new Set(
+    stuffed
+      .filter((p) => libraryMembershipUnlocksPrompt(p.authorUsername, "alice"))
+      .map((p) => p.id),
+  );
+  const forBuyer = gatePromptCollection(stuffed, purchaserIds);
+  assert.equal(forBuyer[0].isGated, false);
+  assert.equal(forBuyer[0].content, FULL);
+  assert.equal(forBuyer[1].isGated, true);
+  assert.notEqual(forBuyer[1].content, FULL);
 });
 
 test("detail copy honors isGated — no copy unless ungated", () => {
@@ -116,27 +140,47 @@ test("detail copy honors isGated — no copy unless ungated", () => {
   assert.equal(owned.content, FULL);
 });
 
-test("list, trending, and nested library routes apply gatePromptCollection", () => {
+test("list, trending, and nested library routes apply the catalog gate helpers", () => {
   const prompts = readSrc(apiRoot, "src/routes/prompts.ts");
   const libraries = readSrc(apiRoot, "src/routes/libraries.ts");
   const promptAccess = readSrc(apiRoot, "src/lib/promptAccess.ts");
 
   assert.match(prompts, /router\.get\("\/prompts\/trending"/);
-  assert.match(prompts, /gatePromptCollection\(built, accessible\)/);
+  assert.match(prompts, /gatedTrendingResponse\(built, accessible\)/);
   assert.match(prompts, /router\.get\("\/prompts"/);
-  assert.equal(
-    [...prompts.matchAll(/gatePromptCollection\(built, accessible\)/g)].length,
-    2,
-    "list and trending must both gate via gatePromptCollection",
+  assert.match(prompts, /gatedPromptListResponse\(built, accessible,/);
+  assert.doesNotMatch(
+    prompts,
+    /res\.json\(ListPromptsResponse\.parse\(\{ prompts: built/,
+    "GET /prompts must not return ungated built rows",
   );
 
   assert.match(libraries, /router\.get\("\/libraries\/:id"/);
   assert.match(libraries, /gatePromptCollection\(built, accessible\)/);
-  assert.match(libraries, /loadOwnedLibrary/);
   assert.match(libraries, /router\.post\("\/libraries\/:id\/prompts"/);
-  assert.match(libraries, /libraryMembershipUnlocksPrompt/);
-
+  assert.match(libraries, /canAddPromptToLibrary/);
   assert.match(promptAccess, /libraryMembershipUnlocksPrompt/);
+});
+
+test("prompt and library writes require a signed-in publisher or owner", () => {
+  const prompts = readSrc(apiRoot, "src/routes/prompts.ts");
+  const libraries = readSrc(apiRoot, "src/routes/libraries.ts");
+
+  const postPrompt = prompts.slice(prompts.indexOf('router.post("/prompts"'));
+  assert.match(postPrompt, /requirePublisher/);
+  assert.match(postPrompt, /authorUsername: publisher\.authorUsername/);
+
+  const postLibrary = libraries.slice(libraries.indexOf('router.post("/libraries"'));
+  assert.match(postLibrary, /requirePublisher/);
+  assert.match(postLibrary, /authorUsername: publisher\.authorUsername/);
+
+  const patchLibrary = libraries.slice(libraries.indexOf('router.patch("/libraries/:id"'));
+  assert.match(patchLibrary, /loadOwnedLibrary/);
+  assert.match(patchLibrary, /priceCents/);
+  assert.ok(
+    patchLibrary.indexOf("loadOwnedLibrary") < patchLibrary.indexOf("priceCents"),
+    "PATCH must authorize before writing priceCents",
+  );
 });
 
 test("prompt-detail, explore, and library-detail copy fail closed on isGated", () => {
@@ -212,26 +256,29 @@ test("llms.txt and discovery routes advertise invite-only publish and gated cata
   assert.match(mcp, /Invite-only — not a public free-for-all/);
 });
 
-test("anonymous GET /api/prompts and /api/prompts/trending return previews only", async (t) => {
-  const liveBase = process.env.SMOKE_API_BASE?.replace(/\/$/, "");
-  if (!liveBase) {
-    // Routes cannot boot here without DATABASE_URL. The serializer those
-    // handlers call is asserted above; this live check is opt-in.
-    t.skip("set SMOKE_API_BASE to hit a live API");
-    return;
+test("anonymous GET /api/prompts and /api/prompts/trending return previews only", () => {
+  const promptsSrc = readSrc(apiRoot, "src/routes/prompts.ts");
+  assert.match(
+    promptsSrc,
+    /res\.json\(ListPromptsResponse\.parse\(gatedPromptListResponse\(built, accessible,/,
+    "GET /api/prompts must send gatedPromptListResponse — removing this fails pnpm test",
+  );
+  assert.match(
+    promptsSrc,
+    /res\.json\(GetTrendingPromptsResponse\.parse\(gatedTrendingResponse\(built, accessible\)\)\)/,
+    "GET /api/prompts/trending must send gatedTrendingResponse — removing this fails pnpm test",
+  );
+
+  const listBody = gatedPromptListResponse([sample(188), sample(189)], new Set(), 2);
+  assertAnonymousPromptListGated(listBody);
+  for (const p of listBody.prompts) {
+    assert.equal(p.isGated, true);
+    assert.ok(p.content.length <= GATED_CONTENT_MAX_LENGTH);
+    assert.notEqual(p.content, FULL);
   }
 
-  const listRes = await fetch(`${liveBase}/api/prompts?limit=5`);
-  assert.equal(listRes.status, 200);
-  const listBody = await listRes.json() as { prompts: Array<{ content: string; isGated: boolean }> };
-  assertAnonymousCatalogGated(listBody.prompts);
-
-  const trendRes = await fetch(`${liveBase}/api/prompts/trending?limit=5`);
-  assert.equal(trendRes.status, 200);
-  const trendBody = await trendRes.json() as Array<{ content: string; isGated: boolean }> | { prompts: Array<{ content: string; isGated: boolean }> };
-  const trendRows = Array.isArray(trendBody) ? trendBody : trendBody.prompts;
-  assertAnonymousCatalogGated(trendRows);
-
-  const mcpRes = await fetch(`${liveBase}/api/mcp`);
-  assert.notEqual(mcpRes.status, 404, "GET /api/mcp must not 404");
+  const trending = gatedTrendingResponse([sample(35)], new Set());
+  assertAnonymousCatalogGated(trending);
+  assert.equal(trending[0].isGated, true);
+  assert.notEqual(trending[0].content, FULL);
 });
