@@ -7,7 +7,7 @@ import {
   Key, Plus, Trash2, Eye, Copy, Check, RefreshCw, Plug,
 } from "lucide-react";
 
-const MCP_URL = "https://prompt-marketplace99.replit.app/api/mcp";
+const MCP_URL = "https://promptlymcp.com/api/mcp";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 

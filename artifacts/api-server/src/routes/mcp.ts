@@ -471,7 +471,7 @@ async function resolveUser(clerkUserId: string) {
 
 async function requireUser(clerkUserId: string): Promise<typeof usersTable.$inferSelect> {
   const user = await resolveUser(clerkUserId);
-  if (!user) throw new Error("No Promptly profile found for this API key. Complete onboarding at https://prompt-marketplace99.replit.app/onboarding first.");
+  if (!user) throw new Error("No Promptly profile found for this API key. Complete onboarding at https://promptlymcp.com/onboarding first.");
   return user;
 }
 
@@ -1484,7 +1484,7 @@ router.post("/mcp", async (req, res): Promise<void> => {
         protocolVersion: "2024-11-05",
         capabilities: { tools: {} },
         serverInfo: { name: "Promptly", version: "2.0.0" },
-        instructions: `Promptly is an AI prompt marketplace with ${TOOLS.length} tools. Start with whoami() to confirm your account, list_categories() to orient yourself, then search_prompts() to browse. Use validate_prompt() and extract_variables() before publishing. All writes require a Bearer API key — get one at https://prompt-marketplace99.replit.app/settings.`,
+        instructions: `Promptly is an AI prompt marketplace with ${TOOLS.length} tools. Start with whoami() to confirm your account, list_categories() to orient yourself, then search_prompts() to browse. Use validate_prompt() and extract_variables() before publishing. All writes require a Bearer API key — get one at https://promptlymcp.com/settings.`,
       }));
       return;
     }
@@ -1501,7 +1501,7 @@ router.post("/mcp", async (req, res): Promise<void> => {
       if (AUTH_REQUIRED.has(name) && !apiKey) {
         // isError:true shows the real message in Claude — protocol errors (-32xxx) collapse to "Error occurred during tool execution"
         res.json(jsonrpcOk(id, {
-          content: [{ type: "text", text: `"${name}" requires authentication.\n\nProvide your API key:\n  • Header:    Authorization: Bearer sk_...\n  • URL param:  ?key=sk_...\n\nGet a key at https://prompt-marketplace99.replit.app/settings` }],
+          content: [{ type: "text", text: `"${name}" requires authentication.\n\nProvide your API key:\n  • Header:    Authorization: Bearer sk_...\n  • URL param:  ?key=sk_...\n\nGet a key at https://promptlymcp.com/settings` }],
           isError: true,
         }));
         return;
