@@ -244,7 +244,6 @@ router.post("/agent/purchase", async (req, res): Promise<void> => {
 
   // Determine price
   const priceCents = author?.promptPriceCents ?? 500;
-  const amounts = calculateTransactionAmounts(priceCents);
 
   // Free prompt — no credits needed
   if (priceCents === 0) {
@@ -261,9 +260,10 @@ router.post("/agent/purchase", async (req, res): Promise<void> => {
     return;
   }
 
-  // Check credits
+  // Check credits before any charge. Return 400 (not 402): Replit/Google Frontend
+  // rewrites 402 Payment Required into HTML 500 Internal Server Error.
   if (apiKey.creditsCents < priceCents) {
-    res.status(402).json({
+    res.status(400).json({
       error: "Insufficient credits",
       required: priceCents,
       available: apiKey.creditsCents,
@@ -271,6 +271,8 @@ router.post("/agent/purchase", async (req, res): Promise<void> => {
     });
     return;
   }
+
+  const amounts = calculateTransactionAmounts(priceCents);
 
   // Deduct credits atomically and record purchase
   await db.update(apiKeysTable).set({ creditsCents: apiKey.creditsCents - priceCents }).where(eq(apiKeysTable.id, apiKey.id));

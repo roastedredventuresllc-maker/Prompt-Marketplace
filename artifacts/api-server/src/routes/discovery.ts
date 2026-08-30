@@ -206,7 +206,7 @@ router.get("/openapi.json", (req: Request, res: Response) => {
           },
           responses: {
             "200": { description: "Purchase successful, full content returned" },
-            "402": { description: "Insufficient credits" },
+            "400": { description: "Insufficient credits" },
           },
         },
       },
